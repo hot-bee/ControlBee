@@ -1,9 +1,11 @@
 ﻿using System.Collections.Concurrent;
+using log4net;
 
 namespace ControlBee;
 
 public class Actor : IActor, IDisposable
 {
+    private static readonly ILog Logger = LogManager.GetLogger(typeof(Actor));
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly BlockingCollection<Message> _mailbox = new();
 
@@ -12,6 +14,7 @@ public class Actor : IActor, IDisposable
 
     public Actor()
     {
+        Logger.Info("Instantiating Actor.");
         _thread = new Thread(RunThread);
     }
 
@@ -28,12 +31,15 @@ public class Actor : IActor, IDisposable
 
     public void Dispose()
     {
+        Logger.Info("Disposing Actor.");
         _cancellationTokenSource.Cancel();
         _thread.Join();
+        Logger.Info("Disposed Actor.");
     }
 
     public void Start()
     {
+        Logger.Info("Starting Actor.");
         _thread.Start();
     }
 
@@ -47,9 +53,9 @@ public class Actor : IActor, IDisposable
                 Process(message);
             }
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException e)
         {
-            // TODO: Log here.
+            Logger.Info(e);
         }
     }
 
