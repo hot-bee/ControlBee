@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using ControlBee.Models;
 using JetBrains.Annotations;
 using Xunit;
 
-namespace ControlBee.Tests;
+namespace ControlBee.Tests.Models;
 
 [TestSubject(typeof(Actor))]
 public class ActorTest

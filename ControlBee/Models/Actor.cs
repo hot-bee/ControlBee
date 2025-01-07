@@ -1,7 +1,8 @@
 ﻿using System.Collections.Concurrent;
+using ControlBee.Interfaces;
 using log4net;
 
-namespace ControlBee;
+namespace ControlBee.Models;
 
 public class Actor : IActor, IDisposable
 {
@@ -9,20 +10,29 @@ public class Actor : IActor, IDisposable
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly BlockingCollection<Message> _mailbox = new();
 
-    private readonly Action<IActor, Message>? _processHandler;
+    private readonly Action<IActor, Message>? _messageHandler;
     private readonly Thread _thread;
 
-    public Actor()
+    public Actor() : this(new ActorConfig(string.Empty))
     {
-        Logger.Info("Instantiating Actor.");
-        _thread = new Thread(RunThread);
     }
 
-    public Actor(Action<IActor, Message> processHandler)
+    public Actor(Action<IActor, Message> messageHandler)
         : this()
     {
-        _processHandler = processHandler;
+        _messageHandler = messageHandler;
     }
+
+    public Actor(ActorConfig config)
+    {
+        Logger.Info("Creating an instance of Actor.");
+        _thread = new Thread(RunThread);
+        VariableManager = config.VariableManager;
+        ActorName = config.ActorName;
+    }
+
+    public IVariableManager? VariableManager { get; }
+    public string ActorName { get; }
 
     public void Send(Message message)
     {
@@ -31,15 +41,15 @@ public class Actor : IActor, IDisposable
 
     public void Dispose()
     {
-        Logger.Info("Disposing Actor.");
+        Logger.Info("Releasing resources for Actor instance.");
         _cancellationTokenSource.Cancel();
         _thread.Join();
-        Logger.Info("Disposed Actor.");
+        Logger.Info("Actor instance successfully disposed.");
     }
 
     public void Start()
     {
-        Logger.Info("Starting Actor.");
+        Logger.Info("Starting Actor instance.");
         _thread.Start();
     }
 
@@ -61,7 +71,7 @@ public class Actor : IActor, IDisposable
 
     protected virtual void Process(Message message)
     {
-        _processHandler?.Invoke(this, message);
+        _messageHandler?.Invoke(this, message);
     }
 
     public void Join()

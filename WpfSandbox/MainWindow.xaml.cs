@@ -11,6 +11,6 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        Label1.Content = new Class1().Foo();
+        Label1.Content = "foo";
     }
 }

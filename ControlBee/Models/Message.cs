@@ -1,4 +1,6 @@
-﻿namespace ControlBee;
+﻿using ControlBee.Interfaces;
+
+namespace ControlBee.Models;
 
 public class Message(IActor sender, object payload)
 {
