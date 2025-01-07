@@ -27,6 +27,8 @@ public class Array3D<T> : ArrayBase
             OnArrayElementChanged(new ValueChangedEventArgs((x, y, z), oldValue, value));
         }
     }
+    public Tuple<int, int, int> Size =>
+        new(_value.GetLength(0), _value.GetLength(1), _value.GetLength(2));
 
     public override void ReadJson(JsonDocument jsonDoc)
     {

@@ -28,6 +28,8 @@ public class Array1D<T> : ArrayBase
         }
     }
 
+    public int Size => _value.Length;
+
     public override void ReadJson(JsonDocument jsonDoc)
     {
         var valuesProp = jsonDoc.RootElement.GetProperty("Values");

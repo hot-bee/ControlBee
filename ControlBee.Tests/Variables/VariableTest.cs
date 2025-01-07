@@ -87,4 +87,79 @@ public class VariableTest
         Assert.Equal("World", stringVariable.Value.ToString());
         Assert.True(called);
     }
+
+    [Fact]
+    public void Array1DVariableTest()
+    {
+        var variableManagerMock = new Mock<IVariableManager>();
+        var arrayVariable = new Variable<Array1D<int>>(
+            variableManagerMock.Object,
+            "myGroup",
+            "myId",
+            VariableScope.Global,
+            new Array1D<int>()
+        );
+
+        var called = false;
+        arrayVariable.ValueChanged += (s, e) =>
+        {
+            e.Location.Should().BeNull();
+            e.OldValue.Should().BeOfType<Array1D<int>>();
+            e.NewValue.Should().BeOfType<Array1D<int>>();
+            called = true;
+        };
+        arrayVariable.Value = new Array1D<int>(10);
+        arrayVariable.Value.Size.Should().Be(10);
+        Assert.True(called);
+    }
+
+    [Fact]
+    public void Array2DVariableTest()
+    {
+        var variableManagerMock = new Mock<IVariableManager>();
+        var arrayVariable = new Variable<Array2D<int>>(
+            variableManagerMock.Object,
+            "myGroup",
+            "myId",
+            VariableScope.Global,
+            new Array2D<int>()
+        );
+
+        var called = false;
+        arrayVariable.ValueChanged += (s, e) =>
+        {
+            e.Location.Should().BeNull();
+            e.OldValue.Should().BeOfType<Array2D<int>>();
+            e.NewValue.Should().BeOfType<Array2D<int>>();
+            called = true;
+        };
+        arrayVariable.Value = new Array2D<int>(10, 20);
+        arrayVariable.Value.Size.Should().BeEquivalentTo((10, 20));
+        Assert.True(called);
+    }
+
+    [Fact]
+    public void Array3DVariableTest()
+    {
+        var variableManagerMock = new Mock<IVariableManager>();
+        var arrayVariable = new Variable<Array3D<int>>(
+            variableManagerMock.Object,
+            "myGroup",
+            "myId",
+            VariableScope.Global,
+            new Array3D<int>()
+        );
+
+        var called = false;
+        arrayVariable.ValueChanged += (s, e) =>
+        {
+            e.Location.Should().BeNull();
+            e.OldValue.Should().BeOfType<Array3D<int>>();
+            e.NewValue.Should().BeOfType<Array3D<int>>();
+            called = true;
+        };
+        arrayVariable.Value = new Array3D<int>(10, 20, 30);
+        arrayVariable.Value.Size.Should().BeEquivalentTo((10, 20, 30));
+        Assert.True(called);
+    }
 }
