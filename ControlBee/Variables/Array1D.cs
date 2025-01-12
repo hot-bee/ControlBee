@@ -5,6 +5,7 @@ namespace ControlBee.Variables;
 
 [JsonConverter(typeof(ArrayBaseConverter))]
 public class Array1D<T> : ArrayBase
+    where T : new()
 {
     private T[] _value;
 
@@ -13,8 +14,10 @@ public class Array1D<T> : ArrayBase
 
     public Array1D(int size)
     {
-        CheckType(typeof(T));
         _value = new T[size];
+        for (var i = 0; i < Size; i++)
+            _value[i] = new T();
+        UpdateSubItem();
     }
 
     public T this[int x]
@@ -59,5 +62,14 @@ public class Array1D<T> : ArrayBase
         writer.WriteRawValue(JsonSerializer.Serialize(linearValue));
 
         writer.WriteEndObject();
+    }
+
+    public override IEnumerable<object?> Items
+    {
+        get
+        {
+            for (var i = 0; i < Size; i++)
+                yield return _value[i];
+        }
     }
 }

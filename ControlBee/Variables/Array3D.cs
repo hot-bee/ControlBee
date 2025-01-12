@@ -5,6 +5,7 @@ namespace ControlBee.Variables;
 
 [JsonConverter(typeof(ArrayBaseConverter))]
 public class Array3D<T> : ArrayBase
+    where T : new()
 {
     private T[,,] _value;
 
@@ -13,8 +14,12 @@ public class Array3D<T> : ArrayBase
 
     public Array3D(int size1, int size2, int size3)
     {
-        CheckType(typeof(T));
         _value = new T[size1, size2, size3];
+        for (var i = 0; i < Size.Item1; i++)
+        for (var j = 0; j < Size.Item2; j++)
+        for (var k = 0; k < Size.Item3; k++)
+            _value[i, j, k] = new T();
+        UpdateSubItem();
     }
 
     public T this[int x, int y, int z]
@@ -27,8 +32,20 @@ public class Array3D<T> : ArrayBase
             OnArrayElementChanged(new ValueChangedEventArgs((x, y, z), oldValue, value));
         }
     }
+
     public Tuple<int, int, int> Size =>
         new(_value.GetLength(0), _value.GetLength(1), _value.GetLength(2));
+
+    public override IEnumerable<object?> Items
+    {
+        get
+        {
+            for (var i = 0; i < Size.Item1; i++)
+            for (var j = 0; j < Size.Item2; j++)
+            for (var k = 0; k < Size.Item3; k++)
+                yield return _value[i, j, k];
+        }
+    }
 
     public override void ReadJson(JsonDocument jsonDoc)
     {

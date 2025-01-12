@@ -3,10 +3,19 @@ using ControlBee.Interfaces;
 
 namespace ControlBee.Variables;
 
-public class Variable<T> : IVariable, IDisposable
+public class Variable<T> : IVariable, IDisposable, IActorItem
     where T : new()
 {
     private T _value;
+
+    public Variable(VariableScope scope, T initialValue)
+    {
+        GroupName = string.Empty;
+        Uid = string.Empty;
+        Scope = scope;
+        Value = initialValue;
+        Subscribe();
+    }
 
     public Variable(
         IVariableManager? variableManager,
@@ -15,6 +24,7 @@ public class Variable<T> : IVariable, IDisposable
         VariableScope scope,
         T value
     )
+        : this(scope, value)
     {
         if (variableManager == null)
             throw new ApplicationException(
@@ -22,17 +32,26 @@ public class Variable<T> : IVariable, IDisposable
             );
         GroupName = groupName;
         Uid = uid;
-        Scope = scope;
-        _value = value;
-        Subscribe();
         variableManager.Add(this);
     }
 
+    public Variable()
+        : this(VariableScope.Global) { }
+
+    public Variable(VariableScope scope)
+        : this(scope, new T()) { }
+
     public Variable(IActor actor, string uid, VariableScope scope)
-        : this(actor.VariableManager, actor.ActorName, uid, scope, new T()) { }
+        : this(actor.VariableManager, actor.ActorName, uid, scope, new T())
+    {
+        Actor = actor;
+    }
 
     public Variable(IActor actor, string uid, VariableScope scope, T value)
-        : this(actor.VariableManager, actor.ActorName, uid, scope, value) { }
+        : this(actor.VariableManager, actor.ActorName, uid, scope, value)
+    {
+        Actor = actor;
+    }
 
     public T Value
     {
@@ -42,6 +61,7 @@ public class Variable<T> : IVariable, IDisposable
             var oldValue = _value;
             Unsubscribe();
             _value = value;
+            UpdateSubItem();
             Subscribe();
             OnValueChanged(new ValueChangedEventArgs(null, oldValue, value));
         }
@@ -52,20 +72,40 @@ public class Variable<T> : IVariable, IDisposable
         Unsubscribe();
     }
 
+    public IActor Actor { get; set; }
+
+    public void UpdateSubItem()
+    {
+        if (_value is IActorItemSub subItem)
+        {
+            subItem.ItemName = Uid;
+            subItem.Actor = Actor;
+            subItem.UpdateSubItem();
+        }
+    }
+
     public event EventHandler<ValueChangedEventArgs>? ValueChanged;
 
+    public object? ValueObject => Value;
     public VariableScope Scope { get; }
-    public string GroupName { get; }
-    public string Uid { get; }
+    public string GroupName { get; set; }
+    public string Uid { get; set; }
 
     public string ToJson()
     {
+        CheckSanity();
         return JsonSerializer.Serialize(Value);
     }
 
     public void FromJson(string data)
     {
         Value = JsonSerializer.Deserialize<T>(data)!;
+    }
+
+    private void CheckSanity()
+    {
+        if (string.IsNullOrEmpty(GroupName) || string.IsNullOrEmpty(Uid))
+            throw new ApplicationException("GroupName and Uid must not be empty.");
     }
 
     private void Subscribe()

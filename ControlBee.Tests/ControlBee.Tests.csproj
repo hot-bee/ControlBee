@@ -20,11 +20,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ConsoleSandbox\ConsoleSandbox.csproj" />
     <ProjectReference Include="..\ControlBee\ControlBee.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Models\" />
+    <Folder Include="Picker\States\" />
     <Folder Include="Services\" />
   </ItemGroup>
   
