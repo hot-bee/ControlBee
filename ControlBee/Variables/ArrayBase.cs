@@ -3,7 +3,7 @@ using ControlBee.Interfaces;
 
 namespace ControlBee.Variables;
 
-public abstract class ArrayBase : IValueChanged
+public abstract class ArrayBase : IValueChanged, IActorItemSub
 {
     public event EventHandler<ValueChangedEventArgs>? ValueChanged;
     public abstract void ReadJson(JsonDocument jsonDoc);
@@ -18,11 +18,19 @@ public abstract class ArrayBase : IValueChanged
         ValueChanged?.Invoke(this, e);
     }
 
-    protected static void CheckType(Type elementType)
+    public IActor Actor { get; set; }
+    public string ItemName { get; set; } = string.Empty;
+    public abstract IEnumerable<object?> Items { get; }
+
+    public void UpdateSubItem()
     {
-        if (elementType == typeof(String))
-            throw new ApplicationException(
-                "String (capitalized) is not allowed as the element type of an array. Use the primitive string type instead."
-            );
+        foreach (var item in Items)
+        {
+            if (item is not IActorItemSub itemSub)
+                continue;
+            itemSub.Actor = Actor;
+            itemSub.ItemName = ItemName;
+            itemSub.UpdateSubItem();
+        }
     }
 }

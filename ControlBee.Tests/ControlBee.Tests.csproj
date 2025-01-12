@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ConsoleSandbox\ConsoleSandbox.csproj" />
     <ProjectReference Include="..\ControlBee\ControlBee.csproj" />
   </ItemGroup>
 

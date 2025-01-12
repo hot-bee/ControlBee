@@ -1,10 +1,12 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using ControlBee.Interfaces;
 
 namespace ControlBee.Variables;
 
 [JsonConverter(typeof(ArrayBaseConverter))]
 public class Array2D<T> : ArrayBase
+    where T : new()
 {
     private T[,] _value;
 
@@ -13,8 +15,11 @@ public class Array2D<T> : ArrayBase
 
     public Array2D(int size1, int size2)
     {
-        CheckType(typeof(T));
         _value = new T[size1, size2];
+        for (var i = 0; i < Size.Item1; i++)
+        for (var j = 0; j < Size.Item2; j++)
+            _value[i, j] = new T();
+        UpdateSubItem();
     }
 
     public T this[int x, int y]
@@ -69,5 +74,15 @@ public class Array2D<T> : ArrayBase
         writer.WriteRawValue(JsonSerializer.Serialize(linearValue));
 
         writer.WriteEndObject();
+    }
+
+    public override IEnumerable<object?> Items
+    {
+        get
+        {
+            for (var i = 0; i < Size.Item1; i++)
+            for (var j = 0; j < Size.Item2; j++)
+                yield return _value[i, j];
+        }
     }
 }

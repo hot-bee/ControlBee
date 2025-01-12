@@ -2,14 +2,8 @@
 
 namespace ControlBee.Models;
 
-public class ActorConfig
+public class ActorConfig(string actorName, IVariableManager variableManager)
 {
-    public ActorConfig(string actorName, IVariableManager? variableManager = null)
-    {
-        ActorName = actorName;
-        VariableManager = variableManager;
-    }
-
-    public string ActorName { get; }
-    public IVariableManager? VariableManager { get; }
+    public string ActorName { get; } = actorName;
+    public IVariableManager VariableManager { get; } = variableManager;
 }

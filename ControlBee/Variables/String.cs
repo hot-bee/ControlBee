@@ -1,4 +1,5 @@
 ﻿using ControlBee.Interfaces;
+using ControlBee.Utils;
 
 namespace ControlBee.Variables;
 
@@ -17,12 +18,7 @@ public class String : IValueChanged
     public string Value
     {
         get => _value;
-        set
-        {
-            var oldValue = _value;
-            _value = value;
-            OnValueChanged(new ValueChangedEventArgs(nameof(Value), oldValue, value));
-        }
+        set => ValueChangedUtils.SetField(ref _value, value, OnValueChanged);
     }
 
     public event EventHandler<ValueChangedEventArgs>? ValueChanged;

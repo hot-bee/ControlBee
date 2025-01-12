@@ -1,11 +1,11 @@
-﻿using System;
-using System.Text.Json;
+﻿using System.Text.Json;
+using ControlBee.Interfaces;
+using ControlBee.Models;
 using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
 using Xunit;
-using String = ControlBee.Variables.String;
 
 namespace ControlBee.Tests.Variables;
 
@@ -64,9 +64,23 @@ public class Array1DTest
     }
 
     [Fact]
-    public void StringElementTest()
+    public void NewElementsTest()
     {
-        var act = () => new Array1D<String>();
-        act.Should().Throw<ApplicationException>();
+        var array = new Array1D<String>(1);
+        array[0].Should().NotBeNull();
+    }
+
+    [Fact]
+    public void UpdateSubItemTest()
+    {
+        var array = new Array1D<Position1D>(1);
+        var actor = new Actor();
+        array.Actor = actor;
+        array.ItemName = "myItem";
+        array.UpdateSubItem();
+        // ReSharper disable once SuspiciousTypeConversion.Global
+        var itemSub = (IActorItemSub)array[0];
+        itemSub.Actor.Should().Be(actor);
+        itemSub.ItemName.Should().Be("myItem");
     }
 }
