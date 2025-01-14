@@ -1,5 +1,6 @@
 ﻿using ControlBee.Interfaces;
 using ControlBee.Models;
+using ControlBee.Services;
 using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
@@ -13,7 +14,7 @@ public class StateTest
     [Fact]
     public void StateTransitionTest()
     {
-        var config = new ActorConfig("testActor", new EmptyVariableManager());
+        var config = new ActorConfig("testActor", new EmptyVariableManager(), new TimeManager());
         var actor = new TestPickerActor(config);
 
         actor.Start();

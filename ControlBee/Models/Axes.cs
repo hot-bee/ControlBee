@@ -6,7 +6,7 @@ namespace ControlBee.Models;
 
 public class Axes
 {
-    private Axis[] _axes;
+    private Axis[] _axes = [];
 
     public Axes()
     {

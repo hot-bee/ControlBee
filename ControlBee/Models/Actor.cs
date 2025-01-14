@@ -1,26 +1,29 @@
 ﻿using System.Collections.Concurrent;
 using ControlBee.Interfaces;
+using ControlBee.Services;
 using ControlBee.Variables;
 using log4net;
 
 namespace ControlBee.Models;
 
-public class Actor : IActor, IDisposable
+public class Actor : IActorInternal, IDisposable
 {
     private static readonly ILog Logger = LogManager.GetLogger(typeof(Actor));
     public static readonly Actor Empty = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly BlockingCollection<Message> _mailbox = new();
-
-    private readonly Action<IActor, Message>? _messageHandler;
     private readonly Thread _thread;
 
     private bool _init;
 
+    private readonly Action<IActor, Message>? _messageHandler;
+
+    protected IActor InternalUi = Empty;
+
     protected IState State;
 
     public Actor()
-        : this(new ActorConfig(string.Empty, new EmptyVariableManager())) { }
+        : this(new ActorConfig(string.Empty, new EmptyVariableManager(), new TimeManager())) { }
 
     public Actor(Action<IActor, Message> messageHandler)
         : this()
@@ -33,14 +36,24 @@ public class Actor : IActor, IDisposable
         Logger.Info($"Creating an instance of Actor. ({config.ActorName})");
         _thread = new Thread(RunThread);
         VariableManager = config.VariableManager;
+        TimeManager = config.TimeManager;
         PositionAxesMap = new PositionAxesMap();
         ActorName = config.ActorName;
         State = new EmptyState(this);
     }
 
-    public IPositionAxesMap PositionAxesMap { get; }
-    public IVariableManager? VariableManager { get; }
     public string ActorName { get; }
+
+    public virtual void Send(Message message)
+    {
+        _mailbox.Add(message);
+    }
+
+    public ITimeManager TimeManager { get; }
+    public IActor Ui => InternalUi;
+
+    public IPositionAxesMap PositionAxesMap { get; }
+    public IVariableManager VariableManager { get; }
 
     public void Init()
     {
@@ -48,13 +61,8 @@ public class Actor : IActor, IDisposable
             throw new ApplicationException();
         _init = true;
 
-        InitVariables();
+        InitActorItems(string.Empty, this);
         PositionAxesMap.UpdateMap();
-    }
-
-    public void Send(Message message)
-    {
-        _mailbox.Add(message);
     }
 
     public void Dispose()
@@ -65,22 +73,26 @@ public class Actor : IActor, IDisposable
         Logger.Info("Actor instance successfully disposed.");
     }
 
-    private void InitVariables()
+    private void InitActorItems(string itemNamePrefix, object actorItemHolder)
     {
-        var fieldInfos = GetType().GetFields();
+        var fieldInfos = actorItemHolder.GetType().GetFields();
         foreach (var fieldInfo in fieldInfos)
-            if (fieldInfo.FieldType.IsAssignableTo(typeof(IVariable)))
+            if (fieldInfo.FieldType.IsAssignableTo(typeof(IActorItem)))
             {
-                var variable = (IVariable)fieldInfo.GetValue(this)!;
-                variable.Actor = this;
-                variable.GroupName = ActorName;
-                variable.Uid = fieldInfo.Name;
-                variable.UpdateSubItem();
-                VariableManager?.Add(variable);
+                var actorItem = (IActorItem)fieldInfo.GetValue(actorItemHolder)!;
+                var itemName = string.Join('/', itemNamePrefix, fieldInfo.Name);
+                actorItem.Actor = this;
+                actorItem.ItemName = itemName;
+                actorItem.UpdateSubItem();
+
+                if (actorItem is IVariable variable)
+                    VariableManager?.Add(variable);
+
+                InitActorItems(itemName, actorItem);
             }
     }
 
-    public void Start()
+    public virtual void Start()
     {
         Logger.Info("Starting Actor instance.");
         _thread.Start();

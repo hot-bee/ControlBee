@@ -1,38 +1,31 @@
 ﻿using System.Text.Json;
 using ControlBee.Interfaces;
+using ControlBee.Models;
 
 namespace ControlBee.Variables;
 
-public class Variable<T> : IVariable, IDisposable, IActorItem
+public class Variable<T> : ActorItem, IVariable, IDisposable
     where T : new()
 {
     private T _value;
 
     public Variable(VariableScope scope, T initialValue)
     {
-        GroupName = string.Empty;
-        Uid = string.Empty;
         Scope = scope;
-        Value = initialValue;
-        Subscribe();
+        _value = initialValue;
+        OnAfterValueChange();
     }
 
-    public Variable(
-        IVariableManager? variableManager,
-        string groupName,
-        string uid,
-        VariableScope scope,
-        T value
-    )
+    public Variable(IActorInternal actor, string itemName, VariableScope scope, T value)
         : this(scope, value)
     {
-        if (variableManager == null)
+        if (actor.VariableManager == null)
             throw new ApplicationException(
                 "A 'variableManager' instance must be provided to use Variable."
             );
-        GroupName = groupName;
-        Uid = uid;
-        variableManager.Add(this);
+        Actor = actor;
+        ItemName = itemName;
+        actor.VariableManager.Add(this);
     }
 
     public Variable()
@@ -41,17 +34,8 @@ public class Variable<T> : IVariable, IDisposable, IActorItem
     public Variable(VariableScope scope)
         : this(scope, new T()) { }
 
-    public Variable(IActor actor, string uid, VariableScope scope)
-        : this(actor.VariableManager, actor.ActorName, uid, scope, new T())
-    {
-        Actor = actor;
-    }
-
-    public Variable(IActor actor, string uid, VariableScope scope, T value)
-        : this(actor.VariableManager, actor.ActorName, uid, scope, value)
-    {
-        Actor = actor;
-    }
+    public Variable(IActorInternal actor, string itemName, VariableScope scope)
+        : this(actor, itemName, scope, new T()) { }
 
     public T Value
     {
@@ -59,10 +43,11 @@ public class Variable<T> : IVariable, IDisposable, IActorItem
         set
         {
             var oldValue = _value;
+            if (EqualityComparer<T>.Default.Equals(oldValue, value))
+                return;
             Unsubscribe();
             _value = value;
-            UpdateSubItem();
-            Subscribe();
+            OnAfterValueChange();
             OnValueChanged(new ValueChangedEventArgs(null, oldValue, value));
         }
     }
@@ -72,24 +57,10 @@ public class Variable<T> : IVariable, IDisposable, IActorItem
         Unsubscribe();
     }
 
-    public IActor Actor { get; set; }
-
-    public void UpdateSubItem()
-    {
-        if (_value is IActorItemSub subItem)
-        {
-            subItem.ItemName = Uid;
-            subItem.Actor = Actor;
-            subItem.UpdateSubItem();
-        }
-    }
-
     public event EventHandler<ValueChangedEventArgs>? ValueChanged;
 
     public object? ValueObject => Value;
     public VariableScope Scope { get; }
-    public string GroupName { get; set; }
-    public string Uid { get; set; }
 
     public string ToJson()
     {
@@ -102,10 +73,28 @@ public class Variable<T> : IVariable, IDisposable, IActorItem
         Value = JsonSerializer.Deserialize<T>(data)!;
     }
 
+    private void OnAfterValueChange()
+    {
+        UpdateSubItem();
+        Subscribe();
+    }
+
+    public override void ProcessMessage(Message message) { }
+
+    public override void UpdateSubItem()
+    {
+        if (_value is IActorItemSub subItem)
+        {
+            subItem.ItemName = ItemName;
+            subItem.Actor = Actor;
+            subItem.UpdateSubItem();
+        }
+    }
+
     private void CheckSanity()
     {
-        if (string.IsNullOrEmpty(GroupName) || string.IsNullOrEmpty(Uid))
-            throw new ApplicationException("GroupName and Uid must not be empty.");
+        if (string.IsNullOrEmpty(ActorName) || string.IsNullOrEmpty(ItemName))
+            throw new ApplicationException("ActorName and ItemName must not be empty.");
     }
 
     private void Subscribe()

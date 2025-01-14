@@ -3,7 +3,7 @@ using ControlBee.Utils;
 
 namespace ControlBee.Variables;
 
-public class SpeedProfile : IValueChanged
+public class SpeedProfile : IValueChanged, ICloneable
 {
     private double _accel;
     private double _decel;
@@ -39,5 +39,10 @@ public class SpeedProfile : IValueChanged
     protected virtual void OnValueChanged(ValueChangedEventArgs e)
     {
         ValueChanged?.Invoke(this, e);
+    }
+
+    public object Clone()
+    {
+        return MemberwiseClone();
     }
 }

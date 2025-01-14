@@ -65,7 +65,7 @@ public abstract class Position : IValueChanged, IActorItemSub
     public string ItemName { get; set; } = string.Empty;
 
     [JsonIgnore]
-    public IActor Actor { get; set; } = Models.Actor.Empty;
+    public IActorInternal Actor { get; set; } = Models.Actor.Empty;
 
     public void UpdateSubItem() { }
 
@@ -75,8 +75,20 @@ public abstract class Position : IValueChanged, IActorItemSub
     {
         if (Axes == null)
             throw new ApplicationException();
-
         Move(Axes);
+    }
+
+    public void Wait()
+    {
+        if (Axes == null)
+            throw new ApplicationException();
+        Wait(Axes);
+    }
+
+    public void MoveAndWait()
+    {
+        Move();
+        Wait();
     }
 
     public void Move(IAxis[] axes)
@@ -92,6 +104,19 @@ public abstract class Position : IValueChanged, IActorItemSub
         for (var i = 0; i < Rank; i++)
             if (axes.Contains(Axes[i]))
                 Axes[i].Move(Vector.Values[i]);
+    }
+
+    public void Wait(IAxis[] axes)
+    {
+        for (var i = 0; i < Rank; i++)
+            if (axes.Contains(Axes[i]))
+                Axes[i].Wait();
+    }
+
+    public void MoveAndWait(IAxis[] axes)
+    {
+        Move(axes);
+        Wait(axes);
     }
 
     protected virtual void OnValueChanged(ValueChangedEventArgs e)

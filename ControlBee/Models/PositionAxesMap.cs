@@ -25,7 +25,7 @@ public class PositionAxesMap : IPositionAxesMap
     public void UpdateMap()
     {
         foreach (var (variable, axes) in _variableMap)
-            _map.Add(variable.Uid, axes);
+            _map.Add(variable.ItemName, axes);
         _variableMap.Clear();
     }
 }

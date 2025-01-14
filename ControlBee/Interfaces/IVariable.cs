@@ -6,10 +6,9 @@ public interface IVariable : IValueChanged
 {
     object? ValueObject { get; }
     VariableScope Scope { get; }
-    IActor Actor { get; set; }
-    string GroupName { get; set; }
-    string Uid { get; set; }
+    IActorInternal Actor { get; set; }
+    string ActorName { get; }
+    string ItemName { get; set; }
     string ToJson();
     void FromJson(string data);
-    void UpdateSubItem();
 }

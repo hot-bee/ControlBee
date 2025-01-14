@@ -18,7 +18,7 @@ public abstract class ArrayBase : IValueChanged, IActorItemSub
         ValueChanged?.Invoke(this, e);
     }
 
-    public IActor Actor { get; set; }
+    public IActorInternal Actor { get; set; } = Models.Actor.Empty;
     public string ItemName { get; set; } = string.Empty;
     public abstract IEnumerable<object?> Items { get; }
 

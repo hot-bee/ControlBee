@@ -1,4 +1,6 @@
 ﻿using ControlBee.Interfaces;
+using ControlBee.Models;
+using ControlBee.Services;
 using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
@@ -14,13 +16,10 @@ public class VariableTest
     public void IntVariableTest()
     {
         var variableManagerMock = new Mock<IVariableManager>();
-        var intVariable = new Variable<int>(
-            variableManagerMock.Object,
-            "myGroup",
-            "myId",
-            VariableScope.Global,
-            1
+        var actor = new Actor(
+            new ActorConfig("myActor", variableManagerMock.Object, new TimeManager())
         );
+        var intVariable = new Variable<int>(actor, "myId", VariableScope.Global, 1);
         Assert.Equal(1, intVariable.Value);
 
         var called = false;
@@ -40,13 +39,10 @@ public class VariableTest
     public void SerializeTest()
     {
         var variableManagerMock = new Mock<IVariableManager>();
-        var intVariable = new Variable<int>(
-            variableManagerMock.Object,
-            "myGroup",
-            "myId",
-            VariableScope.Global,
-            1
+        var actor = new Actor(
+            new ActorConfig("myActor", variableManagerMock.Object, new TimeManager())
         );
+        var intVariable = new Variable<int>(actor, "myId", VariableScope.Global, 1);
         Assert.Equal("1", intVariable.ToJson());
 
         var called = false;
@@ -66,9 +62,11 @@ public class VariableTest
     public void StringVariableTest()
     {
         var variableManagerMock = new Mock<IVariableManager>();
+        var actor = new Actor(
+            new ActorConfig("myActor", variableManagerMock.Object, new TimeManager())
+        );
         var stringVariable = new Variable<String>(
-            variableManagerMock.Object,
-            "myGroup",
+            actor,
             "myId",
             VariableScope.Global,
             new String("Hello")
@@ -92,9 +90,11 @@ public class VariableTest
     public void Array1DVariableTest()
     {
         var variableManagerMock = new Mock<IVariableManager>();
+        var actor = new Actor(
+            new ActorConfig("myActor", variableManagerMock.Object, new TimeManager())
+        );
         var arrayVariable = new Variable<Array1D<int>>(
-            variableManagerMock.Object,
-            "myGroup",
+            actor,
             "myId",
             VariableScope.Global,
             new Array1D<int>()
@@ -117,9 +117,11 @@ public class VariableTest
     public void Array2DVariableTest()
     {
         var variableManagerMock = new Mock<IVariableManager>();
+        var actor = new Actor(
+            new ActorConfig("myActor", variableManagerMock.Object, new TimeManager())
+        );
         var arrayVariable = new Variable<Array2D<int>>(
-            variableManagerMock.Object,
-            "myGroup",
+            actor,
             "myId",
             VariableScope.Global,
             new Array2D<int>()
@@ -142,9 +144,11 @@ public class VariableTest
     public void Array3DVariableTest()
     {
         var variableManagerMock = new Mock<IVariableManager>();
+        var actor = new Actor(
+            new ActorConfig("myActor", variableManagerMock.Object, new TimeManager())
+        );
         var arrayVariable = new Variable<Array3D<int>>(
-            variableManagerMock.Object,
-            "myGroup",
+            actor,
             "myId",
             VariableScope.Global,
             new Array3D<int>()

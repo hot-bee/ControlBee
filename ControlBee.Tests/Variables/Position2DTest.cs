@@ -2,6 +2,7 @@
 using System.Text.Json;
 using ControlBee.Interfaces;
 using ControlBee.Models;
+using ControlBee.Services;
 using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
@@ -95,8 +96,7 @@ public class Position2DTest
             new Position2D(DenseVector.OfArray([1.2, 3.4]))
         );
         variable.Actor = actor;
-        variable.GroupName = "myActor";
-        variable.Uid = "homePosition";
+        variable.ItemName = "homePosition";
         variable.UpdateSubItem();
 
         var axisXMock = new Mock<IAxis>();
@@ -115,14 +115,15 @@ public class Position2DTest
     [Fact]
     public void MoveWithWrongAxesSettingTest()
     {
-        var actor = new Actor();
+        var actor = new Actor(
+            new ActorConfig("myActor", new EmptyVariableManager(), new TimeManager())
+        );
         var variable = new Variable<Position2D>(
             VariableScope.Global,
             new Position2D(DenseVector.OfArray([1.2, 3.4]))
         );
         variable.Actor = actor;
-        variable.GroupName = "myActor";
-        variable.Uid = "homePosition";
+        variable.ItemName = "homePosition";
         variable.UpdateSubItem();
 
         var axisXMock = new Mock<IAxis>();

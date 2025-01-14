@@ -18,35 +18,35 @@ public class SqliteDatabase : IDatabase, IDisposable
     public void Write(
         VariableScope scope,
         string localName,
-        string groupName,
-        string uid,
+        string actorName,
+        string itemName,
         string value
     )
     {
         var sql =
-            "INSERT OR REPLACE INTO variables (group_name, uid, scope, local_name, value) "
-            + "VALUES (@group_name, @uid, @scope, @local_name, @value)";
+            "INSERT OR REPLACE INTO variables (actor_name, item_name, scope, local_name, value) "
+            + "VALUES (@actor_name, @item_name, @scope, @local_name, @value)";
 
         using var command = new SqliteCommand(sql, _connection);
         command.Parameters.AddWithValue("@scope", scope);
         command.Parameters.AddWithValue("@local_name", localName);
-        command.Parameters.AddWithValue("@group_name", groupName);
-        command.Parameters.AddWithValue("@uid", uid);
+        command.Parameters.AddWithValue("@actor_name", actorName);
+        command.Parameters.AddWithValue("@item_name", itemName);
         command.Parameters.AddWithValue("@value", value);
 
         command.ExecuteNonQuery();
     }
 
-    public string? Read(string localName, string groupName, string uid)
+    public string? Read(string localName, string actorName, string itemName)
     {
         var sql =
             "SELECT value FROM variables "
-            + "WHERE group_name = @group_name and uid = @uid and local_name = @local_name";
+            + "WHERE actor_name = @actor_name and item_name = @item_name and local_name = @local_name";
 
         using var command = new SqliteCommand(sql, _connection);
         command.Parameters.AddWithValue("@local_name", localName);
-        command.Parameters.AddWithValue("@group_name", groupName);
-        command.Parameters.AddWithValue("@uid", uid);
+        command.Parameters.AddWithValue("@actor_name", actorName);
+        command.Parameters.AddWithValue("@item_name", itemName);
 
         using var reader = command.ExecuteReader();
 
@@ -75,11 +75,11 @@ public class SqliteDatabase : IDatabase, IDisposable
             CREATE TABLE IF NOT EXISTS variables(
                     scope INTEGER NOT NULL,
                     local_name TEXT NOT NULL,
-                    group_name TEXT NOT NULL,
-                    uid TEXT NOT NULL,
+                    actor_name TEXT NOT NULL,
+                    item_name TEXT NOT NULL,
                     value BLOB,
                     updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
-                    UNIQUE (local_name, group_name, uid)
+                    UNIQUE (local_name, actor_name, item_name)
                 );
             """;
         using var command = new SqliteCommand(sql, _connection);
