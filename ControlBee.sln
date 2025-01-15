@@ -1,13 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35514.174 d17.12
+VisualStudioVersion = 17.12.35514.174
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ControlBee", "ControlBee\ControlBee.csproj", "{DD55D11B-E02F-44CC-829B-FA4D256B51AA}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleSandbox", "ConsoleSandbox\ConsoleSandbox.csproj", "{AC812565-2779-4850-B888-04929A18CEDA}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfSandbox", "WpfSandbox\WpfSandbox.csproj", "{C53859CB-3C82-4057-BCC0-ED450F7F3D07}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ControlBee.Tests", "ControlBee.Tests\ControlBee.Tests.csproj", "{13DEAAC3-FFDA-4239-AD30-B27F8C7527AB}"
 EndProject
@@ -21,14 +17,6 @@ Global
 		{DD55D11B-E02F-44CC-829B-FA4D256B51AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD55D11B-E02F-44CC-829B-FA4D256B51AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD55D11B-E02F-44CC-829B-FA4D256B51AA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AC812565-2779-4850-B888-04929A18CEDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AC812565-2779-4850-B888-04929A18CEDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AC812565-2779-4850-B888-04929A18CEDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AC812565-2779-4850-B888-04929A18CEDA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C53859CB-3C82-4057-BCC0-ED450F7F3D07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C53859CB-3C82-4057-BCC0-ED450F7F3D07}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C53859CB-3C82-4057-BCC0-ED450F7F3D07}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C53859CB-3C82-4057-BCC0-ED450F7F3D07}.Release|Any CPU.Build.0 = Release|Any CPU
 		{13DEAAC3-FFDA-4239-AD30-B27F8C7527AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{13DEAAC3-FFDA-4239-AD30-B27F8C7527AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13DEAAC3-FFDA-4239-AD30-B27F8C7527AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
