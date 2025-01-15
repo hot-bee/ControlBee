@@ -17,7 +17,12 @@ public class VariableTest
     {
         var variableManagerMock = new Mock<IVariableManager>();
         var actor = new Actor(
-            new ActorConfig("myActor", variableManagerMock.Object, new TimeManager())
+            new ActorConfig(
+                "myActor",
+                new EmptyAxisFactory(),
+                variableManagerMock.Object,
+                new TimeManager()
+            )
         );
         var intVariable = new Variable<int>(actor, "myId", VariableScope.Global, 1);
         Assert.Equal(1, intVariable.Value);
@@ -40,7 +45,12 @@ public class VariableTest
     {
         var variableManagerMock = new Mock<IVariableManager>();
         var actor = new Actor(
-            new ActorConfig("myActor", variableManagerMock.Object, new TimeManager())
+            new ActorConfig(
+                "myActor",
+                new EmptyAxisFactory(),
+                variableManagerMock.Object,
+                new TimeManager()
+            )
         );
         var intVariable = new Variable<int>(actor, "myId", VariableScope.Global, 1);
         Assert.Equal("1", intVariable.ToJson());
@@ -63,7 +73,12 @@ public class VariableTest
     {
         var variableManagerMock = new Mock<IVariableManager>();
         var actor = new Actor(
-            new ActorConfig("myActor", variableManagerMock.Object, new TimeManager())
+            new ActorConfig(
+                "myActor",
+                new EmptyAxisFactory(),
+                variableManagerMock.Object,
+                new TimeManager()
+            )
         );
         var stringVariable = new Variable<String>(
             actor,
@@ -91,7 +106,12 @@ public class VariableTest
     {
         var variableManagerMock = new Mock<IVariableManager>();
         var actor = new Actor(
-            new ActorConfig("myActor", variableManagerMock.Object, new TimeManager())
+            new ActorConfig(
+                "myActor",
+                new EmptyAxisFactory(),
+                variableManagerMock.Object,
+                new TimeManager()
+            )
         );
         var arrayVariable = new Variable<Array1D<int>>(
             actor,
@@ -118,7 +138,12 @@ public class VariableTest
     {
         var variableManagerMock = new Mock<IVariableManager>();
         var actor = new Actor(
-            new ActorConfig("myActor", variableManagerMock.Object, new TimeManager())
+            new ActorConfig(
+                "myActor",
+                new EmptyAxisFactory(),
+                variableManagerMock.Object,
+                new TimeManager()
+            )
         );
         var arrayVariable = new Variable<Array2D<int>>(
             actor,
@@ -145,7 +170,12 @@ public class VariableTest
     {
         var variableManagerMock = new Mock<IVariableManager>();
         var actor = new Actor(
-            new ActorConfig("myActor", variableManagerMock.Object, new TimeManager())
+            new ActorConfig(
+                "myActor",
+                new EmptyAxisFactory(),
+                variableManagerMock.Object,
+                new TimeManager()
+            )
         );
         var arrayVariable = new Variable<Array3D<int>>(
             actor,

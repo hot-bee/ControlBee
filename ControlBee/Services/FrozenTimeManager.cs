@@ -5,6 +5,11 @@ namespace ControlBee.Services;
 
 public class FrozenTimeManager(int tickMilliseconds) : IFrozenTimeManager
 {
+    private const int DefaultTickMilliseconds = 100;
+
+    public FrozenTimeManager()
+        : this(DefaultTickMilliseconds) { }
+
     public void Sleep(int millisecondsTimeout)
     {
         var startTime = CurrentMilliseconds;

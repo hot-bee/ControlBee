@@ -16,7 +16,11 @@ public class ActorFactoryTest
     public void InitVariablesTest()
     {
         var variableManagerMock = new Mock<IVariableManager>();
-        var actorFactory = new ActorFactory(variableManagerMock.Object, new TimeManager());
+        var actorFactory = new ActorFactory(
+            new EmptyAxisFactory(),
+            variableManagerMock.Object,
+            new TimeManager()
+        );
         var actor = actorFactory.Create<ActorWithVariables>("testActor");
         variableManagerMock.Verify(m => m.Add(actor.Foo), Times.Once);
         variableManagerMock.Verify(m => m.Add(actor.Bar), Times.Once);

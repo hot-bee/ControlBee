@@ -12,18 +12,35 @@ public class Actor : IActorInternal, IDisposable
     public static readonly Actor Empty = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly BlockingCollection<Message> _mailbox = new();
+
+    private readonly Action<IActor, Message>? _messageHandler;
     private readonly Thread _thread;
 
     private bool _init;
-
-    private readonly Action<IActor, Message>? _messageHandler;
 
     protected IActor InternalUi = Empty;
 
     protected IState State;
 
     public Actor()
-        : this(new ActorConfig(string.Empty, new EmptyVariableManager(), new TimeManager())) { }
+        : this(
+            new ActorConfig(
+                string.Empty,
+                new EmptyAxisFactory(),
+                new EmptyVariableManager(),
+                new TimeManager()
+            )
+        ) { }
+
+    public Actor(string actorName)
+        : this(
+            new ActorConfig(
+                actorName,
+                new EmptyAxisFactory(),
+                new EmptyVariableManager(),
+                new TimeManager()
+            )
+        ) { }
 
     public Actor(Action<IActor, Message> messageHandler)
         : this()
@@ -35,12 +52,15 @@ public class Actor : IActorInternal, IDisposable
     {
         Logger.Info($"Creating an instance of Actor. ({config.ActorName})");
         _thread = new Thread(RunThread);
+        AxisFactory = config.AxisFactory;
         VariableManager = config.VariableManager;
         TimeManager = config.TimeManager;
         PositionAxesMap = new PositionAxesMap();
         ActorName = config.ActorName;
         State = new EmptyState(this);
     }
+
+    public IAxisFactory AxisFactory { get; }
 
     public string ActorName { get; }
 

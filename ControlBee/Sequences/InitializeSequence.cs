@@ -1,4 +1,5 @@
-﻿using ControlBee.Exceptions;
+﻿using ControlBee.Constants;
+using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Variables;
@@ -21,66 +22,53 @@ public class InitializeSequence(IAxis axis, SpeedProfile homingSpeed, Position1D
 
     public void Run()
     {
-        axis.SetSpeed(homingSpeed);
-        axis.VelocityMove(AxisDirection.Negative);
-
-        var watch = TimeManager.CreateWatch();
-        while (true)
+        try
         {
-            if (watch.ElapsedSeconds >= 5.0)
-            {
-                SensorEntryTimeout.Trigger();
-                throw new SequenceError();
-            }
-
-            if (axis.HomeSensor)
-            {
-                axis.Stop();
-                break;
-            }
-
-            TimeManager.Sleep(1);
+            axis.SetSpeed(homingSpeed);
+            axis.VelocityMove(AxisDirection.Negative);
+            axis.WaitSensor(AxisSensorType.Home, true, 5000);
+        }
+        catch (TimeoutError)
+        {
+            SensorEntryTimeout.Trigger();
+            throw new SequenceError();
+        }
+        finally
+        {
+            axis.Stop();
         }
 
-        var halfHomingSpeed = (SpeedProfile)homingSpeed.Clone();
-        halfHomingSpeed.Velocity /= 10;
-        axis.SetSpeed(halfHomingSpeed);
-        axis.VelocityMove(AxisDirection.Positive);
-        watch.Restart();
-        while (true)
+        try
         {
-            if (watch.ElapsedSeconds >= 5.0)
-            {
-                SensorExitTimeout.Trigger();
-                throw new SequenceError();
-            }
-
-            if (!axis.HomeSensor)
-            {
-                axis.Stop();
-                break;
-            }
-
-            TimeManager.Sleep(1);
+            var halfHomingSpeed = (SpeedProfile)homingSpeed.Clone();
+            halfHomingSpeed.Velocity /= 10;
+            axis.SetSpeed(halfHomingSpeed);
+            axis.VelocityMove(AxisDirection.Positive);
+            axis.WaitSensor(AxisSensorType.Home, false, 5000);
+        }
+        catch (TimeoutError)
+        {
+            SensorExitTimeout.Trigger();
+            throw new SequenceError();
+        }
+        finally
+        {
+            axis.Stop();
         }
 
-        axis.VelocityMove(AxisDirection.Negative);
-        watch.Restart();
-        while (true)
+        try
         {
-            if (watch.ElapsedSeconds >= 5.0)
-            {
-                SensorReentryTimeout.Trigger();
-                throw new SequenceError();
-            }
-
-            if (axis.HomeSensor)
-            {
-                axis.Stop();
-                break;
-            }
-
-            TimeManager.Sleep(1);
+            axis.VelocityMove(AxisDirection.Negative);
+            axis.WaitSensor(AxisSensorType.Home, true, 5000);
+        }
+        catch (TimeoutError)
+        {
+            SensorReentryTimeout.Trigger();
+            throw new SequenceError();
+        }
+        finally
+        {
+            axis.Stop();
         }
 
         axis.SetPosition(0.0);

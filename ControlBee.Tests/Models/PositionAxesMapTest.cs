@@ -15,7 +15,11 @@ public class PositionAxesMapTest
     public void AddPositionAxisTest()
     {
         var variableManagerMock = new Mock<IVariableManager>();
-        var actorFactory = new ActorFactory(variableManagerMock.Object, new TimeManager());
+        var actorFactory = new ActorFactory(
+            new EmptyAxisFactory(),
+            variableManagerMock.Object,
+            new TimeManager()
+        );
 
         var axisXMock = new Mock<IAxis>();
         var axisX = axisXMock.Object;

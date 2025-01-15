@@ -1,6 +1,7 @@
 ﻿using ControlBee.Constants;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
+using ControlBee.Services;
 
 namespace ControlBee.Models;
 
@@ -18,9 +19,18 @@ public class FakeAxis : Axis, IDisposable
     private double _targetPosition;
 
     public FakeAxis(IFrozenTimeManager timeManager, IScenarioFlowTester flowTester)
+        : this(timeManager, flowTester, false) { }
+
+    public FakeAxis(
+        IFrozenTimeManager timeManager,
+        IScenarioFlowTester flowTester,
+        bool emulationMode
+    )
+        : base(timeManager)
     {
         _timeManager = timeManager;
         _flowTester = flowTester;
+        EmulationMode = emulationMode;
         _timeManager.CurrentTimeChanged += TimeManagerOnCurrentTimeChanged;
     }
 
@@ -155,6 +165,7 @@ public class FakeAxis : Axis, IDisposable
             default:
                 throw new ValueError();
         }
+
         _flowTester.OnCheckpoint();
     }
 }

@@ -19,4 +19,6 @@ public interface IAxis
     void SetPosition(double position, PositionType type = PositionType.CommandAndActual);
     void Wait();
     double GetPosition(PositionType type = PositionType.Command);
+    bool GetSensorValue(AxisSensorType type);
+    void WaitSensor(AxisSensorType type, bool waitingValue, int millisecondsTimeout);
 }

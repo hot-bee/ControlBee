@@ -22,7 +22,11 @@ public class InitializeSequenceTest
         var tester = new ScenarioFlowTester();
         var axisX = new FakeAxis(timeManager, tester);
 
-        var actorFactory = new ActorFactory(new EmptyVariableManager(), timeManager);
+        var actorFactory = new ActorFactory(
+            new EmptyAxisFactory(),
+            new EmptyVariableManager(),
+            timeManager
+        );
         var testActor = actorFactory.Create<TestActor>("testActor", axisX);
 
         testActor.HomingSpeed.Value.Velocity = 0.1;

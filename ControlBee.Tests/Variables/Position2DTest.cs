@@ -116,7 +116,12 @@ public class Position2DTest
     public void MoveWithWrongAxesSettingTest()
     {
         var actor = new Actor(
-            new ActorConfig("myActor", new EmptyVariableManager(), new TimeManager())
+            new ActorConfig(
+                "myActor",
+                new EmptyAxisFactory(),
+                new EmptyVariableManager(),
+                new TimeManager()
+            )
         );
         var variable = new Variable<Position2D>(
             VariableScope.Global,

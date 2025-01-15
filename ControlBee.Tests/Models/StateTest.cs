@@ -14,7 +14,12 @@ public class StateTest
     [Fact]
     public void StateTransitionTest()
     {
-        var config = new ActorConfig("testActor", new EmptyVariableManager(), new TimeManager());
+        var config = new ActorConfig(
+            "testActor",
+            new EmptyAxisFactory(),
+            new EmptyVariableManager(),
+            new TimeManager()
+        );
         var actor = new TestPickerActor(config);
 
         actor.Start();

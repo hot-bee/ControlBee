@@ -6,7 +6,7 @@ namespace ControlBee.Models;
 
 public class Axes
 {
-    private Axis[] _axes = [];
+    private IAxis[] _axes = [];
 
     public Axes()
     {
@@ -37,7 +37,7 @@ public class Axes
             _axes[i].SetSpeed(speeds[i]);
     }
 
-    public void SetAxes(Axis[] axes)
+    public void SetAxes(IAxis[] axes)
     {
         _axes = axes;
     }

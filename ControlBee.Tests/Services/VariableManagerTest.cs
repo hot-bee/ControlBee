@@ -18,7 +18,9 @@ public class VariableManagerTest
     {
         var databaseMock = new Mock<IDatabase>();
         var variableManager = new VariableManager(databaseMock.Object);
-        var actor = new Actor(new ActorConfig("myActor", variableManager, new TimeManager()));
+        var actor = new Actor(
+            new ActorConfig("myActor", new EmptyAxisFactory(), variableManager, new TimeManager())
+        );
         _ = new Variable<int>(actor, "myId", VariableScope.Local, 1);
         variableManager.LocalName.Should().Be("Default");
         variableManager.Save("myRecipe");
@@ -36,7 +38,9 @@ public class VariableManagerTest
         var variableManager = new VariableManager(databaseMock.Object);
         databaseMock.Setup(m => m.Read("myRecipe", "myActor", "myId")).Returns("2");
         variableManager.LocalName.Should().Be("Default");
-        var actor = new Actor(new ActorConfig("myActor", variableManager, new TimeManager()));
+        var actor = new Actor(
+            new ActorConfig("myActor", new EmptyAxisFactory(), variableManager, new TimeManager())
+        );
         var variable = new Variable<int>(actor, "myId", VariableScope.Local, 1);
         variableManager.Load("myRecipe");
         variable.Value.Should().Be(2);
@@ -49,8 +53,12 @@ public class VariableManagerTest
         var databaseMock = new Mock<IDatabase>();
         var variableManager = new VariableManager(databaseMock.Object);
         var timeManager = new TimeManager();
-        var actor = new Actor(new ActorConfig("myActor", variableManager, timeManager));
-        var actor2 = new Actor(new ActorConfig("myActor2", variableManager, timeManager));
+        var actor = new Actor(
+            new ActorConfig("myActor", new EmptyAxisFactory(), variableManager, timeManager)
+        );
+        var actor2 = new Actor(
+            new ActorConfig("myActor2", new EmptyAxisFactory(), variableManager, timeManager)
+        );
         _ = new Variable<int>(actor, "myId", VariableScope.Local, 1);
 
         var act1 = () => new Variable<int>(actor, "myId", VariableScope.Local, 1);

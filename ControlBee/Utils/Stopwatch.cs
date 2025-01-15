@@ -6,7 +6,7 @@ public class Stopwatch : IStopwatch
 {
     private readonly System.Diagnostics.Stopwatch _stopwatch = new();
 
-    private Stopwatch()
+    public Stopwatch()
     {
         _stopwatch.Start();
     }
@@ -23,10 +23,5 @@ public class Stopwatch : IStopwatch
     public void Start()
     {
         _stopwatch.Start();
-    }
-
-    public static Stopwatch Create()
-    {
-        return new Stopwatch();
     }
 }

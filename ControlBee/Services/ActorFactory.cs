@@ -3,9 +3,13 @@ using ControlBee.Models;
 
 namespace ControlBee.Services;
 
-public class ActorFactory(IVariableManager variableManager, ITimeManager timeManager)
+public class ActorFactory(
+    IAxisFactory axisFactory,
+    IVariableManager variableManager,
+    ITimeManager timeManager
+)
 {
-    private Dictionary<string, IActor> _map = new();
+    private readonly Dictionary<string, IActor> _map = new();
 
     public T Create<T>(string actorName, params object?[]? args)
         where T : IActorInternal
@@ -14,7 +18,7 @@ public class ActorFactory(IVariableManager variableManager, ITimeManager timeMan
             throw new ApplicationException(
                 "Cannot create this object. It must be derived from the 'Actor' class."
             );
-        var actorConfig = new ActorConfig(actorName, variableManager, timeManager);
+        var actorConfig = new ActorConfig(actorName, axisFactory, variableManager, timeManager);
         var actorArgs = new List<object?> { actorConfig };
         if (args != null)
             actorArgs.AddRange(args);

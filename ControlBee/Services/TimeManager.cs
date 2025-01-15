@@ -12,6 +12,6 @@ public class TimeManager : ITimeManager
 
     public IStopwatch CreateWatch()
     {
-        return Stopwatch.Create();
+        return new Stopwatch();
     }
 }

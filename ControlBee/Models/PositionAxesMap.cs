@@ -1,4 +1,5 @@
-﻿using ControlBee.Interfaces;
+﻿using ControlBee.Exceptions;
+using ControlBee.Interfaces;
 
 namespace ControlBee.Models;
 
@@ -19,7 +20,11 @@ public class PositionAxesMap : IPositionAxesMap
 
     public IAxis[] Get(string itemName)
     {
-        return _map[itemName];
+        if (!_map.TryGetValue(itemName, out var axis))
+            throw new PlatformException(
+                "PositionAxesMap must include axis information for the actor item before it can be used."
+            );
+        return axis;
     }
 
     public void UpdateMap()
