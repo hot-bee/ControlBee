@@ -20,7 +20,7 @@ public class Actor : IActorInternal, IDisposable
 
     protected IActor InternalUi = Empty;
 
-    protected IState State;
+    public IState State;
 
     public Actor()
         : this(
@@ -114,7 +114,7 @@ public class Actor : IActorInternal, IDisposable
 
     public virtual void Start()
     {
-        Logger.Info("Starting Actor instance.");
+        Logger.Info($"Starting Actor instance. ({ActorName})");
         _thread.Start();
     }
 

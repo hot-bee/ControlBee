@@ -2,7 +2,7 @@
 
 namespace ControlBee.Interfaces;
 
-public interface IUiActor
+public interface IUiActor : IActor
 {
     event EventHandler<Message>? MessageArrived;
 }
