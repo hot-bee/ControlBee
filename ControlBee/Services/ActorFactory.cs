@@ -9,7 +9,18 @@ public class ActorFactory(
     ITimeManager timeManager
 )
 {
-    private readonly Dictionary<string, IActor> _map = new();
+    private readonly ActorRegistry? _actorRegistry;
+
+    public ActorFactory(
+        IAxisFactory axisFactory,
+        IVariableManager variableManager,
+        ITimeManager timeManager,
+        ActorRegistry actorRegistry
+    )
+        : this(axisFactory, variableManager, timeManager)
+    {
+        _actorRegistry = actorRegistry;
+    }
 
     public T Create<T>(string actorName, params object?[]? args)
         where T : IActorInternal
@@ -25,12 +36,7 @@ public class ActorFactory(
 
         var actor = (T)Activator.CreateInstance(typeof(T), actorArgs.ToArray())!;
         actor.Init();
-        _map[actorName] = actor;
+        _actorRegistry?.Add(actorName, actor);
         return actor;
-    }
-
-    public IActor Get(string actorName)
-    {
-        return _map[actorName];
     }
 }
