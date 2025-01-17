@@ -44,7 +44,7 @@ public class StateTest
     {
         public override IState ProcessMessage(Message message)
         {
-            if (message.Payload as string == "Pickup")
+            if (message.Name == "Pickup")
                 return new PickupState(Actor);
             return this;
         }

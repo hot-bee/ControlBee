@@ -141,7 +141,7 @@ public class Actor : IActorInternal, IDisposable
             while (true)
             {
                 var message = _mailbox.Take(_cancellationTokenSource.Token);
-                if (message.Payload as string == "_terminate")
+                if (message.Name == "_terminate")
                     break;
                 Process(message);
             }

@@ -18,7 +18,7 @@ public class ActorTest
         var actor1 = new Actor(
             (self, message) =>
             {
-                listener.Enqueue((string)message.Payload);
+                listener.Enqueue(message.Name);
                 message.Sender.Send(new Message(self, "foo"));
                 if (listener.Count > 10)
                     throw new OperationCanceledException();
@@ -28,7 +28,7 @@ public class ActorTest
         var actor2 = new Actor(
             (self, message) =>
             {
-                listener.Enqueue((string)message.Payload);
+                listener.Enqueue(message.Name);
                 message.Sender.Send(new Message(self, "bar"));
                 if (listener.Count > 10)
                     throw new OperationCanceledException();

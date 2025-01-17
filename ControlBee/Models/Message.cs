@@ -2,9 +2,14 @@
 
 namespace ControlBee.Models;
 
-public class Message(IActor sender, object payload)
+public class Message(IActor sender, string name, object? payload)
 {
-    public static readonly Message Empty = new Message(Actor.Empty, 0);
+    public static readonly Message Empty = new(Actor.Empty, "_empty");
+
+    public Message(IActor sender, string name)
+        : this(sender, name, null) { }
+
     public IActor Sender { get; } = sender;
-    public object Payload { get; } = payload;
+    public string Name { get; } = name;
+    public object? Payload { get; } = payload;
 }

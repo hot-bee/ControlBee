@@ -58,27 +58,27 @@ public class GlobalInitializationSequenceTest
         globalInitializationSequence.Run();
         Mock.Get(mandrel0)
             .Verify(
-                m => m.Send(It.Is<Message>(message => message.Payload as string == "_initialize")),
+                m => m.Send(It.Is<Message>(message => message.Name == "_initialize")),
                 Times.Once
             );
         Mock.Get(mandrel1)
             .Verify(
-                m => m.Send(It.Is<Message>(message => message.Payload as string == "_initialize")),
+                m => m.Send(It.Is<Message>(message => message.Name == "_initialize")),
                 Times.Once
             );
         Mock.Get(mandrel2)
             .Verify(
-                m => m.Send(It.Is<Message>(message => message.Payload as string == "_initialize")),
+                m => m.Send(It.Is<Message>(message => message.Name == "_initialize")),
                 Times.Once
             );
         Mock.Get(turret)
             .Verify(
-                m => m.Send(It.Is<Message>(message => message.Payload as string == "_unReady")),
+                m => m.Send(It.Is<Message>(message => message.Name == "_unReady")),
                 Times.Never
             );
         Mock.Get(turret)
             .Verify(
-                m => m.Send(It.Is<Message>(message => message.Payload as string == "_initialize")),
+                m => m.Send(It.Is<Message>(message => message.Name == "_initialize")),
                 Times.Never
             );
 
@@ -105,27 +105,24 @@ public class GlobalInitializationSequenceTest
 
         Mock.Get(mandrel0)
             .Verify(
-                m => m.Send(It.Is<Message>(message => message.Payload as string == "_initialize")),
+                m => m.Send(It.Is<Message>(message => message.Name == "_initialize")),
                 Times.Never
             );
         Mock.Get(mandrel1)
             .Verify(
-                m => m.Send(It.Is<Message>(message => message.Payload as string == "_initialize")),
+                m => m.Send(It.Is<Message>(message => message.Name == "_initialize")),
                 Times.Never
             );
         Mock.Get(mandrel2)
             .Verify(
-                m => m.Send(It.Is<Message>(message => message.Payload as string == "_initialize")),
+                m => m.Send(It.Is<Message>(message => message.Name == "_initialize")),
                 Times.Never
             );
         Mock.Get(turret)
-            .Verify(
-                m => m.Send(It.Is<Message>(message => message.Payload as string == "_unReady")),
-                Times.Once
-            );
+            .Verify(m => m.Send(It.Is<Message>(message => message.Name == "_unReady")), Times.Once);
         Mock.Get(turret)
             .Verify(
-                m => m.Send(It.Is<Message>(message => message.Payload as string == "_initialize")),
+                m => m.Send(It.Is<Message>(message => message.Name == "_initialize")),
                 Times.Once
             );
     }
