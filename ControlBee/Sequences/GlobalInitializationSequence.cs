@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
 using ControlBee.Constants;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
@@ -46,7 +47,9 @@ public class GlobalInitializationSequence(
 
     public void InitializeIfPossible(IActor initActor)
     {
-        if (_initializationState[initActor] == InitializationStatus.Uninitialized)
+        if (!_initializationState.TryGetValue(initActor, out var value))
+            return;
+        if (value == InitializationStatus.Uninitialized)
             Initialize(initActor);
     }
 

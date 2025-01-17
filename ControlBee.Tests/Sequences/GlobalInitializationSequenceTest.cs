@@ -21,6 +21,7 @@ public class GlobalInitializationSequenceTest
         var mandrel0 = Mock.Of<IActor>();
         var mandrel1 = Mock.Of<IActor>();
         var mandrel2 = Mock.Of<IActor>();
+        var notSetActor = Mock.Of<IActor>();
 
         var globalInitializationSequence = new GlobalInitializationSequence(
             syncerActor,
@@ -29,6 +30,7 @@ public class GlobalInitializationSequenceTest
                 sequence.InitializeIfPossible(mandrel0);
                 sequence.InitializeIfPossible(mandrel1);
                 sequence.InitializeIfPossible(mandrel2);
+                sequence.InitializeIfPossible(notSetActor);
                 if (sequence.IsInitializingActors)
                     return;
 
