@@ -38,7 +38,7 @@ public class GlobalInitializationSequence(
 
     private void Initialize(IActor initActor)
     {
-        Logger.Info($"Initializing {initActor.ActorName}...");
+        Logger.Info($"Initializing {initActor.Name}...");
         initActor.Send(new Message(actor, "_unReady"));
         initActor.Send(new Message(actor, "_initialize"));
         _initializationState[initActor] = InitializationStatus.Initializing;

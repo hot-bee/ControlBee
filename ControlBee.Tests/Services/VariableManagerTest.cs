@@ -80,7 +80,7 @@ public class VariableManagerTest
         var databaseMock = new Mock<IDatabase>();
         var variableManager = new VariableManager(databaseMock.Object);
         var actor = new Mock<IActorInternal>();
-        actor.Setup(m => m.ActorName).Returns("myActor");
+        actor.Setup(m => m.Name).Returns("myActor");
         actor.Setup(m => m.VariableManager).Returns(variableManager);
         _ = new Variable<int>(actor.Object, "myId", VariableScope.Local);
         variableManager.Count.Should().Be(1);
@@ -88,7 +88,7 @@ public class VariableManagerTest
         var act1 = () => new Variable<int>(actor.Object, "myId", VariableScope.Local);
         act1.Should().Throw<ApplicationException>();
 
-        actor.Setup(m => m.ActorName).Returns("myActor2");
+        actor.Setup(m => m.Name).Returns("myActor2");
         var act2 = () => new Variable<int>(actor.Object, "myId", VariableScope.Local);
         act2.Should().NotThrow();
     }

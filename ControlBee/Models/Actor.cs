@@ -17,6 +17,7 @@ public class Actor : IActorInternal, IDisposable
     private readonly Thread _thread;
 
     private bool _init;
+    private string _title = string.Empty;
 
     protected IActor InternalUi = Empty;
 
@@ -56,13 +57,23 @@ public class Actor : IActorInternal, IDisposable
         VariableManager = config.VariableManager;
         TimeManager = config.TimeManager;
         PositionAxesMap = new PositionAxesMap();
-        ActorName = config.ActorName;
+        Name = config.ActorName;
         State = new EmptyState(this);
     }
 
     public IAxisFactory AxisFactory { get; }
 
-    public string ActorName { get; }
+    public string Name { get; }
+
+    public string Title
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(_title))
+                return Name;
+            return _title;
+        }
+    }
 
     public virtual void Send(Message message)
     {
@@ -93,6 +104,11 @@ public class Actor : IActorInternal, IDisposable
         Logger.Info("Actor instance successfully disposed.");
     }
 
+    public void SetTitle(string title)
+    {
+        _title = title;
+    }
+
     private void InitActorItems(string itemNamePrefix, object actorItemHolder)
     {
         var fieldInfos = actorItemHolder.GetType().GetFields();
@@ -114,7 +130,7 @@ public class Actor : IActorInternal, IDisposable
 
     public virtual void Start()
     {
-        Logger.Info($"Starting Actor instance. ({ActorName})");
+        Logger.Info($"Starting Actor instance. ({Name})");
         _thread.Start();
     }
 

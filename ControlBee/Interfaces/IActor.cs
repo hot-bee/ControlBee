@@ -4,6 +4,7 @@ namespace ControlBee.Interfaces;
 
 public interface IActor
 {
-    string ActorName { get; }
+    string Name { get; }
+    string Title { get; }
     void Send(Message message);
 }

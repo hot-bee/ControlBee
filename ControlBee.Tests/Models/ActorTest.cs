@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
-using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Services;
-using ControlBee.Variables;
+using FluentAssertions;
 using JetBrains.Annotations;
-using Moq;
 using Xunit;
 
 namespace ControlBee.Tests.Models;
@@ -47,5 +44,14 @@ public class ActorTest
         Assert.Equal(12, listener.Count);
         Assert.True(listener.Where((item, index) => index % 2 == 0).All(s => s == "foo"));
         Assert.True(listener.Where((item, index) => index % 2 == 1).All(s => s == "bar"));
+    }
+
+    [Fact]
+    public void TitleTest()
+    {
+        var actor = new Actor("myActor");
+        actor.Title.Should().Be("myActor");
+        actor.SetTitle("MyActor");
+        actor.Title.Should().Be("MyActor");
     }
 }

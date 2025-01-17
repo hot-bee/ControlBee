@@ -28,13 +28,13 @@ public class ActorFactoryTest
 
         actor.PickupPosition.ActorName.Should().Be("testActor");
         actor.PickupPosition.ItemName.Should().Be("/PickupPosition");
-        actor.PickupPosition.Value.Actor.ActorName.Should().Be("testActor");
+        actor.PickupPosition.Value.Actor.Name.Should().Be("testActor");
         actor.PickupPosition.Value.ItemName.Should().Be("/PickupPosition");
-        actor.PickupPosition.Value[0, 0].Actor.ActorName.Should().Be("testActor");
+        actor.PickupPosition.Value[0, 0].Actor.Name.Should().Be("testActor");
         actor.PickupPosition.Value[0, 0].ItemName.Should().Be("/PickupPosition");
 
         actor.PickupPosition.Value = new Array2D<Position1D>(10, 10);
-        actor.PickupPosition.Value[0, 0].Actor.ActorName.Should().Be("testActor");
+        actor.PickupPosition.Value[0, 0].Actor.Name.Should().Be("testActor");
         actor.PickupPosition.Value[0, 0].ItemName.Should().Be("/PickupPosition");
     }
 
