@@ -13,7 +13,7 @@ public class Actor : IActorInternal, IDisposable
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly BlockingCollection<Message> _mailbox = new();
 
-    private readonly Action<IActor, Message>? _messageHandler;
+    private readonly Func<IActor, IState, Message, IState>? _messageHandler;
     private readonly Thread _thread;
 
     private bool _init;
@@ -43,7 +43,7 @@ public class Actor : IActorInternal, IDisposable
             )
         ) { }
 
-    public Actor(Action<IActor, Message> messageHandler)
+    public Actor(Func<IActor, IState, Message, IState> messageHandler)
         : this()
     {
         _messageHandler = messageHandler;
@@ -104,6 +104,12 @@ public class Actor : IActorInternal, IDisposable
         Logger.Info("Actor instance successfully disposed.");
     }
 
+    public event EventHandler<(
+        Message message,
+        IState oldState,
+        IState newState
+    )>? MessageProcessed;
+
     public void SetTitle(string title)
     {
         _title = title;
@@ -143,7 +149,7 @@ public class Actor : IActorInternal, IDisposable
                 var message = _mailbox.Take(_cancellationTokenSource.Token);
                 if (message.Name == "_terminate")
                     break;
-                Process(message);
+                ProcessMessage(message);
             }
         }
         catch (OperationCanceledException e)
@@ -152,20 +158,29 @@ public class Actor : IActorInternal, IDisposable
         }
     }
 
-    protected virtual void Process(Message message)
+    protected virtual void ProcessMessage(Message message)
     {
-        _messageHandler?.Invoke(this, message);
         while (true)
         {
             var oldState = State;
-            State = State.ProcessMessage(message);
+            State =
+                _messageHandler != null
+                    ? _messageHandler.Invoke(this, State, message)
+                    : State.ProcessMessage(message);
+            OnMessageProcessed((message, oldState, State));
             if (State == oldState)
                 break;
+            message = Message.Empty;
         }
     }
 
     public void Join()
     {
         _thread.Join();
+    }
+
+    protected virtual void OnMessageProcessed((Message message, IState oldState, IState newState) e)
+    {
+        MessageProcessed?.Invoke(this, e);
     }
 }
