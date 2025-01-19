@@ -5,36 +5,57 @@ namespace ControlBee.Models;
 
 public class ScenarioFlowTester : IScenarioFlowTester
 {
-    private int _stepIndex;
+    private ISimulationStep[][]? _stepGroups;
+    private int[]? _stepIndices;
 
-    private ISimulationStep[]? _steps;
-    public bool Complete => _stepIndex == _steps?.Length;
+    public bool Complete
+    {
+        get
+        {
+            if (_stepIndices == null || _stepGroups == null)
+                return false;
+            for (var i = 0; i < _stepIndices.Length; i++)
+                if (_stepIndices[i] < _stepGroups[i].Length)
+                    return false;
+            return true;
+        }
+    }
 
     void IScenarioFlowTester.OnCheckpoint()
     {
-        while (_stepIndex < _steps?.Length)
+        if (_stepIndices == null || _stepGroups == null)
+            return;
+        for (var i = 0; i < _stepIndices.Length; i++)
         {
-            var step = _steps[_stepIndex];
-            switch (step)
+            var stepGroup = _stepGroups[i];
+            while (_stepIndices[i] < stepGroup.Length)
             {
-                case ConditionStep conditionStep:
-                    if (conditionStep.Invoke())
-                        _stepIndex++;
-                    else
-                        return;
+                var step = stepGroup[_stepIndices[i]];
+                var proceeded = true;
+                switch (step)
+                {
+                    case ConditionStep conditionStep:
+                        if (conditionStep.Invoke())
+                            _stepIndices[i]++;
+                        else
+                            proceeded = false;
+                        break;
+                    case BehaviorStep behaviorsStep:
+                        _stepIndices[i]++;
+                        behaviorsStep.Invoke();
+                        break;
+                    default:
+                        throw new ValueError();
+                }
+                if (!proceeded)
                     break;
-                case BehaviorStep behaviorsStep:
-                    _stepIndex++;
-                    behaviorsStep.Invoke();
-                    break;
-                default:
-                    throw new ValueError();
             }
         }
     }
 
-    public void Setup(ISimulationStep[] steps)
+    public void Setup(ISimulationStep[][] stepGroups)
     {
-        _steps = steps;
+        _stepGroups = stepGroups;
+        _stepIndices = new int[_stepGroups.GetLength(0)];
     }
 }

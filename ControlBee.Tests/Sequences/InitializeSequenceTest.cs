@@ -1,4 +1,6 @@
-﻿using ControlBee.Constants;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
+using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Sequences;
@@ -6,6 +8,7 @@ using ControlBee.Services;
 using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
+using MathNet.Numerics.LinearAlgebra.Double;
 using Xunit;
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
@@ -18,49 +21,133 @@ public class InitializeSequenceTest
     [Fact]
     public void NormalTest()
     {
-        using var timeManager = new FrozenTimeManager();
-        var tester = new ScenarioFlowTester();
-        var axisX = new FakeAxis(timeManager, tester);
+        using var frozenTimeManager = new FrozenTimeManager();
+        var scenarioFlowTester = new ScenarioFlowTester();
 
+        var systemConfigurations = new SystemConfigurations { FakeMode = true };
+        var fakeAxisFactory = new FakeAxisFactory(frozenTimeManager, scenarioFlowTester);
+        var axisFactory = new AxisFactory(systemConfigurations, frozenTimeManager, fakeAxisFactory);
         var actorFactory = new ActorFactory(
-            new EmptyAxisFactory(),
+            axisFactory,
             new EmptyVariableManager(),
-            timeManager
+            frozenTimeManager
         );
-        var testActor = actorFactory.Create<TestActor>("testActor", axisX);
+        var testActor = actorFactory.Create<TestActor>("testActor");
+        var axisX = (FakeAxis)testActor.X;
+        var axisY = (FakeAxis)testActor.Y;
+        var axisZ = (FakeAxis)testActor.Z;
 
-        testActor.HomingSpeed.Value.Velocity = 0.1;
-        testActor.HomePosition.Value[0] = 10.0;
-
-        tester.Setup(
-            [
-                new ConditionStep(() => testActor.X.GetPosition() < -0.1),
-                new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, true)),
-                new ConditionStep(() => testActor.X.GetPosition() > -0.08),
-                new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, false)),
-                new ConditionStep(() => testActor.X.GetPosition() < -0.09),
-                new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, true)),
-                new ConditionStep(() => testActor.X.GetPosition() == 10.0),
-            ]
+        scenarioFlowTester.Setup(
+            new ISimulationStep[][]
+            {
+                [
+                    new ConditionStep(() => testActor.X.GetPosition() < -0.1),
+                    new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, true)),
+                    new ConditionStep(() => testActor.X.GetPosition() > -0.08),
+                    new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, false)),
+                    new ConditionStep(() => testActor.X.GetPosition() < -0.09),
+                    new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, true)),
+                    new ConditionStep(() => testActor.X.GetPosition() == 10.0),
+                ],
+                [
+                    new ConditionStep(() => testActor.Y.GetPosition() < -0.1),
+                    new BehaviorStep(() => axisY.SetSensorValue(AxisSensorType.Home, true)),
+                    new ConditionStep(() => testActor.Y.GetPosition() > -0.08),
+                    new BehaviorStep(() => axisY.SetSensorValue(AxisSensorType.Home, false)),
+                    new ConditionStep(() => testActor.Y.GetPosition() < -0.09),
+                    new BehaviorStep(() => axisY.SetSensorValue(AxisSensorType.Home, true)),
+                    new ConditionStep(() => testActor.Y.GetPosition() == 10.0),
+                ],
+                [
+                    new ConditionStep(() => testActor.Z.GetPosition() < -0.1),
+                    new BehaviorStep(() => axisZ.SetSensorValue(AxisSensorType.Home, true)),
+                    new ConditionStep(() => testActor.Z.GetPosition() > -0.08),
+                    new BehaviorStep(() => axisZ.SetSensorValue(AxisSensorType.Home, false)),
+                    new ConditionStep(() => testActor.Z.GetPosition() < -0.09),
+                    new BehaviorStep(() => axisZ.SetSensorValue(AxisSensorType.Home, true)),
+                    new ConditionStep(() => testActor.Z.GetPosition() == 10.0),
+                ],
+            }
         );
 
-        testActor.InitializeSequence.Run();
-        tester.Complete.Should().BeTrue();
+        testActor.Start();
+        testActor.Send(new Message(Actor.Empty, "_initialize"));
+        testActor.Send(new Message(Actor.Empty, "_terminate"));
+        testActor.Join();
+        scenarioFlowTester.Complete.Should().BeTrue();
     }
 
+    // ReSharper disable once ClassNeverInstantiated.Local
+    [SuppressMessage("ReSharper", "MemberCanBePrivate.Local")]
     private class TestActor : Actor
     {
-        public readonly Variable<Position1D> HomePosition = new(VariableScope.Global);
-        public readonly Variable<SpeedProfile> HomingSpeed = new(VariableScope.Global);
-        public readonly InitializeSequence InitializeSequence;
-        public readonly IAxis X;
+        public readonly Variable<Position1D> HomePositionX = new(
+            VariableScope.Global,
+            new Position1D(DenseVector.OfArray([10.0]))
+        );
 
-        public TestActor(ActorConfig config, IAxis axisX)
+        public readonly Variable<Position1D> HomePositionY = new(
+            VariableScope.Global,
+            new Position1D(DenseVector.OfArray([10.0]))
+        );
+
+        public readonly Variable<Position1D> HomePositionZ = new(
+            VariableScope.Global,
+            new Position1D(DenseVector.OfArray([10.0]))
+        );
+
+        public readonly Variable<SpeedProfile> HomingSpeedX = new(
+            VariableScope.Global,
+            new SpeedProfile { Velocity = 1.0 }
+        );
+
+        public readonly Variable<SpeedProfile> HomingSpeedY = new(
+            VariableScope.Global,
+            new SpeedProfile { Velocity = 1.0 }
+        );
+
+        public readonly Variable<SpeedProfile> HomingSpeedZ = new(
+            VariableScope.Global,
+            new SpeedProfile { Velocity = 1.0 }
+        );
+
+        public readonly InitializeSequence InitializeSequenceX;
+        public readonly InitializeSequence InitializeSequenceY;
+        public readonly InitializeSequence InitializeSequenceZ;
+
+        public readonly IAxis X;
+        public readonly IAxis Y;
+        public readonly IAxis Z;
+
+        public TestActor(ActorConfig config)
             : base(config)
         {
-            X = axisX;
-            PositionAxesMap.Add(HomePosition, [X]);
-            InitializeSequence = new InitializeSequence(X, HomingSpeed, HomePosition);
+            X = AxisFactory.Create();
+            Y = AxisFactory.Create();
+            Z = AxisFactory.Create();
+
+            PositionAxesMap.Add(HomePositionX, [X]);
+            PositionAxesMap.Add(HomePositionY, [Y]);
+            PositionAxesMap.Add(HomePositionZ, [Z]);
+
+            InitializeSequenceX = new InitializeSequence(X, HomingSpeedX, HomePositionX);
+            InitializeSequenceY = new InitializeSequence(Y, HomingSpeedY, HomePositionY);
+            InitializeSequenceZ = new InitializeSequence(Z, HomingSpeedZ, HomePositionZ);
+        }
+
+        protected override void OnMessageProcessed(
+            (Message message, IState oldState, IState newState) e
+        )
+        {
+            base.OnMessageProcessed(e);
+            if (e.message.Name == "_initialize")
+            {
+                InitializeSequenceZ.Run();
+                Task.WaitAll(
+                    TimeManager.RunTask(() => InitializeSequenceX.Run()),
+                    TimeManager.RunTask(() => InitializeSequenceY.Run())
+                );
+            }
         }
     }
 }

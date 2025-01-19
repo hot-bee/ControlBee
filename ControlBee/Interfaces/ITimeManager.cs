@@ -1,4 +1,5 @@
-﻿using ControlBee.Utils;
+﻿using ControlBee.Models;
+using ControlBee.Utils;
 
 namespace ControlBee.Interfaces;
 
@@ -8,5 +9,5 @@ public interface ITimeManager
     IStopwatch CreateWatch();
     void Register();
     void Unregister();
-    Task TaskRun(Action action);
+    Task RunTask(Action action);
 }

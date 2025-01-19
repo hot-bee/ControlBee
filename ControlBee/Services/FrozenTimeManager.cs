@@ -44,15 +44,27 @@ public class FrozenTimeManager : IFrozenTimeManager, IDisposable
                         continue;
                     }
 
-                    var sleepEvents = events
-                        .ToList()
-                        .ConvertAll(x => x.SleepEvent)
-                        .ToArray<WaitHandle>();
-                    if (!WaitHandle.WaitAll(sleepEvents, DefaultTickingThreadTimeout))
+                    var sleepingEvents = events.Where(x => x.IsSleeping).ToList();
+                    if (sleepingEvents.Count == 0)
+                    {
+                        Thread.Sleep(1);
                         continue;
+                    }
+                    var activeEvents = events
+                        .Except(sleepingEvents)
+                        .Where(x => (x.Thread.ThreadState & ThreadState.WaitSleepJoin) == 0)
+                        .ToList();
+                    if (activeEvents.Count > 0)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    sleepingEvents.ForEach(x => x.IsSleeping = false);
+
                     _tick(config.TickMilliseconds);
-                    events.ForEach(x => x.ResumeEvent.Set());
-                    var resumedEvents = events
+                    sleepingEvents.ForEach(x => x.ResumeEvent.Set());
+                    var resumedEvents = sleepingEvents
                         .ToList()
                         .ConvertAll(x => x.ResumedEvent)
                         .ToArray<WaitHandle>();
@@ -97,7 +109,7 @@ public class FrozenTimeManager : IFrozenTimeManager, IDisposable
                 threadEvent = _threadEvents[Thread.CurrentThread];
             }
 
-            threadEvent.SleepEvent.Set();
+            threadEvent.IsSleeping = true;
             threadEvent.ResumeEvent.WaitOne();
             threadEvent.ResumedEvent.Set();
         }
@@ -133,7 +145,7 @@ public class FrozenTimeManager : IFrozenTimeManager, IDisposable
         }
     }
 
-    public Task TaskRun(Action action)
+    public Task RunTask(Action action)
     {
         var task = Task.Run(() =>
         {

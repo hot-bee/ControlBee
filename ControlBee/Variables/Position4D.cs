@@ -2,12 +2,10 @@
 
 namespace ControlBee.Variables;
 
-public class Position4D : Position
+public class Position4D(DenseVector vector) : Position(vector)
 {
     public Position4D()
-    {
-        InternalVector = new DenseVector(Rank);
-    }
+        : this(DenseVector.OfArray([0, 0, 0, 0])) { }
 
     protected sealed override int Rank => 4;
 }

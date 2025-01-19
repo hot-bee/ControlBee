@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using MathNet.Numerics.LinearAlgebra.Double;
 
@@ -11,6 +12,17 @@ public abstract class Position : IValueChanged, IActorItemSub
     protected abstract int Rank { get; }
 
     private IAxis[] Axes => Actor.PositionAxesMap.Get(ItemName);
+
+    protected Position() { }
+
+    protected Position(DenseVector vector)
+        : this()
+    {
+        // ReSharper disable once VirtualMemberCallInConstructor
+        if (vector.Count != Rank)
+            throw new PlatformException();
+        InternalVector = DenseVector.OfVector(vector);
+    }
 
     protected DenseVector InternalVector
     {

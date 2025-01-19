@@ -122,8 +122,10 @@ public class ActorTest
                 timeManager
             )
         );
+        actor.Start();
+        actor.Send(new Message(Actor.Empty, "_terminate"));
+        actor.Join();
         Mock.Get(timeManager).Verify(m => m.Register(), Times.Once);
-        actor.Dispose();
-        Mock.Get(timeManager).Verify(m => m.Register(), Times.Once);
+        Mock.Get(timeManager).Verify(m => m.Unregister(), Times.Once);
     }
 }

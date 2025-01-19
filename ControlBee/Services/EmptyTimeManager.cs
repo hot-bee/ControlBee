@@ -25,7 +25,7 @@ public class EmptyTimeManager : ITimeManager
         // Empty
     }
 
-    public Task TaskRun(Action action)
+    public Task RunTask(Action action)
     {
         return Task.Run(action);
     }

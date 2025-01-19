@@ -17,6 +17,7 @@ public class Actor : IActorInternal, IDisposable
     private readonly Thread _thread;
 
     private bool _init;
+
     private string _title = string.Empty;
 
     protected IActor InternalUi = Empty;
@@ -59,7 +60,6 @@ public class Actor : IActorInternal, IDisposable
         PositionAxesMap = new PositionAxesMap();
         Name = config.ActorName;
 
-        TimeManager.Register();
         State = new EmptyState(this);
     }
 
@@ -106,7 +106,7 @@ public class Actor : IActorInternal, IDisposable
             _cancellationTokenSource.Cancel();
             _thread.Join();
         }
-        TimeManager.Unregister();
+
         Logger.Info("Actor instance successfully disposed.");
     }
 
@@ -148,6 +148,7 @@ public class Actor : IActorInternal, IDisposable
 
     private void RunThread()
     {
+        TimeManager.Register();
         try
         {
             while (true)
@@ -161,6 +162,10 @@ public class Actor : IActorInternal, IDisposable
         catch (OperationCanceledException e)
         {
             Logger.Info(e);
+        }
+        finally
+        {
+            TimeManager.Unregister();
         }
     }
 

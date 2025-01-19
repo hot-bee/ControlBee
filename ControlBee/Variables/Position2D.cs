@@ -2,19 +2,10 @@
 
 namespace ControlBee.Variables;
 
-public class Position2D : Position
+public class Position2D(DenseVector vector) : Position(vector)
 {
     public Position2D()
-    {
-        InternalVector = new DenseVector(Rank);
-    }
-
-    public Position2D(DenseVector vector)
-    {
-        if (vector.Count != Rank)
-            throw new ApplicationException();
-        InternalVector = DenseVector.OfVector(vector);
-    }
+        : this(DenseVector.OfArray([0, 0])) { }
 
     protected sealed override int Rank => 2;
 }

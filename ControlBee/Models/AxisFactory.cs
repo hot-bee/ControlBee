@@ -4,7 +4,7 @@ namespace ControlBee.Models;
 
 public class AxisFactory(
     SystemConfigurations systemConfigurations,
-    IFrozenTimeManager timeManager,
+    ITimeManager timeManager,
     IFakeAxisFactory fakeAxisFactory
 ) : IAxisFactory
 {

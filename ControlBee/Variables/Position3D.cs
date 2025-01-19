@@ -2,12 +2,10 @@
 
 namespace ControlBee.Variables;
 
-public class Position3D : Position
+public class Position3D(DenseVector vector) : Position(vector)
 {
     public Position3D()
-    {
-        InternalVector = new DenseVector(Rank);
-    }
+        : this(DenseVector.OfArray([0, 0, 0])) { }
 
     protected sealed override int Rank => 3;
 }

@@ -17,6 +17,13 @@ namespace ControlBee.Tests.Variables;
 public class Position2DTest
 {
     [Fact]
+    public void InitialValuesTest()
+    {
+        var position = new Position2D(DenseVector.OfArray([1, 2]));
+        Assert.Equal(DenseVector.OfArray([1, 2]), position.Vector);
+    }
+
+    [Fact]
     public void VectorOperationTest()
     {
         var position = new Position2D(DenseVector.OfArray([1.2, 3.4]));
