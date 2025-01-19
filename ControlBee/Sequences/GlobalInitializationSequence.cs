@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
 using ControlBee.Constants;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
@@ -31,10 +30,12 @@ public class GlobalInitializationSequence(
         _initializationState.Any(x => x.Value is InitializationStatus.Initializing);
 
     public bool IsError => _initializationState.Any(x => x.Value is InitializationStatus.Error);
+    public event EventHandler<(string actorName, InitializationStatus status)>? StateChanged;
 
     public void SetInitializationState(IActor initActor, InitializationStatus status)
     {
         _initializationState[initActor] = status;
+        OnStateChanged((initActor.Name, status));
     }
 
     private void Initialize(IActor initActor)
@@ -42,7 +43,7 @@ public class GlobalInitializationSequence(
         Logger.Info($"Initializing {initActor.Name}...");
         initActor.Send(new Message(actor, "_unReady"));
         initActor.Send(new Message(actor, "_initialize"));
-        _initializationState[initActor] = InitializationStatus.Initializing;
+        SetInitializationState(initActor, InitializationStatus.Initializing);
     }
 
     public void InitializeIfPossible(IActor initActor)
@@ -61,5 +62,10 @@ public class GlobalInitializationSequence(
             );
 
         runAction(this);
+    }
+
+    protected virtual void OnStateChanged((string actorName, InitializationStatus status) e)
+    {
+        StateChanged?.Invoke(this, e);
     }
 }

@@ -1,4 +1,5 @@
-﻿using ControlBee.Constants;
+﻿using System.Collections.Generic;
+using ControlBee.Constants;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
@@ -175,5 +176,47 @@ public class GlobalInitializationSequenceTest
         globalInitializationSequence.IsComplete.Should().BeTrue();
         globalInitializationSequence.IsInitializingActors.Should().BeFalse();
         globalInitializationSequence.IsError.Should().BeTrue();
+    }
+
+    [Fact]
+    public void StateChangedTest()
+    {
+        var syncerActor = Mock.Of<IActor>();
+        var turret = Mock.Of<IActor>();
+        var mandrel0 = Mock.Of<IActor>();
+        Mock.Get(turret).Setup(m => m.Name).Returns("turret");
+        Mock.Get(mandrel0).Setup(m => m.Name).Returns("mandrel0");
+        var globalInitializationSequence = new GlobalInitializationSequence(syncerActor, _ => { });
+
+        var changedCalls = new List<(string actorName, InitializationStatus status)>();
+        globalInitializationSequence.StateChanged += (sender, tuple) =>
+        {
+            changedCalls.Add(tuple);
+        };
+        globalInitializationSequence.SetInitializationState(
+            turret,
+            InitializationStatus.Uninitialized
+        );
+        globalInitializationSequence.SetInitializationState(
+            mandrel0,
+            InitializationStatus.Uninitialized
+        );
+        globalInitializationSequence.SetInitializationState(
+            mandrel0,
+            InitializationStatus.Initializing
+        );
+        globalInitializationSequence.SetInitializationState(
+            mandrel0,
+            InitializationStatus.Initialized
+        );
+        Assert.Equal(4, changedCalls.Count);
+        Assert.Equal("turret", changedCalls[0].actorName);
+        Assert.Equal(InitializationStatus.Uninitialized, changedCalls[0].status);
+        Assert.Equal("mandrel0", changedCalls[1].actorName);
+        Assert.Equal(InitializationStatus.Uninitialized, changedCalls[1].status);
+        Assert.Equal("mandrel0", changedCalls[2].actorName);
+        Assert.Equal(InitializationStatus.Initializing, changedCalls[2].status);
+        Assert.Equal("mandrel0", changedCalls[3].actorName);
+        Assert.Equal(InitializationStatus.Initialized, changedCalls[3].status);
     }
 }
