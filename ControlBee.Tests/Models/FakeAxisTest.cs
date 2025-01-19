@@ -127,10 +127,10 @@ public class FakeAxisTest
     [Fact]
     public void MoveWithoutSpeedProfileTest()
     {
-        var frozenTimeManager = Mock.Of<IFrozenTimeManager>();
+        var timeManager = Mock.Of<ITimeManager>();
         var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
 
-        var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
+        var fakeAxis = new FakeAxis(timeManager, scenarioFlowTester);
         var action = () => fakeAxis.Move(10.0);
         action
             .Should()
@@ -141,10 +141,10 @@ public class FakeAxisTest
     [Fact]
     public void MoveWithZeroSpeedTest()
     {
-        var frozenTimeManager = Mock.Of<IFrozenTimeManager>();
+        var timeManager = Mock.Of<ITimeManager>();
         var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
 
-        var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
+        var fakeAxis = new FakeAxis(timeManager, scenarioFlowTester);
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 0.0 });
         var action = () => fakeAxis.Move(10.0);
         action
@@ -184,11 +184,11 @@ public class FakeAxisTest
     [InlineData(AxisSensorType.NegativeLimit)]
     public void SetSensorValueTest(AxisSensorType sensorType)
     {
-        var frozenTimeManager = Mock.Of<IFrozenTimeManager>();
+        var timeManager = Mock.Of<ITimeManager>();
         var scenarioFlowTesterMock = new Mock<IScenarioFlowTester>();
         var scenarioFlowTester = scenarioFlowTesterMock.Object;
 
-        var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
+        var fakeAxis = new FakeAxis(timeManager, scenarioFlowTester);
         fakeAxis.SetSensorValue(sensorType, true);
         switch (sensorType)
         {

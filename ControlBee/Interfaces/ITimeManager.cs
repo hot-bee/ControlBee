@@ -10,4 +10,6 @@ public interface ITimeManager
     void Register();
     void Unregister();
     Task RunTask(Action action);
+    int CurrentMilliseconds { get; }
+    event EventHandler<int> CurrentTimeChanged;
 }

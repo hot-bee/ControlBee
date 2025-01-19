@@ -2,7 +2,7 @@
 
 namespace ControlBee.Models;
 
-public class FakeAxisFactory(IFrozenTimeManager timeManager, IScenarioFlowTester flowTester)
+public class FakeAxisFactory(ITimeManager timeManager, IScenarioFlowTester flowTester)
     : IFakeAxisFactory
 {
     public FakeAxis Create(bool skipWaitSensor)

@@ -8,7 +8,7 @@ public class FakeAxis : Axis, IDisposable
 {
     private const double Tolerance = 1e-6;
     private readonly IScenarioFlowTester _flowTester;
-    private readonly IFrozenTimeManager _timeManager;
+    private readonly ITimeManager _timeManager;
     private double _actualPosition;
     private double _commandPosition;
     private bool _homeSensor;
@@ -18,14 +18,10 @@ public class FakeAxis : Axis, IDisposable
     private readonly bool _skipWaitSensor;
     private double _targetPosition;
 
-    public FakeAxis(IFrozenTimeManager timeManager, IScenarioFlowTester flowTester)
+    public FakeAxis(ITimeManager timeManager, IScenarioFlowTester flowTester)
         : this(timeManager, flowTester, false) { }
 
-    public FakeAxis(
-        IFrozenTimeManager timeManager,
-        IScenarioFlowTester flowTester,
-        bool skipWaitSensor
-    )
+    public FakeAxis(ITimeManager timeManager, IScenarioFlowTester flowTester, bool skipWaitSensor)
         : base(timeManager)
     {
         _timeManager = timeManager;

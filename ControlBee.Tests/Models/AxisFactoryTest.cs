@@ -22,11 +22,11 @@ public class AxisFactoryTest
             FakeMode = fakeMode,
             SkipWaitSensor = skipWait,
         };
-        var frozenTimeManager = Mock.Of<IFrozenTimeManager>();
+        var timeManager = Mock.Of<ITimeManager>();
         var fakeAxisFactoryMock = new Mock<IFakeAxisFactory>();
         var axisFactory = new AxisFactory(
             systemConfiguration,
-            frozenTimeManager,
+            timeManager,
             fakeAxisFactoryMock.Object
         );
 

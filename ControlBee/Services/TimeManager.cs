@@ -29,4 +29,7 @@ public class TimeManager : ITimeManager
     {
         return Task.Run(action);
     }
+
+    public int CurrentMilliseconds => 0;
+    public event EventHandler<int>? CurrentTimeChanged;
 }

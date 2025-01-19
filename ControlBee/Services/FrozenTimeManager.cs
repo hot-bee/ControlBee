@@ -5,9 +5,8 @@ using ControlBee.Utils;
 
 namespace ControlBee.Services;
 
-public class FrozenTimeManager : IFrozenTimeManager, IDisposable
+public class FrozenTimeManager : ITimeManager, IDisposable
 {
-    private const int DefaultTickingThreadTimeout = 100;
     private readonly FrozenTimeManagerConfig _config;
 
     private readonly Dictionary<Thread, FrozenTimeManagerEvent> _threadEvents = new();

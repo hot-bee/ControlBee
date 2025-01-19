@@ -4,10 +4,10 @@ namespace ControlBee.Utils;
 
 public class FrozenStopwatch : IStopwatch
 {
-    private readonly IFrozenTimeManager _frozenTimeManager;
+    private readonly ITimeManager _frozenTimeManager;
     private int _startTime;
 
-    public FrozenStopwatch(IFrozenTimeManager frozenTimeManager)
+    public FrozenStopwatch(ITimeManager frozenTimeManager)
     {
         _frozenTimeManager = frozenTimeManager;
         Start();
