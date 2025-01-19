@@ -3,11 +3,11 @@ using ControlBee.Utils;
 
 namespace ControlBee.Services;
 
-public class TimeManager : ITimeManager
+public class EmptyTimeManager : ITimeManager
 {
     public void Sleep(int millisecondsTimeout)
     {
-        Thread.Sleep(millisecondsTimeout);
+        // Empty
     }
 
     public IStopwatch CreateWatch()

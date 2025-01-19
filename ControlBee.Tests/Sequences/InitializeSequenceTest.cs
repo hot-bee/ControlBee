@@ -18,7 +18,7 @@ public class InitializeSequenceTest
     [Fact]
     public void NormalTest()
     {
-        var timeManager = new FrozenTimeManager(100);
+        using var timeManager = new FrozenTimeManager();
         var tester = new ScenarioFlowTester();
         var axisX = new FakeAxis(timeManager, tester);
 

@@ -6,4 +6,7 @@ public interface ITimeManager
 {
     void Sleep(int millisecondsTimeout);
     IStopwatch CreateWatch();
+    void Register();
+    void Unregister();
+    Task TaskRun(Action action);
 }

@@ -5,21 +5,22 @@ using ControlBee.Variables;
 
 namespace ControlBee.Models;
 
-public class Axis : IAxis
+public class Axis(ITimeManager timeManager) : IAxis
 {
-    private readonly ITimeManager _timeManager;
-    protected bool EmulationMode;
     protected SpeedProfile? SpeedProfile;
-
-    public Axis(ITimeManager timeManager)
-    {
-        _timeManager = timeManager;
-    }
 
     public virtual bool HomeSensor { get; } = false;
     public virtual bool PositiveLimitSensor { get; } = false;
     public virtual bool NegativeLimitSensor { get; } = false;
     public virtual bool IsMoving { get; } = false;
+
+    protected void ValidateBeforeMoving()
+    {
+        if (SpeedProfile == null)
+            throw new ValueError("You need to provide a SpeedProfile to move the axis.");
+        if (SpeedProfile!.Velocity == 0)
+            throw new ValueError("You must provide a speed greater than 0 to move the axis.");
+    }
 
     public virtual void Move(double position)
     {
@@ -28,6 +29,7 @@ public class Axis : IAxis
 
     public virtual void MoveAndWait(double position)
     {
+        ValidateBeforeMoving();
         Move(position);
         Wait();
     }
@@ -85,16 +87,14 @@ public class Axis : IAxis
         }
     }
 
-    public void WaitSensor(AxisSensorType type, bool waitingValue, int millisecondsTimeout)
+    public virtual void WaitSensor(AxisSensorType type, bool waitingValue, int millisecondsTimeout)
     {
-        if (EmulationMode)
-            return;
-        var watch = _timeManager.CreateWatch();
+        var watch = timeManager.CreateWatch();
         while (GetSensorValue(type) != waitingValue)
         {
             if (watch.ElapsedMilliseconds > millisecondsTimeout)
                 throw new TimeoutError();
-            _timeManager.Sleep(1);
+            timeManager.Sleep(1);
         }
     }
 }

@@ -5,8 +5,8 @@ namespace ControlBee.Models;
 public class FakeAxisFactory(IFrozenTimeManager timeManager, IScenarioFlowTester flowTester)
     : IFakeAxisFactory
 {
-    public FakeAxis Create(bool emulationMode)
+    public FakeAxis Create(bool skipWaitSensor)
     {
-        return new FakeAxis(timeManager, flowTester, emulationMode);
+        return new FakeAxis(timeManager, flowTester, skipWaitSensor);
     }
 }

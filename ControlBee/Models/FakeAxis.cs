@@ -1,7 +1,6 @@
 ﻿using ControlBee.Constants;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
-using ControlBee.Services;
 
 namespace ControlBee.Models;
 
@@ -16,6 +15,7 @@ public class FakeAxis : Axis, IDisposable
     private bool _isMoving;
     private bool _negativeLimitSensor;
     private bool _positiveLimitSensor;
+    private readonly bool _skipWaitSensor;
     private double _targetPosition;
 
     public FakeAxis(IFrozenTimeManager timeManager, IScenarioFlowTester flowTester)
@@ -24,13 +24,13 @@ public class FakeAxis : Axis, IDisposable
     public FakeAxis(
         IFrozenTimeManager timeManager,
         IScenarioFlowTester flowTester,
-        bool emulationMode
+        bool skipWaitSensor
     )
         : base(timeManager)
     {
         _timeManager = timeManager;
         _flowTester = flowTester;
-        EmulationMode = emulationMode;
+        _skipWaitSensor = skipWaitSensor;
         _timeManager.CurrentTimeChanged += TimeManagerOnCurrentTimeChanged;
     }
 
@@ -46,6 +46,7 @@ public class FakeAxis : Axis, IDisposable
 
     public override void Move(double position)
     {
+        ValidateBeforeMoving();
         _targetPosition = position;
         _isMoving = true;
         _flowTester.OnCheckpoint();
@@ -53,6 +54,7 @@ public class FakeAxis : Axis, IDisposable
 
     public override void VelocityMove(AxisDirection direction)
     {
+        ValidateBeforeMoving();
         switch (direction)
         {
             case AxisDirection.Positive:
@@ -127,11 +129,6 @@ public class FakeAxis : Axis, IDisposable
     {
         if (!_isMoving)
             return;
-        if (SpeedProfile == null)
-            throw new ValueError("You need to provide a SpeedProfile to move the axis.");
-        if (SpeedProfile!.Velocity == 0)
-            throw new ValueError("You must provide a speed greater than 0 to move the axis.");
-
         var elapsedSeconds = elapsedMilliSeconds / 1000.0;
         var remainDistance = _targetPosition - _commandPosition;
         var movingDirection = double.Sign(remainDistance);
@@ -167,5 +164,12 @@ public class FakeAxis : Axis, IDisposable
         }
 
         _flowTester.OnCheckpoint();
+    }
+
+    public override void WaitSensor(AxisSensorType type, bool waitingValue, int millisecondsTimeout)
+    {
+        if (_skipWaitSensor)
+            return;
+        base.WaitSensor(type, waitingValue, millisecondsTimeout);
     }
 }

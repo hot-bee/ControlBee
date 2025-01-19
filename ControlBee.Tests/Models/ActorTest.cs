@@ -3,6 +3,8 @@ using System.Collections.Concurrent;
 using System.Linq;
 using ControlBee.Interfaces;
 using ControlBee.Models;
+using ControlBee.Services;
+using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
@@ -92,5 +94,36 @@ public class ActorTest
         actor.Join();
         stateTransitMatched.Should().BeTrue();
         RetryWithEmptyMessageMatched.Should().BeTrue();
+    }
+
+    [Fact]
+    public void DisposeActorWithoutStartingTest()
+    {
+        var actor = new Actor(
+            new ActorConfig(
+                "myActor",
+                new EmptyAxisFactory(),
+                new EmptyVariableManager(),
+                new EmptyTimeManager()
+            )
+        );
+        actor.Dispose();
+    }
+
+    [Fact]
+    public void ActorLifeTest()
+    {
+        var timeManager = Mock.Of<ITimeManager>();
+        var actor = new Actor(
+            new ActorConfig(
+                "myActor",
+                new EmptyAxisFactory(),
+                new EmptyVariableManager(),
+                timeManager
+            )
+        );
+        Mock.Get(timeManager).Verify(m => m.Register(), Times.Once);
+        actor.Dispose();
+        Mock.Get(timeManager).Verify(m => m.Register(), Times.Once);
     }
 }

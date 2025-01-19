@@ -58,6 +58,8 @@ public class Actor : IActorInternal, IDisposable
         TimeManager = config.TimeManager;
         PositionAxesMap = new PositionAxesMap();
         Name = config.ActorName;
+
+        TimeManager.Register();
         State = new EmptyState(this);
     }
 
@@ -99,8 +101,12 @@ public class Actor : IActorInternal, IDisposable
     public void Dispose()
     {
         Logger.Info("Releasing resources for Actor instance.");
-        _cancellationTokenSource.Cancel();
-        _thread.Join();
+        if (_thread.ThreadState != ThreadState.Unstarted)
+        {
+            _cancellationTokenSource.Cancel();
+            _thread.Join();
+        }
+        TimeManager.Unregister();
         Logger.Info("Actor instance successfully disposed.");
     }
 

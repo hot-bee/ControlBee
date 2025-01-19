@@ -18,19 +18,26 @@ public class FakeAxisTest
     [Fact]
     public void MoveTest()
     {
-        var frozenTimeManagerMock = new Mock<IFrozenTimeManager>();
-        var frozenTimeManager = frozenTimeManagerMock.Object;
+        using var frozenTimeManager = new FrozenTimeManager();
+        var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
 
-        var scenarioFlowTesterMock = new Mock<IScenarioFlowTester>();
-        var scenarioFlowTester = scenarioFlowTesterMock.Object;
-
+        frozenTimeManager.Register();
         var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
+        fakeAxis.SetSpeed(new SpeedProfile { Velocity = 1.0 });
         fakeAxis.Move(10.0);
         fakeAxis.IsMoving.Should().BeTrue();
         fakeAxis.GetPosition(PositionType.Command).Should().Be(0.0);
         fakeAxis.GetPosition(PositionType.Actual).Should().Be(0.0);
         fakeAxis.GetPosition(PositionType.Target).Should().Be(10.0);
-        scenarioFlowTesterMock.Verify(m => m.OnCheckpoint(), Times.Once);
+        Mock.Get(scenarioFlowTester).Verify(m => m.OnCheckpoint(), Times.Once);
+
+        Mock.Get(scenarioFlowTester).Invocations.Clear();
+        fakeAxis.Wait();
+        fakeAxis.IsMoving.Should().BeFalse();
+        fakeAxis.GetPosition(PositionType.Command).Should().Be(10.0);
+        fakeAxis.GetPosition(PositionType.Actual).Should().Be(10.0);
+        fakeAxis.GetPosition(PositionType.Target).Should().Be(10.0);
+        Mock.Get(scenarioFlowTester).Verify(m => m.OnCheckpoint(), Times.AtLeastOnce);
     }
 
     [Theory]
@@ -38,7 +45,9 @@ public class FakeAxisTest
     [InlineData(AxisDirection.Negative)]
     public void VelocityMoveTest(AxisDirection direction)
     {
-        var frozenTimeManager = new FrozenTimeManager(100);
+        using var frozenTimeManager = new FrozenTimeManager(
+            new FrozenTimeManagerConfig { ManualMode = true }
+        );
 
         var scenarioFlowTesterMock = new Mock<IScenarioFlowTester>();
         var scenarioFlowTester = scenarioFlowTesterMock.Object;
@@ -60,6 +69,7 @@ public class FakeAxisTest
             default:
                 throw new Exception();
         }
+
         scenarioFlowTesterMock.Verify(m => m.OnCheckpoint(), Times.Once);
 
         frozenTimeManager.Tick(100);
@@ -96,11 +106,12 @@ public class FakeAxisTest
     [Fact]
     public void WaitTest()
     {
-        var frozenTimeManager = new FrozenTimeManager(100);
+        using var frozenTimeManager = new FrozenTimeManager();
 
         var scenarioFlowTesterMock = new Mock<IScenarioFlowTester>();
         var scenarioFlowTester = scenarioFlowTesterMock.Object;
 
+        frozenTimeManager.Register();
         var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 1.0 });
         fakeAxis.Move(10.0);
@@ -116,12 +127,11 @@ public class FakeAxisTest
     [Fact]
     public void MoveWithoutSpeedProfileTest()
     {
-        var frozenTimeManager = new FrozenTimeManager(100);
+        var frozenTimeManager = Mock.Of<IFrozenTimeManager>();
         var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
 
         var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
-        fakeAxis.Move(10.0);
-        var action = () => fakeAxis.MoveAndWait(10.0);
+        var action = () => fakeAxis.Move(10.0);
         action
             .Should()
             .Throw<ValueError>()
@@ -131,12 +141,12 @@ public class FakeAxisTest
     [Fact]
     public void MoveWithZeroSpeedTest()
     {
-        var frozenTimeManager = new FrozenTimeManager(100);
+        var frozenTimeManager = Mock.Of<IFrozenTimeManager>();
         var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
 
         var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 0.0 });
-        var action = () => fakeAxis.MoveAndWait(10.0);
+        var action = () => fakeAxis.Move(10.0);
         action
             .Should()
             .Throw<ValueError>()
@@ -146,7 +156,9 @@ public class FakeAxisTest
     [Fact]
     public void StopTest()
     {
-        var frozenTimeManager = new FrozenTimeManager(100);
+        using var frozenTimeManager = new FrozenTimeManager(
+            new FrozenTimeManagerConfig { ManualMode = true }
+        );
         var scenarioFlowTesterMock = new Mock<IScenarioFlowTester>();
         var scenarioFlowTester = scenarioFlowTesterMock.Object;
 
@@ -190,6 +202,7 @@ public class FakeAxisTest
                 fakeAxis.NegativeLimitSensor.Should().BeTrue();
                 break;
         }
+
         scenarioFlowTesterMock.Verify(m => m.OnCheckpoint(), Times.Once);
     }
 }

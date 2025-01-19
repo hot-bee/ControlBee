@@ -11,11 +11,17 @@ namespace ControlBee.Tests.Models;
 public class AxisFactoryTest
 {
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void CreateTest(bool emulationMode)
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void CreateTest(bool fakeMode, bool skipWait)
     {
-        var systemConfiguration = new SystemConfigurations();
+        var systemConfiguration = new SystemConfigurations
+        {
+            FakeMode = fakeMode,
+            SkipWaitSensor = skipWait,
+        };
         var frozenTimeManager = Mock.Of<IFrozenTimeManager>();
         var fakeAxisFactoryMock = new Mock<IFakeAxisFactory>();
         var axisFactory = new AxisFactory(
@@ -24,10 +30,9 @@ public class AxisFactoryTest
             fakeAxisFactoryMock.Object
         );
 
-        systemConfiguration.EmulationMode = emulationMode;
         var axis = axisFactory.Create();
-        if (emulationMode)
-            fakeAxisFactoryMock.Verify(m => m.Create(true), Times.Once);
+        if (fakeMode)
+            fakeAxisFactoryMock.Verify(m => m.Create(skipWait), Times.Once);
         else
             axis.Should().BeOfType(typeof(Axis));
     }

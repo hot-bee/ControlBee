@@ -1,14 +1,87 @@
-﻿using ControlBee.Interfaces;
+﻿using ControlBee.Exceptions;
+using ControlBee.Interfaces;
+using ControlBee.Models;
 using ControlBee.Utils;
 
 namespace ControlBee.Services;
 
-public class FrozenTimeManager(int tickMilliseconds) : IFrozenTimeManager
+public class FrozenTimeManager : IFrozenTimeManager, IDisposable
 {
-    private const int DefaultTickMilliseconds = 100;
+    private const int DefaultTickingThreadTimeout = 100;
+    private readonly FrozenTimeManagerConfig _config;
+
+    private readonly Dictionary<Thread, FrozenTimeManagerEvent> _threadEvents = new();
+    private readonly Thread? _tickingThread;
+
+    private bool _disposing;
+
+    public FrozenTimeManager(SystemConfigurations systemConfigurations)
+        : this(
+            new FrozenTimeManagerConfig { EmulationMode = systemConfigurations.TimeEmulationMode }
+        ) { }
 
     public FrozenTimeManager()
-        : this(DefaultTickMilliseconds) { }
+        : this(new FrozenTimeManagerConfig()) { }
+
+    public FrozenTimeManager(FrozenTimeManagerConfig config)
+    {
+        _config = config;
+        if (!config.ManualMode)
+        {
+            _tickingThread = new Thread(() =>
+            {
+                while (!_disposing)
+                {
+                    List<FrozenTimeManagerEvent> events;
+                    lock (_threadEvents)
+                    {
+                        events = _threadEvents.Values.ToList();
+                    }
+
+                    if (events.Count == 0)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    var sleepEvents = events
+                        .ToList()
+                        .ConvertAll(x => x.SleepEvent)
+                        .ToArray<WaitHandle>();
+                    if (!WaitHandle.WaitAll(sleepEvents, DefaultTickingThreadTimeout))
+                        continue;
+                    _tick(config.TickMilliseconds);
+                    events.ForEach(x => x.ResumeEvent.Set());
+                    var resumedEvents = events
+                        .ToList()
+                        .ConvertAll(x => x.ResumedEvent)
+                        .ToArray<WaitHandle>();
+                    WaitHandle.WaitAll(resumedEvents);
+                }
+            });
+            _tickingThread.Start();
+        }
+    }
+
+    public int RegisteredThreadsCount
+    {
+        get
+        {
+            lock (_threadEvents)
+            {
+                return _threadEvents.Count;
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_tickingThread != null)
+        {
+            _disposing = true;
+            _tickingThread.Join();
+        }
+    }
 
     public void Sleep(int millisecondsTimeout)
     {
@@ -18,7 +91,15 @@ public class FrozenTimeManager(int tickMilliseconds) : IFrozenTimeManager
         {
             if (startTime + millisecondsTimeout <= CurrentMilliseconds)
                 break;
-            Tick(tickMilliseconds);
+            FrozenTimeManagerEvent threadEvent;
+            lock (_threadEvents)
+            {
+                threadEvent = _threadEvents[Thread.CurrentThread];
+            }
+
+            threadEvent.SleepEvent.Set();
+            threadEvent.ResumeEvent.WaitOne();
+            threadEvent.ResumedEvent.Set();
         }
     }
 
@@ -30,10 +111,52 @@ public class FrozenTimeManager(int tickMilliseconds) : IFrozenTimeManager
     public int CurrentMilliseconds { get; private set; }
     public event EventHandler<int>? CurrentTimeChanged;
 
-    public void Tick(int elapsedMilliseconds)
+    public void Register()
     {
+        var thread = Thread.CurrentThread;
+        lock (_threadEvents)
+        {
+            if (_threadEvents.ContainsKey(thread))
+                return;
+            _threadEvents[thread] = new FrozenTimeManagerEvent();
+        }
+    }
+
+    public void Unregister()
+    {
+        var thread = Thread.CurrentThread;
+        lock (_threadEvents)
+        {
+            if (!_threadEvents.ContainsKey(thread))
+                return;
+            _threadEvents.Remove(thread);
+        }
+    }
+
+    public Task TaskRun(Action action)
+    {
+        var task = Task.Run(() =>
+        {
+            Register();
+            action();
+            Unregister();
+        });
+        return task;
+    }
+
+    private void _tick(int elapsedMilliseconds)
+    {
+        if (_config.EmulationMode)
+            Thread.Sleep(elapsedMilliseconds);
         CurrentMilliseconds += elapsedMilliseconds;
         OnCurrentTimeChanged(elapsedMilliseconds);
+    }
+
+    public void Tick(int elapsedMilliseconds)
+    {
+        if (!_config.ManualMode)
+            throw new PlatformException("This action is allowed only when ManualMode is enabled.");
+        _tick(elapsedMilliseconds);
     }
 
     protected virtual void OnCurrentTimeChanged(int e)

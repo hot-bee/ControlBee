@@ -2,5 +2,7 @@
 
 public class SystemConfigurations
 {
-    public bool EmulationMode { get; set; } // TODO: setter should be removed
+    public bool FakeMode { get; set; } // TODO: setter should be removed
+    public bool SkipWaitSensor { get; set; } // TODO: setter should be removed
+    public bool TimeEmulationMode { get; set; } // TODO: setter should be removed
 }

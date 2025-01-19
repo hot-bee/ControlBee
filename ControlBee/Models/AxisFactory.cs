@@ -10,8 +10,8 @@ public class AxisFactory(
 {
     public IAxis Create()
     {
-        if (systemConfigurations.EmulationMode)
-            return fakeAxisFactory.Create(systemConfigurations.EmulationMode);
+        if (systemConfigurations.FakeMode)
+            return fakeAxisFactory.Create(systemConfigurations.SkipWaitSensor);
         return new Axis(timeManager);
     }
 }
