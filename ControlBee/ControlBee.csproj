@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>ControlBee</PackageId>
-    <Version>0.0.9</Version>
+    <Version>0.0.10</Version>
     <Authors>Leo</Authors>
     <Company>Hotbee</Company>
     <RepositoryUrl>https://github.com/hot-bee/ControlBee</RepositoryUrl>
