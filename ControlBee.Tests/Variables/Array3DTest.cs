@@ -80,11 +80,11 @@ public class Array3DTest
         var array = new Array3D<Position1D>(1, 1, 1);
         var actor = new Actor();
         array.Actor = actor;
-        array.ItemName = "myItem";
+        array.ItemPath = "myItem";
         array.UpdateSubItem();
         // ReSharper disable once SuspiciousTypeConversion.Global
         var itemSub = (IActorItemSub)array[0, 0, 0];
         itemSub.Actor.Should().Be(actor);
-        itemSub.ItemName.Should().Be("myItem");
+        itemSub.ItemPath.Should().Be("myItem");
     }
 }

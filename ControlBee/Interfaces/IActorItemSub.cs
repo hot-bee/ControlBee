@@ -3,6 +3,6 @@
 public interface IActorItemSub
 {
     IActorInternal Actor { get; set; }
-    string ItemName { get; set; }
+    string ItemPath { get; set; }
     void UpdateSubItem();
 }

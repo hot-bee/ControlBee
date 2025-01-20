@@ -33,12 +33,12 @@ public class VariableManager(IDatabase database) : IVariableManager, IDisposable
     {
         if (
             !_variables.TryAdd(
-                new Tuple<string, string>(variable.ActorName, variable.ItemName),
+                new Tuple<string, string>(variable.ActorName, variable.ItemPath),
                 variable
             )
         )
             throw new ApplicationException(
-                "The 'ItemName' is already being used by another variable."
+                "The 'ItemPath' is already being used by another variable."
             );
         variable.ValueChanged += Variable_ValueChanged;
     }

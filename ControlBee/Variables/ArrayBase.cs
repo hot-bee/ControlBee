@@ -19,7 +19,7 @@ public abstract class ArrayBase : IValueChanged, IActorItemSub
     }
 
     public IActorInternal Actor { get; set; } = Models.Actor.Empty;
-    public string ItemName { get; set; } = string.Empty;
+    public string ItemPath { get; set; } = string.Empty;
     public abstract IEnumerable<object?> Items { get; }
 
     public void UpdateSubItem()
@@ -29,7 +29,7 @@ public abstract class ArrayBase : IValueChanged, IActorItemSub
             if (item is not IActorItemSub itemSub)
                 continue;
             itemSub.Actor = Actor;
-            itemSub.ItemName = ItemName;
+            itemSub.ItemPath = ItemPath;
             itemSub.UpdateSubItem();
         }
     }

@@ -8,7 +8,7 @@ public interface IVariable : IValueChanged
     VariableScope Scope { get; }
     IActorInternal Actor { get; set; }
     string ActorName { get; }
-    string ItemName { get; set; }
+    string ItemPath { get; set; }
     string ToJson();
     void FromJson(string data);
 }

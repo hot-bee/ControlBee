@@ -27,15 +27,15 @@ public class ActorFactoryTest
         variableManagerMock.Verify(m => m.Add(actor.PickupPosition), Times.Once);
 
         actor.PickupPosition.ActorName.Should().Be("testActor");
-        actor.PickupPosition.ItemName.Should().Be("/PickupPosition");
+        actor.PickupPosition.ItemPath.Should().Be("/PickupPosition");
         actor.PickupPosition.Value.Actor.Name.Should().Be("testActor");
-        actor.PickupPosition.Value.ItemName.Should().Be("/PickupPosition");
+        actor.PickupPosition.Value.ItemPath.Should().Be("/PickupPosition");
         actor.PickupPosition.Value[0, 0].Actor.Name.Should().Be("testActor");
-        actor.PickupPosition.Value[0, 0].ItemName.Should().Be("/PickupPosition");
+        actor.PickupPosition.Value[0, 0].ItemPath.Should().Be("/PickupPosition");
 
         actor.PickupPosition.Value = new Array2D<Position1D>(10, 10);
         actor.PickupPosition.Value[0, 0].Actor.Name.Should().Be("testActor");
-        actor.PickupPosition.Value[0, 0].ItemName.Should().Be("/PickupPosition");
+        actor.PickupPosition.Value[0, 0].ItemPath.Should().Be("/PickupPosition");
     }
 
     // ReSharper disable once ClassNeverInstantiated.Local

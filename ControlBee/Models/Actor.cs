@@ -121,22 +121,22 @@ public class Actor : IActorInternal, IDisposable
         _title = title;
     }
 
-    private void InitActorItems(string itemNamePrefix, object actorItemHolder)
+    private void InitActorItems(string itemPathPrefix, object actorItemHolder)
     {
         var fieldInfos = actorItemHolder.GetType().GetFields();
         foreach (var fieldInfo in fieldInfos)
             if (fieldInfo.FieldType.IsAssignableTo(typeof(IActorItem)))
             {
                 var actorItem = (IActorItem)fieldInfo.GetValue(actorItemHolder)!;
-                var itemName = string.Join('/', itemNamePrefix, fieldInfo.Name);
+                var itemPath = string.Join('/', itemPathPrefix, fieldInfo.Name);
                 actorItem.Actor = this;
-                actorItem.ItemName = itemName;
+                actorItem.ItemPath = itemPath;
                 actorItem.UpdateSubItem();
 
                 if (actorItem is IVariable variable)
                     VariableManager?.Add(variable);
 
-                InitActorItems(itemName, actorItem);
+                InitActorItems(itemPath, actorItem);
             }
     }
 

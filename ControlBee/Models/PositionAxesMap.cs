@@ -18,9 +18,9 @@ public class PositionAxesMap : IPositionAxesMap
         _variableMap.Add(variable, axes);
     }
 
-    public IAxis[] Get(string itemName)
+    public IAxis[] Get(string itemPath)
     {
-        if (!_map.TryGetValue(itemName, out var axis))
+        if (!_map.TryGetValue(itemPath, out var axis))
             throw new PlatformException(
                 "PositionAxesMap must include axis information for the actor item before it can be used."
             );
@@ -30,7 +30,7 @@ public class PositionAxesMap : IPositionAxesMap
     public void UpdateMap()
     {
         foreach (var (variable, axes) in _variableMap)
-            _map.Add(variable.ItemName, axes);
+            _map.Add(variable.ItemPath, axes);
         _variableMap.Clear();
     }
 }

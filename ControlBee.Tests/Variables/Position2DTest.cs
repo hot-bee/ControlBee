@@ -103,7 +103,7 @@ public class Position2DTest
             new Position2D(DenseVector.OfArray([1.2, 3.4]))
         );
         variable.Actor = actor;
-        variable.ItemName = "homePosition";
+        variable.ItemPath = "homePosition";
         variable.UpdateSubItem();
 
         var axisXMock = new Mock<IAxis>();
@@ -135,7 +135,7 @@ public class Position2DTest
             new Position2D(DenseVector.OfArray([1.2, 3.4]))
         );
         variable.Actor = actor;
-        variable.ItemName = "homePosition";
+        variable.ItemPath = "homePosition";
         variable.UpdateSubItem();
 
         var axisXMock = new Mock<IAxis>();

@@ -11,7 +11,7 @@ public abstract class Position : IValueChanged, IActorItemSub
     private DenseVector _vector = new(0);
     protected abstract int Rank { get; }
 
-    private IAxis[] Axes => Actor.PositionAxesMap.Get(ItemName);
+    private IAxis[] Axes => Actor.PositionAxesMap.Get(ItemPath);
 
     protected Position() { }
 
@@ -74,7 +74,7 @@ public abstract class Position : IValueChanged, IActorItemSub
     }
 
     [JsonIgnore]
-    public string ItemName { get; set; } = string.Empty;
+    public string ItemPath { get; set; } = string.Empty;
 
     [JsonIgnore]
     public IActorInternal Actor { get; set; } = Models.Actor.Empty;

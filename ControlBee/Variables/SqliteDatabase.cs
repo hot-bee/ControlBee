@@ -19,34 +19,34 @@ public class SqliteDatabase : IDatabase, IDisposable
         VariableScope scope,
         string localName,
         string actorName,
-        string itemName,
+        string itemPath,
         string value
     )
     {
         var sql =
-            "INSERT OR REPLACE INTO variables (actor_name, item_name, scope, local_name, value) "
-            + "VALUES (@actor_name, @item_name, @scope, @local_name, @value)";
+            "INSERT OR REPLACE INTO variables (actor_name, item_path, scope, local_name, value) "
+            + "VALUES (@actor_name, @item_path, @scope, @local_name, @value)";
 
         using var command = new SqliteCommand(sql, _connection);
         command.Parameters.AddWithValue("@scope", scope);
         command.Parameters.AddWithValue("@local_name", localName);
         command.Parameters.AddWithValue("@actor_name", actorName);
-        command.Parameters.AddWithValue("@item_name", itemName);
+        command.Parameters.AddWithValue("@item_path", itemPath);
         command.Parameters.AddWithValue("@value", value);
 
         command.ExecuteNonQuery();
     }
 
-    public string? Read(string localName, string actorName, string itemName)
+    public string? Read(string localName, string actorName, string itemPath)
     {
         var sql =
             "SELECT value FROM variables "
-            + "WHERE actor_name = @actor_name and item_name = @item_name and local_name = @local_name";
+            + "WHERE actor_name = @actor_name and item_path = @item_path and local_name = @local_name";
 
         using var command = new SqliteCommand(sql, _connection);
         command.Parameters.AddWithValue("@local_name", localName);
         command.Parameters.AddWithValue("@actor_name", actorName);
-        command.Parameters.AddWithValue("@item_name", itemName);
+        command.Parameters.AddWithValue("@item_path", itemPath);
 
         using var reader = command.ExecuteReader();
 
@@ -76,10 +76,10 @@ public class SqliteDatabase : IDatabase, IDisposable
                     scope INTEGER NOT NULL,
                     local_name TEXT NOT NULL,
                     actor_name TEXT NOT NULL,
-                    item_name TEXT NOT NULL,
+                    item_path TEXT NOT NULL,
                     value BLOB,
                     updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
-                    UNIQUE (local_name, actor_name, item_name)
+                    UNIQUE (local_name, actor_name, item_path)
                 );
             """;
         using var command = new SqliteCommand(sql, _connection);

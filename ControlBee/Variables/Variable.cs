@@ -16,7 +16,7 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
         OnAfterValueChange();
     }
 
-    public Variable(IActorInternal actor, string itemName, VariableScope scope, T value)
+    public Variable(IActorInternal actor, string itemPath, VariableScope scope, T value)
         : this(scope, value)
     {
         if (actor.VariableManager == null)
@@ -24,7 +24,7 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
                 "A 'variableManager' instance must be provided to use Variable."
             );
         Actor = actor;
-        ItemName = itemName;
+        ItemPath = itemPath;
         actor.VariableManager.Add(this);
     }
 
@@ -34,8 +34,8 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
     public Variable(VariableScope scope)
         : this(scope, new T()) { }
 
-    public Variable(IActorInternal actor, string itemName, VariableScope scope)
-        : this(actor, itemName, scope, new T()) { }
+    public Variable(IActorInternal actor, string itemPath, VariableScope scope)
+        : this(actor, itemPath, scope, new T()) { }
 
     public T Value
     {
@@ -85,7 +85,7 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
     {
         if (_value is IActorItemSub subItem)
         {
-            subItem.ItemName = ItemName;
+            subItem.ItemPath = ItemPath;
             subItem.Actor = Actor;
             subItem.UpdateSubItem();
         }
@@ -93,8 +93,8 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
 
     private void CheckSanity()
     {
-        if (string.IsNullOrEmpty(ActorName) || string.IsNullOrEmpty(ItemName))
-            throw new ApplicationException("ActorName and ItemName must not be empty.");
+        if (string.IsNullOrEmpty(ActorName) || string.IsNullOrEmpty(ItemPath))
+            throw new ApplicationException("ActorName and ItemPath must not be empty.");
     }
 
     private void Subscribe()
