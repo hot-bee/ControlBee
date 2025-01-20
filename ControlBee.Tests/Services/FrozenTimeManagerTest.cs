@@ -46,7 +46,13 @@ public class FrozenTimeManagerTest
 
         var systemConfigurations = new SystemConfigurations { FakeMode = true };
         var fakeAxisFactory = new FakeAxisFactory(frozenTimeManager, scenarioFlowTester);
-        var axisFactory = new AxisFactory(systemConfigurations, frozenTimeManager, fakeAxisFactory);
+        var deviceManager = Mock.Of<IDeviceManager>();
+        var axisFactory = new AxisFactory(
+            systemConfigurations,
+            deviceManager,
+            frozenTimeManager,
+            fakeAxisFactory
+        );
         var actorFactory = new ActorFactory(
             axisFactory,
             new EmptyVariableManager(),

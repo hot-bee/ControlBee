@@ -22,7 +22,7 @@ public class FakeAxis : Axis, IDisposable
         : this(timeManager, flowTester, false) { }
 
     public FakeAxis(ITimeManager timeManager, IScenarioFlowTester flowTester, bool skipWaitSensor)
-        : base(timeManager)
+        : base(new EmptyDeviceManager(), timeManager)
     {
         _timeManager = timeManager;
         _flowTester = flowTester;

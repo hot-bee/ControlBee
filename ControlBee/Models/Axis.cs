@@ -5,7 +5,9 @@ using ControlBee.Variables;
 
 namespace ControlBee.Models;
 
-public class Axis(ITimeManager timeManager) : IAxis
+public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
+    : DeviceChannel(deviceManager),
+        IAxis
 {
     protected SpeedProfile? SpeedProfile;
 
@@ -13,14 +15,6 @@ public class Axis(ITimeManager timeManager) : IAxis
     public virtual bool PositiveLimitSensor { get; } = false;
     public virtual bool NegativeLimitSensor { get; } = false;
     public virtual bool IsMoving { get; } = false;
-
-    protected void ValidateBeforeMoving()
-    {
-        if (SpeedProfile == null)
-            throw new ValueError("You need to provide a SpeedProfile to move the axis.");
-        if (SpeedProfile!.Velocity == 0)
-            throw new ValueError("You must provide a speed greater than 0 to move the axis.");
-    }
 
     public virtual void Move(double position)
     {
@@ -97,4 +91,16 @@ public class Axis(ITimeManager timeManager) : IAxis
             timeManager.Sleep(1);
         }
     }
+
+    protected void ValidateBeforeMoving()
+    {
+        if (SpeedProfile == null)
+            throw new ValueError("You need to provide a SpeedProfile to move the axis.");
+        if (SpeedProfile!.Velocity == 0)
+            throw new ValueError("You must provide a speed greater than 0 to move the axis.");
+    }
+
+    public override void ProcessMessage(Message message) { }
+
+    public override void UpdateSubItem() { }
 }

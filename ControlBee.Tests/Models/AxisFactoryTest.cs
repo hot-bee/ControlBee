@@ -23,9 +23,11 @@ public class AxisFactoryTest
             SkipWaitSensor = skipWait,
         };
         var timeManager = Mock.Of<ITimeManager>();
+        var deviceManager = Mock.Of<IDeviceManager>();
         var fakeAxisFactoryMock = new Mock<IFakeAxisFactory>();
         var axisFactory = new AxisFactory(
             systemConfiguration,
+            deviceManager,
             timeManager,
             fakeAxisFactoryMock.Object
         );

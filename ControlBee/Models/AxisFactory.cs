@@ -4,6 +4,7 @@ namespace ControlBee.Models;
 
 public class AxisFactory(
     SystemConfigurations systemConfigurations,
+    IDeviceManager deviceManager,
     ITimeManager timeManager,
     IFakeAxisFactory fakeAxisFactory
 ) : IAxisFactory
@@ -12,6 +13,6 @@ public class AxisFactory(
     {
         if (systemConfigurations.FakeMode)
             return fakeAxisFactory.Create(systemConfigurations.SkipWaitSensor);
-        return new Axis(timeManager);
+        return new Axis(deviceManager, timeManager);
     }
 }
