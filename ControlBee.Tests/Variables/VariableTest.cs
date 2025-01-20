@@ -20,6 +20,7 @@ public class VariableTest
             new ActorConfig(
                 "myActor",
                 new EmptyAxisFactory(),
+                EmptyDigitalOutputFactory.Instance,
                 variableManagerMock.Object,
                 new TimeManager()
             )
@@ -48,6 +49,7 @@ public class VariableTest
             new ActorConfig(
                 "myActor",
                 new EmptyAxisFactory(),
+                EmptyDigitalOutputFactory.Instance,
                 variableManagerMock.Object,
                 new TimeManager()
             )
@@ -76,6 +78,7 @@ public class VariableTest
             new ActorConfig(
                 "myActor",
                 new EmptyAxisFactory(),
+                EmptyDigitalOutputFactory.Instance,
                 variableManagerMock.Object,
                 new TimeManager()
             )
@@ -109,6 +112,7 @@ public class VariableTest
             new ActorConfig(
                 "myActor",
                 new EmptyAxisFactory(),
+                EmptyDigitalOutputFactory.Instance,
                 variableManagerMock.Object,
                 new TimeManager()
             )
@@ -141,6 +145,7 @@ public class VariableTest
             new ActorConfig(
                 "myActor",
                 new EmptyAxisFactory(),
+                EmptyDigitalOutputFactory.Instance,
                 variableManagerMock.Object,
                 new TimeManager()
             )
@@ -173,6 +178,7 @@ public class VariableTest
             new ActorConfig(
                 "myActor",
                 new EmptyAxisFactory(),
+                EmptyDigitalOutputFactory.Instance,
                 variableManagerMock.Object,
                 new TimeManager()
             )

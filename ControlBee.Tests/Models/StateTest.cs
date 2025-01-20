@@ -17,6 +17,7 @@ public class StateTest
         var config = new ActorConfig(
             "testActor",
             new EmptyAxisFactory(),
+            EmptyDigitalOutputFactory.Instance,
             new EmptyVariableManager(),
             new TimeManager()
         );

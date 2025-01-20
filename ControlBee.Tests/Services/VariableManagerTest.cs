@@ -19,7 +19,13 @@ public class VariableManagerTest
         var databaseMock = new Mock<IDatabase>();
         var variableManager = new VariableManager(databaseMock.Object);
         var actor = new Actor(
-            new ActorConfig("myActor", new EmptyAxisFactory(), variableManager, new TimeManager())
+            new ActorConfig(
+                "myActor",
+                new EmptyAxisFactory(),
+                EmptyDigitalOutputFactory.Instance,
+                variableManager,
+                new TimeManager()
+            )
         );
         _ = new Variable<int>(actor, "myId", VariableScope.Local, 1);
         variableManager.LocalName.Should().Be("Default");
@@ -39,7 +45,13 @@ public class VariableManagerTest
         databaseMock.Setup(m => m.Read("myRecipe", "myActor", "myId")).Returns("2");
         variableManager.LocalName.Should().Be("Default");
         var actor = new Actor(
-            new ActorConfig("myActor", new EmptyAxisFactory(), variableManager, new TimeManager())
+            new ActorConfig(
+                "myActor",
+                new EmptyAxisFactory(),
+                EmptyDigitalOutputFactory.Instance,
+                variableManager,
+                new TimeManager()
+            )
         );
         var variable = new Variable<int>(actor, "myId", VariableScope.Local, 1);
         variableManager.Load("myRecipe");
@@ -54,10 +66,22 @@ public class VariableManagerTest
         var variableManager = new VariableManager(databaseMock.Object);
         var timeManager = new TimeManager();
         var actor = new Actor(
-            new ActorConfig("myActor", new EmptyAxisFactory(), variableManager, timeManager)
+            new ActorConfig(
+                "myActor",
+                new EmptyAxisFactory(),
+                EmptyDigitalOutputFactory.Instance,
+                variableManager,
+                timeManager
+            )
         );
         var actor2 = new Actor(
-            new ActorConfig("myActor2", new EmptyAxisFactory(), variableManager, timeManager)
+            new ActorConfig(
+                "myActor2",
+                new EmptyAxisFactory(),
+                EmptyDigitalOutputFactory.Instance,
+                variableManager,
+                timeManager
+            )
         );
         _ = new Variable<int>(actor, "myId", VariableScope.Local, 1);
 

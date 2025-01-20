@@ -26,16 +26,16 @@ public class InitializeSequenceTest
         var scenarioFlowTester = new ScenarioFlowTester();
 
         var systemConfigurations = new SystemConfigurations { FakeMode = true };
-        var fakeAxisFactory = new FakeAxisFactory(frozenTimeManager, scenarioFlowTester);
         var deviceManager = Mock.Of<IDeviceManager>();
         var axisFactory = new AxisFactory(
             systemConfigurations,
             deviceManager,
             frozenTimeManager,
-            fakeAxisFactory
+            scenarioFlowTester
         );
         var actorFactory = new ActorFactory(
             axisFactory,
+            EmptyDigitalOutputFactory.Instance,
             new EmptyVariableManager(),
             frozenTimeManager
         );

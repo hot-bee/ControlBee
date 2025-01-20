@@ -24,17 +24,17 @@ public class AxisFactoryTest
         };
         var timeManager = Mock.Of<ITimeManager>();
         var deviceManager = Mock.Of<IDeviceManager>();
-        var fakeAxisFactoryMock = new Mock<IFakeAxisFactory>();
+        var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
         var axisFactory = new AxisFactory(
             systemConfiguration,
             deviceManager,
             timeManager,
-            fakeAxisFactoryMock.Object
+            scenarioFlowTester
         );
 
         var axis = axisFactory.Create();
         if (fakeMode)
-            fakeAxisFactoryMock.Verify(m => m.Create(skipWait), Times.Once);
+            axis.Should().BeOfType(typeof(FakeAxis));
         else
             axis.Should().BeOfType(typeof(Axis));
     }

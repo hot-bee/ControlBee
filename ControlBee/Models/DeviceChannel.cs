@@ -3,7 +3,7 @@ using ControlBee.Interfaces;
 
 namespace ControlBee.Models;
 
-public abstract class DeviceChannel(IDeviceManager deviceManager) : ActorItem
+public abstract class DeviceChannel(IDeviceManager deviceManager) : ActorItem, IDeviceChannel
 {
     private DeviceChannelInfo? _deviceChannelInfo;
 

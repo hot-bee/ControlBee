@@ -4,7 +4,7 @@ using ControlBee.Variables;
 
 namespace ControlBee.Interfaces;
 
-public interface IAxis
+public interface IAxis : IDeviceChannel
 {
     bool HomeSensor { get; }
     bool PositiveLimitSensor { get; }

@@ -126,6 +126,7 @@ public class Position2DTest
             new ActorConfig(
                 "myActor",
                 new EmptyAxisFactory(),
+                EmptyDigitalOutputFactory.Instance,
                 new EmptyVariableManager(),
                 new TimeManager()
             )

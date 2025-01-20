@@ -103,6 +103,7 @@ public class ActorTest
             new ActorConfig(
                 "myActor",
                 new EmptyAxisFactory(),
+                EmptyDigitalOutputFactory.Instance,
                 new EmptyVariableManager(),
                 new EmptyTimeManager()
             )
@@ -118,6 +119,7 @@ public class ActorTest
             new ActorConfig(
                 "myActor",
                 new EmptyAxisFactory(),
+                EmptyDigitalOutputFactory.Instance,
                 new EmptyVariableManager(),
                 timeManager
             )

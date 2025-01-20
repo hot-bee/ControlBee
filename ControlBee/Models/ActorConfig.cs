@@ -5,6 +5,7 @@ namespace ControlBee.Models;
 public class ActorConfig(
     string actorName,
     IAxisFactory axisFactory,
+    IDigitalOutputFactory digitalOutputFactory,
     IVariableManager variableManager,
     ITimeManager timeManager
 )
@@ -13,4 +14,5 @@ public class ActorConfig(
     public IVariableManager VariableManager => variableManager;
     public ITimeManager TimeManager => timeManager;
     public IAxisFactory AxisFactory => axisFactory;
+    public IDigitalOutputFactory DigitalOutputFactory => digitalOutputFactory;
 }

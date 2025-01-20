@@ -6,13 +6,13 @@ public class AxisFactory(
     SystemConfigurations systemConfigurations,
     IDeviceManager deviceManager,
     ITimeManager timeManager,
-    IFakeAxisFactory fakeAxisFactory
+    IScenarioFlowTester flowTester
 ) : IAxisFactory
 {
     public IAxis Create()
     {
-        if (systemConfigurations.FakeMode)
-            return fakeAxisFactory.Create(systemConfigurations.SkipWaitSensor);
-        return new Axis(deviceManager, timeManager);
+        return systemConfigurations.FakeMode
+            ? new FakeAxis(timeManager, flowTester, systemConfigurations.SkipWaitSensor)
+            : new Axis(deviceManager, timeManager);
     }
 }

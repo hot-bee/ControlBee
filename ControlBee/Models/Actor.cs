@@ -29,6 +29,7 @@ public class Actor : IActorInternal, IDisposable
             new ActorConfig(
                 string.Empty,
                 new EmptyAxisFactory(),
+                EmptyDigitalOutputFactory.Instance,
                 new EmptyVariableManager(),
                 new TimeManager()
             )
@@ -39,6 +40,7 @@ public class Actor : IActorInternal, IDisposable
             new ActorConfig(
                 actorName,
                 new EmptyAxisFactory(),
+                EmptyDigitalOutputFactory.Instance,
                 new EmptyVariableManager(),
                 new TimeManager()
             )
@@ -55,6 +57,7 @@ public class Actor : IActorInternal, IDisposable
         Logger.Info($"Creating an instance of Actor. ({config.ActorName})");
         _thread = new Thread(RunThread);
         AxisFactory = config.AxisFactory;
+        DigitalOutputFactory = config.DigitalOutputFactory;
         VariableManager = config.VariableManager;
         TimeManager = config.TimeManager;
         PositionAxesMap = new PositionAxesMap();
@@ -63,7 +66,8 @@ public class Actor : IActorInternal, IDisposable
         State = new EmptyState(this);
     }
 
-    public IAxisFactory AxisFactory { get; }
+    public IAxisFactory AxisFactory { get; } // TODO: Not here
+    public IDigitalOutputFactory DigitalOutputFactory { get; } // TODO: Not here
 
     public string Name { get; }
 
