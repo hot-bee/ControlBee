@@ -9,7 +9,7 @@ public class Alert : DialogItem
         Actor.Ui.Send(new Message(Actor, "_requestDialog", new DialogContext()));
     }
 
-    public override void ProcessMessage(ActorItemMessage message)
+    public override bool ProcessMessage(ActorItemMessage message)
     {
         throw new NotImplementedException();
     }

@@ -8,7 +8,7 @@ public interface IActorItem
     string ItemPath { get; set; }
     string Name { get; }
     string Desc { get; }
-    void ProcessMessage(ActorItemMessage message);
+    bool ProcessMessage(ActorItemMessage message);
     void UpdateSubItem();
     void InjectProperties(IActorItemInjectionDataSource dataSource);
 }

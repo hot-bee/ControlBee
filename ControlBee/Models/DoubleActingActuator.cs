@@ -60,8 +60,6 @@ public class DoubleActingActuator(
         inputOff?.WaitOn(millisecondsTimeout);
     }
 
-    public override void ProcessMessage(ActorItemMessage message) { }
-
     public override void UpdateSubItem() { }
 
     public override void InjectProperties(IActorItemInjectionDataSource dataSource)

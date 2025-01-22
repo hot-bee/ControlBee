@@ -81,7 +81,7 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
         Value = JsonSerializer.Deserialize<T>(data)!;
     }
 
-    public override void ProcessMessage(ActorItemMessage message)
+    public override bool ProcessMessage(ActorItemMessage message)
     {
         switch (message.Name)
         {
@@ -96,7 +96,7 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
                 message.Sender.Send(
                     new ActorItemMessage(message.Id, Actor, ItemPath, "_itemMetaData", payload)
                 );
-                break;
+                return true;
             }
             case "_itemDataRead":
             {
@@ -104,17 +104,21 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
                 message.Sender.Send(
                     new ActorItemMessage(message.Id, Actor, ItemPath, "_itemData", payload)
                 );
-                break;
+                return true;
             }
             case "_itemDataWrite":
             {
                 var data = message.Payload!;
                 Value = (T)data;
-                break;
+                return true;
             }
             default:
-                throw new ValueError();
+                if (!base.ProcessMessage(message))
+                    throw new ValueError();
+                break;
         }
+
+        return false;
     }
 
     public override void UpdateSubItem()

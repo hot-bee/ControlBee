@@ -13,7 +13,28 @@ public abstract class ActorItem : IActorItem
 
     public IActorInternal Actor { get; set; } = EmptyActor.Instance;
     public string ItemPath { get; set; } = string.Empty;
-    public abstract void ProcessMessage(ActorItemMessage message);
+
+    public virtual bool ProcessMessage(ActorItemMessage message)
+    {
+        switch (message.Name)
+        {
+            case "_itemMetaDataRead":
+            {
+                var payload = new Dictionary<string, object>
+                {
+                    [nameof(Name)] = Name,
+                    [nameof(Desc)] = Desc,
+                };
+                message.Sender.Send(
+                    new ActorItemMessage(message.Id, Actor, ItemPath, "_itemMetaData", payload)
+                );
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public abstract void UpdateSubItem();
 
     public virtual void InjectProperties(IActorItemInjectionDataSource dataSource)

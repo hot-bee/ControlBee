@@ -76,8 +76,6 @@ public class InitializeSequence(IAxis axis, SpeedProfile homingSpeed, Position1D
         homePosition.MoveAndWait();
     }
 
-    public override void ProcessMessage(ActorItemMessage message) { }
-
     public override void UpdateSubItem() { }
 
     public override void InjectProperties(IActorItemInjectionDataSource dataSource)

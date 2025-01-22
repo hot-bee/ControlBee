@@ -9,8 +9,6 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     public Alert IsOffTimeout = new();
     public Alert IsOnTimeout = new();
 
-    public override void ProcessMessage(ActorItemMessage message) { }
-
     public override void UpdateSubItem() { }
 
     public bool IsOn
