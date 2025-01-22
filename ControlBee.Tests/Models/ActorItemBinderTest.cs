@@ -17,10 +17,10 @@ public class ActorItemBinderTest
         var actorRegistry = new ActorRegistry();
         var uiActor = Mock.Of<IUiActor>();
         Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
-        var actor = new Actor("myActor");
+        var actor = new Actor("MyActor");
         actorRegistry.Add(uiActor);
         actorRegistry.Add(actor);
-        var binder = new ActorItemBinder(actorRegistry, "myActor", "/myVar");
+        var binder = new ActorItemBinder(actorRegistry, "MyActor", "/MyVar");
         var called = false;
         binder.DataChanged += (sender, args) =>
         {
@@ -35,7 +35,7 @@ public class ActorItemBinderTest
                 uiActor,
                 new ActorItemMessage(
                     actor,
-                    "/myVar",
+                    "/MyVar",
                     "_itemDataChanged",
                     new ValueChangedEventArgs(null, null, 1)
                 )
@@ -60,14 +60,34 @@ public class ActorItemBinderTest
                 EmptyActorItemInjectionDataSource.Instance
             )
         );
-        var actor = new Actor("myActor");
+        var actor = new Actor("MyActor");
         uiActor.SetHandler(new DirectUiActorMessageHandler());
         actorRegistry.Add(uiActor);
         actorRegistry.Add(actor);
-        var variable = new Variable<int>(variableManager, actor, "/myVar", VariableScope.Global, 1);
-        actor.AddItem(variable, "/myVar");
+        var variable = new Variable<int>(variableManager, actor, "/MyVar", VariableScope.Global, 1);
+        actor.AddItem(variable, "/MyVar");
 
-        var binder = new ActorItemBinder(actorRegistry, "myActor", "/myVar");
+        var actorItemInjectionDataSource = Mock.Of<IActorItemInjectionDataSource>();
+        Mock.Get(actorItemInjectionDataSource)
+            .Setup(m => m.GetValue("MyActor", "/MyVar", "Name"))
+            .Returns("My variable");
+        Mock.Get(actorItemInjectionDataSource)
+            .Setup(m => m.GetValue("MyActor", "/MyVar", "Unit"))
+            .Returns("bool");
+        Mock.Get(actorItemInjectionDataSource)
+            .Setup(m => m.GetValue("MyActor", "/MyVar", "Desc"))
+            .Returns("This is a my variable.");
+        variable.InjectProperties(actorItemInjectionDataSource);
+
+        var binder = new ActorItemBinder(actorRegistry, "MyActor", "/MyVar");
+        var metaDataChangedCall = false;
+        binder.MetaDataChanged += (sender, metaData) =>
+        {
+            Assert.Equal("My variable", metaData["Name"]);
+            Assert.Equal("bool", metaData["Unit"]);
+            Assert.Equal("This is a my variable.", metaData["Desc"]);
+            metaDataChangedCall = true;
+        };
         var callCount = 0;
         binder.DataChanged += (sender, args) =>
         {
@@ -93,5 +113,6 @@ public class ActorItemBinderTest
         actor.Start();
         actor.Join();
         Assert.Equal(2, callCount);
+        Assert.True(metaDataChangedCall);
     }
 }

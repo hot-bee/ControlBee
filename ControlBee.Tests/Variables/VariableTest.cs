@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
@@ -218,7 +219,7 @@ public class VariableTest
     }
 
     [Fact]
-    public void ProcessMessageTest()
+    public void DataReadTest()
     {
         var database = Mock.Of<IDatabase>();
         var variableManager = new VariableManager(database);
@@ -246,6 +247,52 @@ public class VariableTest
                 && (int)payload.NewValue! == 1
                 && actorItemMessage.ActorName == "myActor"
                 && actorItemMessage.ItemPath == "/myVar";
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);
+    }
+
+    [Fact]
+    public void MetaDataReadTest()
+    {
+        var database = Mock.Of<IDatabase>();
+        var variableManager = new VariableManager(database);
+        var actor = new Actor("MyActor");
+        var intVariable = new Variable<int>(
+            variableManager,
+            actor,
+            "/MyVar",
+            VariableScope.Global,
+            1
+        );
+        var uiActor = Mock.Of<IActor>();
+        var reqMessage = new ActorItemMessage(uiActor, "/MyVar", "_itemMetaDataRead");
+
+        var actorItemInjectionDataSource = Mock.Of<IActorItemInjectionDataSource>();
+        Mock.Get(actorItemInjectionDataSource)
+            .Setup(m => m.GetValue("MyActor", "/MyVar", "Name"))
+            .Returns("My variable");
+        Mock.Get(actorItemInjectionDataSource)
+            .Setup(m => m.GetValue("MyActor", "/MyVar", "Unit"))
+            .Returns("bool");
+        Mock.Get(actorItemInjectionDataSource)
+            .Setup(m => m.GetValue("MyActor", "/MyVar", "Desc"))
+            .Returns("This is a my variable.");
+        intVariable.InjectProperties(actorItemInjectionDataSource);
+        intVariable.ProcessMessage(reqMessage);
+
+        var match = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = (ActorItemMessage)message;
+            var payload = (Dictionary<string, object>)actorItemMessage.Payload;
+            if (payload == null)
+                return false;
+            return actorItemMessage.Name == "_itemMetaData"
+                && actorItemMessage.ActorName == "MyActor"
+                && actorItemMessage.ItemPath == "/MyVar"
+                && payload["Name"] as string == "My variable"
+                && payload["Unit"] as string == "bool"
+                && payload["Desc"] as string == "This is a my variable.";
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);

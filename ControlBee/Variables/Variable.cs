@@ -97,6 +97,19 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
     {
         switch (message.Name)
         {
+            case "_itemMetaDataRead":
+            {
+                var payload = new Dictionary<string, object>()
+                {
+                    [nameof(Name)] = Name,
+                    [nameof(Unit)] = Unit,
+                    [nameof(Desc)] = Desc,
+                };
+                message.Sender.Send(
+                    new ActorItemMessage(message.Id, Actor, ItemPath, "_itemMetaData", payload)
+                );
+                break;
+            }
             case "_itemDataRead":
             {
                 var payload = new ValueChangedEventArgs(null, null, _value);
