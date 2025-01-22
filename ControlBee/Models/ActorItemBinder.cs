@@ -9,7 +9,6 @@ public class ActorItemBinder
     private readonly string _itemPath;
     private readonly IUiActor _uiActor;
     private readonly Guid? _itemMetaDataReadMessageId;
-    private readonly Guid? _itemDataReadMessageId;
 
     public ActorItemBinder(IActorRegistry actorRegistry, string actorName, string itemPath)
     {
@@ -21,9 +20,7 @@ public class ActorItemBinder
         _itemMetaDataReadMessageId = actor.Send(
             new ActorItemMessage(_uiActor, _itemPath, "_itemMetaDataRead")
         );
-        _itemDataReadMessageId = actor.Send(
-            new ActorItemMessage(_uiActor, _itemPath, "_itemDataRead")
-        );
+        actor.Send(new ActorItemMessage(_uiActor, _itemPath, "_itemDataRead"));
     }
 
     public event EventHandler<Dictionary<string, object>>? MetaDataChanged;
@@ -34,11 +31,6 @@ public class ActorItemBinder
         if (e.RequestId == _itemMetaDataReadMessageId && e.Name == "_itemMetaData")
         {
             OnMetaDataChanged((Dictionary<string, object>)e.Payload!);
-        }
-
-        if (e.RequestId == _itemDataReadMessageId && e.Name == "_itemData")
-        {
-            OnDataChanged((ValueChangedEventArgs)e.Payload!);
         }
 
         if (e.Name == "_itemDataChanged")

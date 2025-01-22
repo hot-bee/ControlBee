@@ -241,7 +241,7 @@ public class VariableTest
             var payload = (ValueChangedEventArgs)actorItemMessage.Payload;
             if (payload == null)
                 return false;
-            return actorItemMessage.Name == "_itemData"
+            return actorItemMessage.Name == "_itemDataChanged"
                 && payload.Location == null
                 && payload.OldValue == null
                 && (int)payload.NewValue! == 1

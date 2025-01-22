@@ -102,7 +102,7 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
             {
                 var payload = new ValueChangedEventArgs(null, null, _value);
                 message.Sender.Send(
-                    new ActorItemMessage(message.Id, Actor, ItemPath, "_itemData", payload)
+                    new ActorItemMessage(message.Id, Actor, ItemPath, "_itemDataChanged", payload)
                 );
                 return true;
             }
