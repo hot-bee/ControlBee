@@ -130,4 +130,23 @@ public class ActorTest
         Mock.Get(timeManager).Verify(m => m.Register(), Times.Once);
         Mock.Get(timeManager).Verify(m => m.Unregister(), Times.Once);
     }
+
+    [Fact]
+    public void ProcessMessageTest()
+    {
+        var database = Mock.Of<IDatabase>();
+        var variableManager = new VariableManager(database);
+        var actor = new Actor("myActor");
+        var variable = Mock.Of<IVariable>();
+        Mock.Get(variable).Setup(m => m.Actor).Returns(actor);
+        actor.AddItem(variable, "/myVar");
+        variableManager.Add(variable);
+
+        actor.Start();
+        actor.Send(new ActorItemMessage(Actor.Empty, "myVar", "hello"));
+        actor.Send(new Message(Actor.Empty, "_terminate"));
+        actor.Join();
+
+        Mock.Get(variable).Verify(m => m.ProcessMessage(It.IsAny<ActorItemMessage>()), Times.Once);
+    }
 }

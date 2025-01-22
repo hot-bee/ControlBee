@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 
@@ -17,15 +18,20 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
     }
 
     public Variable(IActorInternal actor, string itemPath, VariableScope scope, T value)
+        : this(actor.VariableManager, actor, itemPath, scope, value) { }
+
+    public Variable(
+        IVariableManager variableManager,
+        IActorInternal actor,
+        string itemPath,
+        VariableScope scope,
+        T value
+    )
         : this(scope, value)
     {
-        if (actor.VariableManager == null)
-            throw new ApplicationException(
-                "A 'variableManager' instance must be provided to use Variable."
-            );
         Actor = actor;
         ItemPath = itemPath;
-        actor.VariableManager.Add(this);
+        variableManager.Add(this);
     }
 
     public Variable()
@@ -79,7 +85,28 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
         Subscribe();
     }
 
-    public override void ProcessMessage(Message message) { }
+    public override void ProcessMessage(ActorItemMessage message)
+    {
+        switch (message.Name)
+        {
+            case "_itemDataRead":
+            {
+                var payload = new ValueChangedEventArgs(null, null, _value);
+                message.Sender.Send(
+                    new ActorItemMessage(message.Id, Actor, ItemPath, "_itemData", payload)
+                );
+                break;
+            }
+            case "_itemDataWrite":
+            {
+                var data = message.Payload!;
+                Value = (T)data;
+                break;
+            }
+            default:
+                throw new ValueError();
+        }
+    }
 
     public override void UpdateSubItem()
     {

@@ -1,15 +1,16 @@
-﻿using ControlBee.Exceptions;
+﻿using System.Collections.Generic;
+using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 
 namespace ControlBee.Services;
 
-public class ActorRegistry
+public class ActorRegistry : IActorRegistry
 {
     private readonly Dictionary<string, IActor> _map = new();
 
-    public void Add(string actorName, IActor actor)
+    public void Add(IActor actor)
     {
-        if (!_map.TryAdd(actorName, actor))
+        if (!_map.TryAdd(actor.Name, actor))
             throw new PlatformException(
                 "The actor name is already registered to another actor. Please provide a different name."
             );

@@ -6,5 +6,5 @@ public interface IActor
 {
     string Name { get; }
     string Title { get; }
-    void Send(Message message);
+    Guid Send(Message message);
 }

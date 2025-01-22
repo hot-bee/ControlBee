@@ -2,13 +2,11 @@
 
 namespace ControlBee.Interfaces;
 
-public interface IVariable : IValueChanged
+public interface IVariable : IActorItem, IValueChanged
 {
     object? ValueObject { get; }
     VariableScope Scope { get; }
-    IActorInternal Actor { get; set; }
     string ActorName { get; }
-    string ItemPath { get; set; }
     string ToJson();
     void FromJson(string data);
 }

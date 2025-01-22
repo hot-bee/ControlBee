@@ -6,6 +6,6 @@ public interface IActorItem
 {
     IActorInternal Actor { get; set; }
     string ItemPath { get; set; }
-    void ProcessMessage(Message message);
+    void ProcessMessage(ActorItemMessage message);
     void UpdateSubItem();
 }

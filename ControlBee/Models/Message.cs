@@ -9,6 +9,20 @@ public class Message(IActor sender, string name, object? payload)
     public Message(IActor sender, string name)
         : this(sender, name, null) { }
 
+    public Message(Guid requestId, IActor sender, string name, object? payload)
+        : this(sender, name, payload)
+    {
+        RequestId = requestId;
+    }
+
+    public Message(Guid requestId, IActor sender, string name)
+        : this(requestId, sender, name, null) { }
+
+    public string ActorName => Sender.Name;
+
+    public Guid Id { get; } = Guid.NewGuid();
+    public Guid RequestId { get; } = Guid.Empty;
+
     public IActor Sender { get; } = sender;
     public string Name { get; } = name;
     public object? Payload { get; } = payload;

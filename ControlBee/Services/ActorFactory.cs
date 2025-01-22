@@ -10,14 +10,14 @@ public class ActorFactory(
     ITimeManager timeManager
 )
 {
-    private readonly ActorRegistry? _actorRegistry;
+    private readonly IActorRegistry? _actorRegistry;
 
     public ActorFactory(
         IAxisFactory axisFactory,
         IDigitalOutputFactory digitalOutputFactory,
         IVariableManager variableManager,
         ITimeManager timeManager,
-        ActorRegistry actorRegistry
+        IActorRegistry actorRegistry
     )
         : this(axisFactory, digitalOutputFactory, variableManager, timeManager)
     {
@@ -44,7 +44,7 @@ public class ActorFactory(
 
         var actor = (T)Activator.CreateInstance(typeof(T), actorArgs.ToArray())!;
         actor.Init();
-        _actorRegistry?.Add(actorName, actor);
+        _actorRegistry?.Add(actor);
         return actor;
     }
 }

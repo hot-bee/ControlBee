@@ -29,7 +29,7 @@ public class DigitalOutput(IDeviceManager deviceManager) : DigitalIO(deviceManag
         throw new NotImplementedException();
     }
 
-    public override void ProcessMessage(Message message) { }
+    public override void ProcessMessage(ActorItemMessage message) { }
 
     public override void UpdateSubItem() { }
 }

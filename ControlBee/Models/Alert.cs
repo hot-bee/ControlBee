@@ -1,5 +1,4 @@
 ﻿using System.Dynamic;
-using ControlBee.Interfaces;
 
 namespace ControlBee.Models;
 
@@ -13,7 +12,7 @@ public class Alert : DialogItem
         Actor.Ui.Send(new Message(Actor, payload));
     }
 
-    public override void ProcessMessage(Message message)
+    public override void ProcessMessage(ActorItemMessage message)
     {
         throw new NotImplementedException();
     }

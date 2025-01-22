@@ -10,6 +10,8 @@ public class Actor : IActorInternal, IDisposable
 {
     private static readonly ILog Logger = LogManager.GetLogger(typeof(Actor));
     public static readonly Actor Empty = new();
+
+    private readonly Dictionary<string, IActorItem> _actorItems = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly BlockingCollection<Message> _mailbox = new();
 
@@ -81,9 +83,10 @@ public class Actor : IActorInternal, IDisposable
         }
     }
 
-    public virtual void Send(Message message)
+    public virtual Guid Send(Message message) // TODO: Remove virtual
     {
         _mailbox.Add(message);
+        return message.Id;
     }
 
     public ITimeManager TimeManager { get; }
@@ -133,15 +136,20 @@ public class Actor : IActorInternal, IDisposable
             {
                 var actorItem = (IActorItem)fieldInfo.GetValue(actorItemHolder)!;
                 var itemPath = string.Join('/', itemPathPrefix, fieldInfo.Name);
-                actorItem.Actor = this;
-                actorItem.ItemPath = itemPath;
-                actorItem.UpdateSubItem();
-
-                if (actorItem is IVariable variable)
-                    VariableManager?.Add(variable);
-
+                AddItem(actorItem, itemPath);
                 InitActorItems(itemPath, actorItem);
             }
+    }
+
+    public void AddItem(IActorItem actorItem, string itemPath)
+    {
+        actorItem.Actor = this;
+        actorItem.ItemPath = itemPath;
+        actorItem.UpdateSubItem();
+        _actorItems[itemPath] = actorItem;
+
+        if (actorItem is IVariable variable)
+            VariableManager?.Add(variable);
     }
 
     public virtual void Start()
@@ -175,6 +183,15 @@ public class Actor : IActorInternal, IDisposable
 
     protected virtual void ProcessMessage(Message message)
     {
+        if (message is ActorItemMessage actorItemMessage)
+        {
+            var path = actorItemMessage.ItemPath;
+            if (!path.StartsWith("/"))
+                path = "/" + path;
+            _actorItems[path].ProcessMessage(actorItemMessage);
+            return;
+        }
+
         while (true)
         {
             var oldState = State;

@@ -1,4 +1,5 @@
-﻿using ControlBee.Interfaces;
+﻿using System;
+using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
 using ControlBee.Variables;
@@ -6,6 +7,7 @@ using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
+using String = ControlBee.Variables.String;
 
 namespace ControlBee.Tests.Variables;
 
@@ -201,5 +203,59 @@ public class VariableTest
         arrayVariable.Value = new Array3D<int>(10, 20, 30);
         arrayVariable.Value.Size.Should().BeEquivalentTo((10, 20, 30));
         Assert.True(called);
+    }
+
+    [Fact]
+    public void ProcessMessageTest()
+    {
+        var database = Mock.Of<IDatabase>();
+        var variableManager = new VariableManager(database);
+        var actor = new Actor("myActor");
+        var intVariable = new Variable<int>(
+            variableManager,
+            actor,
+            "/myVar",
+            VariableScope.Global,
+            1
+        );
+        var uiActor = Mock.Of<IActor>();
+        var reqMessage = new ActorItemMessage(uiActor, "/myVar", "_itemDataRead");
+
+        intVariable.ProcessMessage(reqMessage);
+        var match = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = (ActorItemMessage)message;
+            var payload = (ValueChangedEventArgs)actorItemMessage.Payload;
+            if (payload == null)
+                return false;
+            return actorItemMessage.Name == "_itemData"
+                && payload.Location == null
+                && payload.OldValue == null
+                && (int)payload.NewValue! == 1
+                && actorItemMessage.ActorName == "myActor"
+                && actorItemMessage.ItemPath == "/myVar";
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);
+    }
+
+    [Fact]
+    public void DataWriteTest()
+    {
+        var database = Mock.Of<IDatabase>();
+        var variableManager = new VariableManager(database);
+        var actor = new Actor("myActor");
+        var intVariable = new Variable<int>(
+            variableManager,
+            actor,
+            "/myVar",
+            VariableScope.Global,
+            1
+        );
+        var uiActor = Mock.Of<IActor>();
+        var reqMessage = new ActorItemMessage(uiActor, "/myVar", "_itemDataWrite", 2);
+
+        intVariable.ProcessMessage(reqMessage);
+        Assert.Equal(2, intVariable.Value);
     }
 }

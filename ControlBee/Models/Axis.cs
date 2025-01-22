@@ -100,7 +100,7 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
             throw new ValueError("You must provide a speed greater than 0 to move the axis.");
     }
 
-    public override void ProcessMessage(Message message) { }
+    public override void ProcessMessage(ActorItemMessage message) { }
 
     public override void UpdateSubItem() { }
 }

@@ -1,12 +1,43 @@
-﻿using ControlBee.Interfaces;
+﻿using System.Reflection;
+using ControlBee.Exceptions;
+using ControlBee.Interfaces;
+using ControlBee.Models;
 using ControlBee.Variables;
+using log4net;
 
 namespace ControlBee.Services;
 
-public class VariableManager(IDatabase database) : IVariableManager, IDisposable
+public class VariableManager(IDatabase database, IActorRegistry actorRegistry)
+    : IVariableManager,
+        IDisposable
 {
+    private static readonly ILog Logger = LogManager.GetLogger(
+        MethodBase.GetCurrentMethod()!.DeclaringType!
+    );
+
     private readonly Dictionary<Tuple<string, string>, IVariable> _variables = [];
     private string _localName = "Default";
+
+    private IActor _uiActor = Actor.Empty;
+
+    public VariableManager(IDatabase database)
+        : this(database, EmptyActorRegistry.Instance) { }
+
+    private IActor UiActor
+    {
+        get
+        {
+            if (_uiActor != Actor.Empty)
+                return _uiActor;
+            if (actorRegistry == EmptyActorRegistry.Instance)
+            {
+                Logger.Warn("Skip getting UI Actor.");
+                return _uiActor;
+            }
+            _uiActor = actorRegistry.Get("ui");
+            return _uiActor;
+        }
+    }
 
     public string LocalName
     {
@@ -70,6 +101,9 @@ public class VariableManager(IDatabase database) : IVariableManager, IDisposable
 
     private void Variable_ValueChanged(object? sender, ValueChangedEventArgs e)
     {
-        // TODO: Publish the changes.
+        var variable = (IVariable)sender!;
+        UiActor.Send(
+            new ActorItemMessage(variable.Actor, variable.ItemPath, "_itemDataChanged", e)
+        );
     }
 }

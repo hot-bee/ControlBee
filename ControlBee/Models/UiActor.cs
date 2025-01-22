@@ -13,9 +13,10 @@ public class UiActor(ActorConfig config) : Actor(config), IUiActor
         // Do nothing
     }
 
-    public override void Send(Message message)
+    public override Guid Send(Message message)
     {
         _messageHandler?.ProcessMessage(message);
+        return message.Id;
     }
 
     public void SetHandler(IUiActorMessageHandler handler)
