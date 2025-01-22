@@ -25,7 +25,8 @@ public class VariableTest
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManagerMock.Object,
-                new TimeManager()
+                new TimeManager(),
+                EmptyActorItemInjectionDataSource.Instance
             )
         );
         var intVariable = new Variable<int>(actor, "myId", VariableScope.Global, 1);
@@ -55,7 +56,8 @@ public class VariableTest
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManagerMock.Object,
-                new TimeManager()
+                new TimeManager(),
+                EmptyActorItemInjectionDataSource.Instance
             )
         );
         var intVariable = new Variable<int>(actor, "myId", VariableScope.Global, 1);
@@ -85,7 +87,8 @@ public class VariableTest
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManagerMock.Object,
-                new TimeManager()
+                new TimeManager(),
+                EmptyActorItemInjectionDataSource.Instance
             )
         );
         var stringVariable = new Variable<String>(
@@ -120,7 +123,8 @@ public class VariableTest
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManagerMock.Object,
-                new TimeManager()
+                new TimeManager(),
+                EmptyActorItemInjectionDataSource.Instance
             )
         );
         var arrayVariable = new Variable<Array1D<int>>(
@@ -154,7 +158,8 @@ public class VariableTest
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManagerMock.Object,
-                new TimeManager()
+                new TimeManager(),
+                EmptyActorItemInjectionDataSource.Instance
             )
         );
         var arrayVariable = new Variable<Array2D<int>>(
@@ -188,7 +193,8 @@ public class VariableTest
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManagerMock.Object,
-                new TimeManager()
+                new TimeManager(),
+                EmptyActorItemInjectionDataSource.Instance
             )
         );
         var arrayVariable = new Variable<Array3D<int>>(
@@ -263,5 +269,50 @@ public class VariableTest
 
         intVariable.ProcessMessage(reqMessage);
         Assert.Equal(2, intVariable.Value);
+    }
+
+    [Fact]
+    public void InjectPropertiesTest()
+    {
+        var database = Mock.Of<IDatabase>();
+        var actorItemInjectionDataSource = new ActorItemInjectionDataSource();
+        actorItemInjectionDataSource.ReadFromString(
+            @"
+MyActor:
+  MyVar1:
+    Name: My Variable 1
+    Unit: mm
+    Desc: The first variable.
+  MyVar2:
+    Name: My Variable 2
+    Desc: The second variable.
+"
+        );
+        var variableManager = new VariableManager(database);
+        var actor = new Actor("MyActor");
+        var myVariable1 = new Variable<int>(
+            variableManager,
+            actor,
+            "/MyVar1",
+            VariableScope.Global,
+            1
+        );
+        var myVariable2 = new Variable<int>(
+            variableManager,
+            actor,
+            "/MyVar2",
+            VariableScope.Global,
+            1
+        );
+
+        Assert.Equal("/MyVar1", myVariable1.Name);
+        myVariable1.InjectProperties(actorItemInjectionDataSource);
+        myVariable2.InjectProperties(actorItemInjectionDataSource);
+
+        Assert.Equal("My Variable 1", myVariable1.Name);
+        Assert.Equal("mm", myVariable1.Unit);
+        Assert.Equal("The first variable.", myVariable1.Desc);
+        Assert.Equal("My Variable 2", myVariable2.Name);
+        Assert.Equal(string.Empty, myVariable2.Unit);
     }
 }

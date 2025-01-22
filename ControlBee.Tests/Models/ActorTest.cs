@@ -114,7 +114,8 @@ public class ActorTest
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 EmptyVariableManager.Instance,
-                timeManager
+                timeManager,
+                EmptyActorItemInjectionDataSource.Instance
             )
         );
         actor.Start();

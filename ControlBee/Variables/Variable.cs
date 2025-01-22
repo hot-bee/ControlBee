@@ -8,6 +8,7 @@ namespace ControlBee.Variables;
 public class Variable<T> : ActorItem, IVariable, IDisposable
     where T : new()
 {
+    private string _name = string.Empty;
     private T _value;
 
     public Variable(VariableScope scope, T initialValue)
@@ -42,6 +43,19 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
 
     public Variable(IActorInternal actor, string itemPath, VariableScope scope)
         : this(actor, itemPath, scope, new T()) { }
+
+    public string Desc { get; private set; } = string.Empty;
+    public string Unit { get; private set; } = string.Empty;
+
+    public string Name
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(_name))
+                return ItemPath;
+            return _name;
+        }
+    }
 
     public T Value
     {
@@ -79,12 +93,6 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
         Value = JsonSerializer.Deserialize<T>(data)!;
     }
 
-    private void OnAfterValueChange()
-    {
-        UpdateSubItem();
-        Subscribe();
-    }
-
     public override void ProcessMessage(ActorItemMessage message)
     {
         switch (message.Name)
@@ -116,6 +124,22 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
             subItem.Actor = Actor;
             subItem.UpdateSubItem();
         }
+    }
+
+    public override void InjectProperties(IActorItemInjectionDataSource dataSource)
+    {
+        if (dataSource.GetValue(ActorName, ItemPath, nameof(Name)) is string name)
+            _name = name;
+        if (dataSource.GetValue(ActorName, ItemPath, nameof(Desc)) is string desc)
+            Desc = desc;
+        if (dataSource.GetValue(ActorName, ItemPath, nameof(Unit)) is string unit)
+            Unit = unit;
+    }
+
+    private void OnAfterValueChange()
+    {
+        UpdateSubItem();
+        Subscribe();
     }
 
     private void CheckSanity()

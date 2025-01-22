@@ -16,7 +16,8 @@ public class UiActor(ActorConfig config) : Actor(config), IUiActor
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 EmptyVariableManager.Instance,
-                EmptyTimeManager.Instance
+                EmptyTimeManager.Instance,
+                EmptyActorItemInjectionDataSource.Instance
             )
         ) { }
 

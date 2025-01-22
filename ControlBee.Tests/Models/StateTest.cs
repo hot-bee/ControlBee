@@ -20,7 +20,8 @@ public class StateTest
             EmptyDigitalInputFactory.Instance,
             EmptyDigitalOutputFactory.Instance,
             EmptyVariableManager.Instance,
-            new TimeManager()
+            new TimeManager(),
+            EmptyActorItemInjectionDataSource.Instance
         );
         var actor = new TestPickerActor(config);
 

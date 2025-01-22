@@ -129,7 +129,8 @@ public class Position2DTest
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 EmptyVariableManager.Instance,
-                new TimeManager()
+                new TimeManager(),
+                EmptyActorItemInjectionDataSource.Instance
             )
         );
         var variable = new Variable<Position2D>(

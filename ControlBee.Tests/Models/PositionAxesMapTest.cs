@@ -21,6 +21,7 @@ public class PositionAxesMapTest
             EmptyDigitalOutputFactory.Instance,
             variableManagerMock.Object,
             new TimeManager(),
+            EmptyActorItemInjectionDataSource.Instance,
             Mock.Of<IActorRegistry>()
         );
 

@@ -9,6 +9,7 @@ public class ActorConfig(
     IDigitalOutputFactory digitalOutputFactory,
     IVariableManager variableManager,
     ITimeManager timeManager,
+    IActorItemInjectionDataSource actorItemInjectionDataSource,
     IActor? uiActor
 )
 {
@@ -18,7 +19,8 @@ public class ActorConfig(
         IDigitalInputFactory digitalInputFactory,
         IDigitalOutputFactory digitalOutputFactory,
         IVariableManager variableManager,
-        ITimeManager timeManager
+        ITimeManager timeManager,
+        IActorItemInjectionDataSource actorItemInjectionDataSource
     )
         : this(
             actorName,
@@ -27,6 +29,7 @@ public class ActorConfig(
             digitalOutputFactory,
             variableManager,
             timeManager,
+            actorItemInjectionDataSource,
             null
         ) { }
 
@@ -36,5 +39,7 @@ public class ActorConfig(
     public IAxisFactory AxisFactory => axisFactory;
     public IDigitalInputFactory DigitalInputFactory => digitalInputFactory;
     public IDigitalOutputFactory DigitalOutputFactory => digitalOutputFactory;
+    public IActorItemInjectionDataSource ActorItemInjectionDataSource =>
+        actorItemInjectionDataSource;
     public IActor? UiActor { get; } = uiActor;
 }

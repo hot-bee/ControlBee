@@ -1,4 +1,6 @@
-﻿namespace ControlBee.Models;
+﻿using ControlBee.Interfaces;
+
+namespace ControlBee.Models;
 
 public class Alert : DialogItem
 {
@@ -13,6 +15,11 @@ public class Alert : DialogItem
     }
 
     public override void UpdateSubItem()
+    {
+        // TODO
+    }
+
+    public override void InjectProperties(IActorItemInjectionDataSource dataSource)
     {
         // TODO
     }

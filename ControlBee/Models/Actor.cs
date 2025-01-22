@@ -34,7 +34,8 @@ public class Actor : IActorInternal, IDisposable
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 EmptyVariableManager.Instance,
-                EmptyTimeManager.Instance
+                EmptyTimeManager.Instance,
+                EmptyActorItemInjectionDataSource.Instance
             )
         ) { }
 
@@ -53,6 +54,7 @@ public class Actor : IActorInternal, IDisposable
         DigitalOutputFactory = config.DigitalOutputFactory;
         VariableManager = config.VariableManager;
         TimeManager = config.TimeManager;
+        _actorItemInjectionDataSource = config.ActorItemInjectionDataSource;
         PositionAxesMap = new PositionAxesMap();
         Name = config.ActorName;
         Ui = config.UiActor;
@@ -63,6 +65,7 @@ public class Actor : IActorInternal, IDisposable
     public IAxisFactory AxisFactory { get; } // TODO: Not here
     public IDigitalInputFactory DigitalInputFactory { get; } // TODO: Not here
     public IDigitalOutputFactory DigitalOutputFactory { get; } // TODO: Not here
+    private IActorItemInjectionDataSource _actorItemInjectionDataSource;
 
     public string Name { get; }
 
@@ -130,6 +133,7 @@ public class Actor : IActorInternal, IDisposable
                 var actorItem = (IActorItem)fieldInfo.GetValue(actorItemHolder)!;
                 var itemPath = string.Join('/', itemPathPrefix, fieldInfo.Name);
                 AddItem(actorItem, itemPath);
+                actorItem.InjectProperties(_actorItemInjectionDataSource);
                 InitActorItems(itemPath, actorItem);
             }
     }

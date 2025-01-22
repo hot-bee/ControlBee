@@ -25,7 +25,8 @@ public class VariableManagerTest
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManager,
-                new TimeManager()
+                new TimeManager(),
+                EmptyActorItemInjectionDataSource.Instance
             )
         );
         _ = new Variable<int>(actor, "myId", VariableScope.Local, 1);
@@ -52,7 +53,8 @@ public class VariableManagerTest
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManager,
-                new TimeManager()
+                new TimeManager(),
+                EmptyActorItemInjectionDataSource.Instance
             )
         );
         var variable = new Variable<int>(actor, "myId", VariableScope.Local, 1);
@@ -74,7 +76,8 @@ public class VariableManagerTest
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManager,
-                timeManager
+                timeManager,
+                EmptyActorItemInjectionDataSource.Instance
             )
         );
         var actor2 = new Actor(
@@ -84,7 +87,8 @@ public class VariableManagerTest
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManager,
-                timeManager
+                timeManager,
+                EmptyActorItemInjectionDataSource.Instance
             )
         );
         _ = new Variable<int>(actor, "myId", VariableScope.Local, 1);
@@ -133,6 +137,7 @@ public class VariableManagerTest
             EmptyDigitalOutputFactory.Instance,
             variableManager,
             EmptyTimeManager.Instance,
+            EmptyActorItemInjectionDataSource.Instance,
             actorRegistry
         );
 

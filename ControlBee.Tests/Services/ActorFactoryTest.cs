@@ -39,6 +39,7 @@ public class ActorFactoryTest
             digitalOutputFactory,
             variableManager,
             timeManager,
+            EmptyActorItemInjectionDataSource.Instance,
             Mock.Of<IActorRegistry>()
         );
         var actor = actorFactory.Create<ActorWithVariables>("testActor");

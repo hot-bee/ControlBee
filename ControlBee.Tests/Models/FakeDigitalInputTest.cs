@@ -29,7 +29,8 @@ public class FakeDigitalInputTest
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 EmptyVariableManager.Instance,
-                timeManager
+                timeManager,
+                EmptyActorItemInjectionDataSource.Instance
             )
         );
         input.Actor = actor;
@@ -68,6 +69,7 @@ public class FakeDigitalInputTest
             EmptyDigitalOutputFactory.Instance,
             EmptyVariableManager.Instance,
             timeManager,
+            EmptyActorItemInjectionDataSource.Instance,
             actorRegistry
         );
         var ui = Mock.Of<IUiActor>();
@@ -103,6 +105,7 @@ public class FakeDigitalInputTest
             EmptyDigitalOutputFactory.Instance,
             EmptyVariableManager.Instance,
             timeManager,
+            EmptyActorItemInjectionDataSource.Instance,
             actorRegistry
         );
         var ui = Mock.Of<IUiActor>();

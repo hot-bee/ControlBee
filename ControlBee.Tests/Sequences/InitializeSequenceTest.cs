@@ -39,6 +39,7 @@ public class InitializeSequenceTest
             EmptyDigitalOutputFactory.Instance,
             EmptyVariableManager.Instance,
             frozenTimeManager,
+            EmptyActorItemInjectionDataSource.Instance,
             Mock.Of<IActorRegistry>()
         );
         var testActor = actorFactory.Create<TestActor>("testActor");

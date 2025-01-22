@@ -56,7 +56,8 @@ public class ActorItemBinderTest
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManager,
-                EmptyTimeManager.Instance
+                EmptyTimeManager.Instance,
+                EmptyActorItemInjectionDataSource.Instance
             )
         );
         var actor = new Actor("myActor");

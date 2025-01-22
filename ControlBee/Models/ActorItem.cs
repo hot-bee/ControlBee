@@ -10,4 +10,5 @@ public abstract class ActorItem : IActorItem
     protected ITimeManager TimeManager => Actor.TimeManager;
     public abstract void ProcessMessage(ActorItemMessage message);
     public abstract void UpdateSubItem();
+    public abstract void InjectProperties(IActorItemInjectionDataSource dataSource);
 }

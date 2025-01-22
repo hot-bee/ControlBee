@@ -8,4 +8,5 @@ public interface IActorItem
     string ItemPath { get; set; }
     void ProcessMessage(ActorItemMessage message);
     void UpdateSubItem();
+    void InjectProperties(IActorItemInjectionDataSource dataSource);
 }

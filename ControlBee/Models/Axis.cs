@@ -103,4 +103,9 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
     public override void ProcessMessage(ActorItemMessage message) { }
 
     public override void UpdateSubItem() { }
+
+    public override void InjectProperties(IActorItemInjectionDataSource dataSource)
+    {
+        // TODO
+    }
 }

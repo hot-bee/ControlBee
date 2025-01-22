@@ -9,6 +9,7 @@ public class ActorFactory(
     IDigitalOutputFactory digitalOutputFactory,
     IVariableManager variableManager,
     ITimeManager timeManager,
+    IActorItemInjectionDataSource actorItemInjectionDataSource,
     IActorRegistry actorRegistry
 )
 {
@@ -27,6 +28,7 @@ public class ActorFactory(
             digitalOutputFactory,
             variableManager,
             timeManager,
+            actorItemInjectionDataSource,
             uiActor
         );
         var actorArgs = new List<object?> { actorConfig };
