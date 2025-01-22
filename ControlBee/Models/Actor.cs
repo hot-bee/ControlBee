@@ -9,7 +9,6 @@ namespace ControlBee.Models;
 public class Actor : IActorInternal, IDisposable
 {
     private static readonly ILog Logger = LogManager.GetLogger(typeof(Actor));
-    public static readonly Actor Empty = new();
 
     private readonly Dictionary<string, IActorItem> _actorItems = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
@@ -22,8 +21,6 @@ public class Actor : IActorInternal, IDisposable
 
     private string _title = string.Empty;
 
-    protected IActor InternalUi = Empty;
-
     public IState State;
 
     public Actor()
@@ -33,11 +30,11 @@ public class Actor : IActorInternal, IDisposable
         : this(
             new ActorConfig(
                 actorName,
-                new EmptyAxisFactory(),
+                EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
-                new EmptyVariableManager(),
-                new EmptyTimeManager()
+                EmptyVariableManager.Instance,
+                EmptyTimeManager.Instance
             )
         ) { }
 
@@ -58,8 +55,7 @@ public class Actor : IActorInternal, IDisposable
         TimeManager = config.TimeManager;
         PositionAxesMap = new PositionAxesMap();
         Name = config.ActorName;
-        if (config.UiActor != null)
-            InternalUi = config.UiActor;
+        Ui = config.UiActor;
 
         State = new EmptyState(this);
     }
@@ -87,7 +83,7 @@ public class Actor : IActorInternal, IDisposable
     }
 
     public ITimeManager TimeManager { get; }
-    public IActor Ui => InternalUi;
+    public IActor? Ui { get; }
 
     public IPositionAxesMap PositionAxesMap { get; }
     public IVariableManager VariableManager { get; }

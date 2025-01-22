@@ -56,7 +56,7 @@ public class FrozenTimeManagerTest
             axisFactory,
             EmptyDigitalInputFactory.Instance,
             EmptyDigitalOutputFactory.Instance,
-            new EmptyVariableManager(),
+            EmptyVariableManager.Instance,
             frozenTimeManager,
             Mock.Of<IActorRegistry>()
         );
@@ -79,8 +79,8 @@ public class FrozenTimeManagerTest
         );
 
         testActor.Start();
-        testActor.Send(new Message(Actor.Empty, "_initialize"));
-        testActor.Send(new Message(Actor.Empty, "_terminate"));
+        testActor.Send(new Message(EmptyActor.Instance, "_initialize"));
+        testActor.Send(new Message(EmptyActor.Instance, "_terminate"));
         testActor.Join();
         scenarioFlowTester.Complete.Should().BeTrue();
     }

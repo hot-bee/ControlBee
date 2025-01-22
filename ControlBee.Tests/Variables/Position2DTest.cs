@@ -125,10 +125,10 @@ public class Position2DTest
         var actor = new Actor(
             new ActorConfig(
                 "myActor",
-                new EmptyAxisFactory(),
+                EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
-                new EmptyVariableManager(),
+                EmptyVariableManager.Instance,
                 new TimeManager()
             )
         );

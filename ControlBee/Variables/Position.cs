@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
+using ControlBee.Models;
 using MathNet.Numerics.LinearAlgebra.Double;
 
 namespace ControlBee.Variables;
@@ -77,7 +78,7 @@ public abstract class Position : IValueChanged, IActorItemSub
     public string ItemPath { get; set; } = string.Empty;
 
     [JsonIgnore]
-    public IActorInternal Actor { get; set; } = Models.Actor.Empty;
+    public IActorInternal Actor { get; set; } = EmptyActor.Instance;
 
     public void UpdateSubItem() { }
 

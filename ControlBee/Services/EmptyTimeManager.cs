@@ -1,4 +1,5 @@
-﻿using ControlBee.Exceptions;
+﻿using System.ComponentModel;
+using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Utils;
 
@@ -6,6 +7,10 @@ namespace ControlBee.Services;
 
 public class EmptyTimeManager : ITimeManager
 {
+    public static EmptyTimeManager Instance = new EmptyTimeManager();
+
+    private EmptyTimeManager() { }
+
     public void Sleep(int millisecondsTimeout)
     {
         // Empty

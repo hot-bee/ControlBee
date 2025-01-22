@@ -16,7 +16,7 @@ public class PositionAxesMapTest
     {
         var variableManagerMock = new Mock<IVariableManager>();
         var actorFactory = new ActorFactory(
-            new EmptyAxisFactory(),
+            EmptyAxisFactory.Instance,
             EmptyDigitalInputFactory.Instance,
             EmptyDigitalOutputFactory.Instance,
             variableManagerMock.Object,

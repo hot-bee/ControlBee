@@ -39,7 +39,7 @@ public class GlobalInitializationSequenceTest
             }
         );
         globalInitializationSequence.SetInitializationState(
-            Actor.Empty,
+            EmptyActor.Instance,
             InitializationStatus.Skipped
         );
         globalInitializationSequence.SetInitializationState(
@@ -140,7 +140,7 @@ public class GlobalInitializationSequenceTest
         var mandrel2 = Mock.Of<IActor>();
         var globalInitializationSequence = new GlobalInitializationSequence(syncerActor, _ => { });
         globalInitializationSequence.SetInitializationState(
-            Actor.Empty,
+            EmptyActor.Instance,
             InitializationStatus.Skipped
         );
         globalInitializationSequence.SetInitializationState(

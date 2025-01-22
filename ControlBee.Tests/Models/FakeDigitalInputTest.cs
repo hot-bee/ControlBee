@@ -17,7 +17,7 @@ public class FakeDigitalInputTest
     public void SkipWaitOnTest()
     {
         var systemConfigurations = new SystemConfigurations { FakeMode = true };
-        var input = new FakeDigitalInput(systemConfigurations, new EmptyScenarioFlowTester())
+        var input = new FakeDigitalInput(systemConfigurations, EmptyScenarioFlowTester.Instance)
         {
             On = true,
         };
@@ -25,10 +25,10 @@ public class FakeDigitalInputTest
         var actor = new Actor(
             new ActorConfig(
                 "myActor",
-                new EmptyAxisFactory(),
+                EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
-                new EmptyVariableManager(),
+                EmptyVariableManager.Instance,
                 timeManager
             )
         );
@@ -44,7 +44,7 @@ public class FakeDigitalInputTest
             FakeMode = true,
             SkipWaitSensor = true,
         };
-        var input = new FakeDigitalInput(systemConfigurations, new EmptyScenarioFlowTester());
+        var input = new FakeDigitalInput(systemConfigurations, EmptyScenarioFlowTester.Instance);
         input.WaitOn();
         input.WaitOff();
     }
@@ -59,14 +59,14 @@ public class FakeDigitalInputTest
         var digitalInputFactory = new DigitalInputFactory(
             systemConfigurations,
             deviceManger,
-            new EmptyScenarioFlowTester()
+            EmptyScenarioFlowTester.Instance
         );
         var actorRegistry = new ActorRegistry();
         var actorFactory = new ActorFactory(
-            new EmptyAxisFactory(),
+            EmptyAxisFactory.Instance,
             digitalInputFactory,
             EmptyDigitalOutputFactory.Instance,
-            new EmptyVariableManager(),
+            EmptyVariableManager.Instance,
             timeManager,
             actorRegistry
         );
@@ -76,8 +76,8 @@ public class FakeDigitalInputTest
         var actor = actorFactory.Create<TestActor>("myActor");
 
         actor.Start();
-        actor.Send(new Message(Actor.Empty, "go"));
-        actor.Send(new Message(Actor.Empty, "_terminate"));
+        actor.Send(new Message(EmptyActor.Instance, "go"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
         var match = new Func<Message, bool>(message => message.Name == "_requestDialog");
@@ -98,10 +98,10 @@ public class FakeDigitalInputTest
         );
         var actorRegistry = new ActorRegistry();
         var actorFactory = new ActorFactory(
-            new EmptyAxisFactory(),
+            EmptyAxisFactory.Instance,
             digitalInputFactory,
             EmptyDigitalOutputFactory.Instance,
-            new EmptyVariableManager(),
+            EmptyVariableManager.Instance,
             timeManager,
             actorRegistry
         );
@@ -120,8 +120,8 @@ public class FakeDigitalInputTest
         );
 
         actor.Start();
-        actor.Send(new Message(Actor.Empty, "go"));
-        actor.Send(new Message(Actor.Empty, "_terminate"));
+        actor.Send(new Message(EmptyActor.Instance, "go"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
         var match = new Func<Message, bool>(message => message.Name == "_requestDialog");

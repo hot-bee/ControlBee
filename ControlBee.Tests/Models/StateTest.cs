@@ -16,17 +16,17 @@ public class StateTest
     {
         var config = new ActorConfig(
             "testActor",
-            new EmptyAxisFactory(),
+            EmptyAxisFactory.Instance,
             EmptyDigitalInputFactory.Instance,
             EmptyDigitalOutputFactory.Instance,
-            new EmptyVariableManager(),
+            EmptyVariableManager.Instance,
             new TimeManager()
         );
         var actor = new TestPickerActor(config);
 
         actor.Start();
-        actor.Send(new Message(Actor.Empty, "Pickup"));
-        actor.Send(new Message(Actor.Empty, "_terminate"));
+        actor.Send(new Message(EmptyActor.Instance, "Pickup"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
         actor.PickupCount.Value.Should().Be(1);
     }

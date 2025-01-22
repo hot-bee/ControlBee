@@ -12,11 +12,11 @@ public class UiActor(ActorConfig config) : Actor(config), IUiActor
         : this(
             new ActorConfig(
                 "ui",
-                new EmptyAxisFactory(),
+                EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
-                new EmptyVariableManager(),
-                new EmptyTimeManager()
+                EmptyVariableManager.Instance,
+                EmptyTimeManager.Instance
             )
         ) { }
 

@@ -52,11 +52,11 @@ public class ActorItemBinderTest
         var uiActor = new UiActor(
             new ActorConfig(
                 "ui",
-                new EmptyAxisFactory(),
+                EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManager,
-                new EmptyTimeManager()
+                EmptyTimeManager.Instance
             )
         );
         var actor = new Actor("myActor");
@@ -84,7 +84,7 @@ public class ActorItemBinderTest
                     Assert.Null(args.Location);
                     Assert.Equal(1, args.OldValue);
                     Assert.Equal(2, args.NewValue);
-                    actor.Send(new Message(Actor.Empty, "_terminate"));
+                    actor.Send(new Message(EmptyActor.Instance, "_terminate"));
                     break;
             }
         };

@@ -18,7 +18,7 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry)
     private readonly Dictionary<Tuple<string, string>, IVariable> _variables = [];
     private string _localName = "Default";
 
-    private IActor _uiActor = Actor.Empty;
+    private IActor _uiActor = EmptyActor.Instance;
 
     public VariableManager(IDatabase database)
         : this(database, EmptyActorRegistry.Instance) { }
@@ -27,7 +27,7 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry)
     {
         get
         {
-            if (_uiActor != Actor.Empty)
+            if (_uiActor != EmptyActor.Instance)
                 return _uiActor;
             if (actorRegistry == EmptyActorRegistry.Instance)
             {

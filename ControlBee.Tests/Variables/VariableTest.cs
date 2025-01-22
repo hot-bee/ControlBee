@@ -21,7 +21,7 @@ public class VariableTest
         var actor = new Actor(
             new ActorConfig(
                 "myActor",
-                new EmptyAxisFactory(),
+                EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManagerMock.Object,
@@ -51,7 +51,7 @@ public class VariableTest
         var actor = new Actor(
             new ActorConfig(
                 "myActor",
-                new EmptyAxisFactory(),
+                EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManagerMock.Object,
@@ -81,7 +81,7 @@ public class VariableTest
         var actor = new Actor(
             new ActorConfig(
                 "myActor",
-                new EmptyAxisFactory(),
+                EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManagerMock.Object,
@@ -116,7 +116,7 @@ public class VariableTest
         var actor = new Actor(
             new ActorConfig(
                 "myActor",
-                new EmptyAxisFactory(),
+                EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManagerMock.Object,
@@ -150,7 +150,7 @@ public class VariableTest
         var actor = new Actor(
             new ActorConfig(
                 "myActor",
-                new EmptyAxisFactory(),
+                EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManagerMock.Object,
@@ -184,7 +184,7 @@ public class VariableTest
         var actor = new Actor(
             new ActorConfig(
                 "myActor",
-                new EmptyAxisFactory(),
+                EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManagerMock.Object,

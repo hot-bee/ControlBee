@@ -89,8 +89,8 @@ public class ActorTest
                 RetryWithEmptyMessageMatched = true;
         };
         actor.Start();
-        actor.Send(new Message(Actor.Empty, "foo"));
-        actor.Send(new Message(Actor.Empty, "_terminate"));
+        actor.Send(new Message(EmptyActor.Instance, "foo"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
         stateTransitMatched.Should().BeTrue();
         RetryWithEmptyMessageMatched.Should().BeTrue();
@@ -110,15 +110,15 @@ public class ActorTest
         var actor = new Actor(
             new ActorConfig(
                 "myActor",
-                new EmptyAxisFactory(),
+                EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
-                new EmptyVariableManager(),
+                EmptyVariableManager.Instance,
                 timeManager
             )
         );
         actor.Start();
-        actor.Send(new Message(Actor.Empty, "_terminate"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
         Mock.Get(timeManager).Verify(m => m.Register(), Times.Once);
         Mock.Get(timeManager).Verify(m => m.Unregister(), Times.Once);
@@ -136,8 +136,8 @@ public class ActorTest
         variableManager.Add(variable);
 
         actor.Start();
-        actor.Send(new ActorItemMessage(Actor.Empty, "myVar", "hello"));
-        actor.Send(new Message(Actor.Empty, "_terminate"));
+        actor.Send(new ActorItemMessage(EmptyActor.Instance, "myVar", "hello"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
         Mock.Get(variable).Verify(m => m.ProcessMessage(It.IsAny<ActorItemMessage>()), Times.Once);

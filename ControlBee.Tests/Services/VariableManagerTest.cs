@@ -21,7 +21,7 @@ public class VariableManagerTest
         var actor = new Actor(
             new ActorConfig(
                 "myActor",
-                new EmptyAxisFactory(),
+                EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManager,
@@ -48,7 +48,7 @@ public class VariableManagerTest
         var actor = new Actor(
             new ActorConfig(
                 "myActor",
-                new EmptyAxisFactory(),
+                EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManager,
@@ -70,7 +70,7 @@ public class VariableManagerTest
         var actor = new Actor(
             new ActorConfig(
                 "myActor",
-                new EmptyAxisFactory(),
+                EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManager,
@@ -80,7 +80,7 @@ public class VariableManagerTest
         var actor2 = new Actor(
             new ActorConfig(
                 "myActor2",
-                new EmptyAxisFactory(),
+                EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManager,
@@ -128,11 +128,11 @@ public class VariableManagerTest
         var actorRegistry = Mock.Of<IActorRegistry>();
         var variableManager = new VariableManager(database, actorRegistry);
         var actorFactory = new ActorFactory(
-            new EmptyAxisFactory(),
+            EmptyAxisFactory.Instance,
             EmptyDigitalInputFactory.Instance,
             EmptyDigitalOutputFactory.Instance,
             variableManager,
-            new EmptyTimeManager(),
+            EmptyTimeManager.Instance,
             actorRegistry
         );
 
