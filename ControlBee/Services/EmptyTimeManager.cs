@@ -1,4 +1,5 @@
-﻿using ControlBee.Interfaces;
+﻿using ControlBee.Exceptions;
+using ControlBee.Interfaces;
 using ControlBee.Utils;
 
 namespace ControlBee.Services;
@@ -12,7 +13,7 @@ public class EmptyTimeManager : ITimeManager
 
     public IStopwatch CreateWatch()
     {
-        return new Stopwatch();
+        throw new UnimplementedByDesignError();
     }
 
     public void Register()

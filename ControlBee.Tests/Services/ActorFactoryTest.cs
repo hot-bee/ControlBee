@@ -35,9 +35,11 @@ public class ActorFactoryTest
         var digitalOutputFactory = new DigitalOutputFactory(systemConfiguration, deviceManager);
         var actorFactory = new ActorFactory(
             axisFactory,
+            EmptyDigitalInputFactory.Instance,
             digitalOutputFactory,
             variableManager,
-            timeManager
+            timeManager,
+            Mock.Of<IActorRegistry>()
         );
         var actor = actorFactory.Create<ActorWithVariables>("testActor");
         Mock.Get(variableManager).Verify(m => m.Add(actor.Foo), Times.Once);

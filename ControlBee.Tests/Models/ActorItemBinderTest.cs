@@ -53,6 +53,7 @@ public class ActorItemBinderTest
             new ActorConfig(
                 "ui",
                 new EmptyAxisFactory(),
+                EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManager,
                 new EmptyTimeManager()

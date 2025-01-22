@@ -27,24 +27,17 @@ public class Actor : IActorInternal, IDisposable
     public IState State;
 
     public Actor()
-        : this(
-            new ActorConfig(
-                string.Empty,
-                new EmptyAxisFactory(),
-                EmptyDigitalOutputFactory.Instance,
-                new EmptyVariableManager(),
-                new TimeManager()
-            )
-        ) { }
+        : this(string.Empty) { }
 
     public Actor(string actorName)
         : this(
             new ActorConfig(
                 actorName,
                 new EmptyAxisFactory(),
+                EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 new EmptyVariableManager(),
-                new TimeManager()
+                new EmptyTimeManager()
             )
         ) { }
 
@@ -59,16 +52,20 @@ public class Actor : IActorInternal, IDisposable
         Logger.Info($"Creating an instance of Actor. ({config.ActorName})");
         _thread = new Thread(RunThread);
         AxisFactory = config.AxisFactory;
+        DigitalInputFactory = config.DigitalInputFactory;
         DigitalOutputFactory = config.DigitalOutputFactory;
         VariableManager = config.VariableManager;
         TimeManager = config.TimeManager;
         PositionAxesMap = new PositionAxesMap();
         Name = config.ActorName;
+        if (config.UiActor != null)
+            InternalUi = config.UiActor;
 
         State = new EmptyState(this);
     }
 
     public IAxisFactory AxisFactory { get; } // TODO: Not here
+    public IDigitalInputFactory DigitalInputFactory { get; } // TODO: Not here
     public IDigitalOutputFactory DigitalOutputFactory { get; } // TODO: Not here
 
     public string Name { get; }
@@ -211,7 +208,7 @@ public class Actor : IActorInternal, IDisposable
         _thread.Join();
     }
 
-    protected virtual void OnMessageProcessed((Message message, IState oldState, IState newState) e)
+    private void OnMessageProcessed((Message message, IState oldState, IState newState) e)
     {
         MessageProcessed?.Invoke(this, e);
     }

@@ -22,6 +22,7 @@ public class VariableManagerTest
             new ActorConfig(
                 "myActor",
                 new EmptyAxisFactory(),
+                EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManager,
                 new TimeManager()
@@ -48,6 +49,7 @@ public class VariableManagerTest
             new ActorConfig(
                 "myActor",
                 new EmptyAxisFactory(),
+                EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManager,
                 new TimeManager()
@@ -69,6 +71,7 @@ public class VariableManagerTest
             new ActorConfig(
                 "myActor",
                 new EmptyAxisFactory(),
+                EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManager,
                 timeManager
@@ -78,6 +81,7 @@ public class VariableManagerTest
             new ActorConfig(
                 "myActor2",
                 new EmptyAxisFactory(),
+                EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 variableManager,
                 timeManager
@@ -125,6 +129,7 @@ public class VariableManagerTest
         var variableManager = new VariableManager(database, actorRegistry);
         var actorFactory = new ActorFactory(
             new EmptyAxisFactory(),
+            EmptyDigitalInputFactory.Instance,
             EmptyDigitalOutputFactory.Instance,
             variableManager,
             new EmptyTimeManager(),

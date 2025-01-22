@@ -5,25 +5,13 @@ namespace ControlBee.Services;
 
 public class ActorFactory(
     IAxisFactory axisFactory,
+    IDigitalInputFactory digitalInputFactory,
     IDigitalOutputFactory digitalOutputFactory,
     IVariableManager variableManager,
-    ITimeManager timeManager
+    ITimeManager timeManager,
+    IActorRegistry actorRegistry
 )
 {
-    private readonly IActorRegistry? _actorRegistry;
-
-    public ActorFactory(
-        IAxisFactory axisFactory,
-        IDigitalOutputFactory digitalOutputFactory,
-        IVariableManager variableManager,
-        ITimeManager timeManager,
-        IActorRegistry actorRegistry
-    )
-        : this(axisFactory, digitalOutputFactory, variableManager, timeManager)
-    {
-        _actorRegistry = actorRegistry;
-    }
-
     public T Create<T>(string actorName, params object?[]? args)
         where T : IActorInternal
     {
@@ -31,12 +19,15 @@ public class ActorFactory(
             throw new ApplicationException(
                 "Cannot create this object. It must be derived from the 'Actor' class."
             );
+        var uiActor = actorRegistry.Get("ui");
         var actorConfig = new ActorConfig(
             actorName,
             axisFactory,
+            digitalInputFactory,
             digitalOutputFactory,
             variableManager,
-            timeManager
+            timeManager,
+            uiActor
         );
         var actorArgs = new List<object?> { actorConfig };
         if (args != null)
@@ -44,7 +35,7 @@ public class ActorFactory(
 
         var actor = (T)Activator.CreateInstance(typeof(T), actorArgs.ToArray())!;
         actor.Init();
-        _actorRegistry?.Add(actor);
+        actorRegistry?.Add(actor);
         return actor;
     }
 }

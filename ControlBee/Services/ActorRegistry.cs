@@ -16,9 +16,9 @@ public class ActorRegistry : IActorRegistry
             );
     }
 
-    public IActor Get(string actorName)
+    public IActor? Get(string actorName)
     {
-        return _map[actorName];
+        return _map.GetValueOrDefault(actorName);
     }
 
     public string[] GetActorNames()

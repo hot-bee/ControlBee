@@ -35,9 +35,11 @@ public class InitializeSequenceTest
         );
         var actorFactory = new ActorFactory(
             axisFactory,
+            EmptyDigitalInputFactory.Instance,
             EmptyDigitalOutputFactory.Instance,
             new EmptyVariableManager(),
-            frozenTimeManager
+            frozenTimeManager,
+            Mock.Of<IActorRegistry>()
         );
         var testActor = actorFactory.Create<TestActor>("testActor");
         var axisX = (FakeAxis)testActor.X;
@@ -142,12 +144,9 @@ public class InitializeSequenceTest
             InitializeSequenceZ = new InitializeSequence(Z, HomingSpeedZ, HomePositionZ);
         }
 
-        protected override void OnMessageProcessed(
-            (Message message, IState oldState, IState newState) e
-        )
+        protected override void ProcessMessage(Message message)
         {
-            base.OnMessageProcessed(e);
-            if (e.message.Name == "_initialize")
+            if (message.Name == "_initialize")
             {
                 InitializeSequenceZ.Run();
                 Task.WaitAll(

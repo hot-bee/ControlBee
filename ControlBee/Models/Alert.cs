@@ -1,15 +1,10 @@
-﻿using System.Dynamic;
-
-namespace ControlBee.Models;
+﻿namespace ControlBee.Models;
 
 public class Alert : DialogItem
 {
     public override void Trigger()
     {
-        dynamic payload = new ExpandoObject();
-        payload.name = "requestDialog";
-        payload.context = new DialogContext();
-        Actor.Ui.Send(new Message(Actor, payload));
+        Actor.Ui.Send(new Message(Actor, "_requestDialog", new DialogContext()));
     }
 
     public override void ProcessMessage(ActorItemMessage message)

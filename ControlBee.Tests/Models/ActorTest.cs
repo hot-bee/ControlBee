@@ -99,15 +99,7 @@ public class ActorTest
     [Fact]
     public void DisposeActorWithoutStartingTest()
     {
-        var actor = new Actor(
-            new ActorConfig(
-                "myActor",
-                new EmptyAxisFactory(),
-                EmptyDigitalOutputFactory.Instance,
-                new EmptyVariableManager(),
-                new EmptyTimeManager()
-            )
-        );
+        var actor = new Actor("myActor");
         actor.Dispose();
     }
 
@@ -119,6 +111,7 @@ public class ActorTest
             new ActorConfig(
                 "myActor",
                 new EmptyAxisFactory(),
+                EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
                 new EmptyVariableManager(),
                 timeManager

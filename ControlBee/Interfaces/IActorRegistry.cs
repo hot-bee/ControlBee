@@ -3,6 +3,6 @@
 public interface IActorRegistry
 {
     void Add(IActor actor);
-    IActor Get(string actorName);
+    IActor? Get(string actorName);
     string[] GetActorNames();
 }

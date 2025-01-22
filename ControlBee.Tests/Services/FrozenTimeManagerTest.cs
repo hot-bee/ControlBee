@@ -54,9 +54,11 @@ public class FrozenTimeManagerTest
         );
         var actorFactory = new ActorFactory(
             axisFactory,
+            EmptyDigitalInputFactory.Instance,
             EmptyDigitalOutputFactory.Instance,
             new EmptyVariableManager(),
-            frozenTimeManager
+            frozenTimeManager,
+            Mock.Of<IActorRegistry>()
         );
         var testActor = actorFactory.Create<TestActor>("testActor");
         var axisX = (FakeAxis)testActor.X;
@@ -109,12 +111,9 @@ public class FrozenTimeManagerTest
             InitializeSequenceX = new InitializeSequence(X, HomingSpeedX, HomePositionX);
         }
 
-        protected override void OnMessageProcessed(
-            (Message message, IState oldState, IState newState) e
-        )
+        protected override void ProcessMessage(Message message)
         {
-            base.OnMessageProcessed(e);
-            if (e.message.Name == "_initialize")
+            if (message.Name == "_initialize")
                 TimeManager.RunTask(() => InitializeSequenceX.Run()).Wait();
         }
     }

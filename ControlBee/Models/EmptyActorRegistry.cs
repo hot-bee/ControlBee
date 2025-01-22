@@ -14,7 +14,7 @@ public class EmptyActorRegistry : IActorRegistry
         throw new UnimplementedByDesignError();
     }
 
-    public IActor Get(string actorName)
+    public IActor? Get(string actorName)
     {
         throw new UnimplementedByDesignError();
     }
