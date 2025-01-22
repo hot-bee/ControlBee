@@ -24,7 +24,7 @@ public class FakeDigitalInputTest
         using var timeManager = new FrozenTimeManager();
         var actor = new Actor(
             new ActorConfig(
-                "myActor",
+                "MyActor",
                 EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
@@ -75,7 +75,7 @@ public class FakeDigitalInputTest
         var ui = Mock.Of<IUiActor>();
         Mock.Get(ui).Setup(m => m.Name).Returns("ui");
         actorRegistry.Add(ui);
-        var actor = actorFactory.Create<TestActor>("myActor");
+        var actor = actorFactory.Create<TestActor>("MyActor");
 
         actor.Start();
         actor.Send(new Message(EmptyActor.Instance, "go"));
@@ -111,7 +111,7 @@ public class FakeDigitalInputTest
         var ui = Mock.Of<IUiActor>();
         Mock.Get(ui).Setup(m => m.Name).Returns("ui");
         actorRegistry.Add(ui);
-        var actor = actorFactory.Create<TestActor>("myActor");
+        var actor = actorFactory.Create<TestActor>("MyActor");
         scenarioFlowTester.Setup(
             [
                 [
@@ -129,6 +129,43 @@ public class FakeDigitalInputTest
 
         var match = new Func<Message, bool>(message => message.Name == "_requestDialog");
         Mock.Get(ui).Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Never);
+    }
+
+    [Fact]
+    public void InjectPropertiesTest()
+    {
+        var systemConfigurations = new SystemConfigurations { FakeMode = true };
+        var actorItemInjectionDataSource = new ActorItemInjectionDataSource();
+        var deviceManger = Mock.Of<IDeviceManager>();
+        var scenarioFlowTester = new ScenarioFlowTester();
+        using var timeManager = new FrozenTimeManager(new FrozenTimeManagerConfig());
+        var digitalInputFactory = new DigitalInputFactory(
+            systemConfigurations,
+            deviceManger,
+            scenarioFlowTester
+        );
+        var actorRegistry = new ActorRegistry();
+        var actorFactory = new ActorFactory(
+            EmptyAxisFactory.Instance,
+            digitalInputFactory,
+            EmptyDigitalOutputFactory.Instance,
+            EmptyVariableManager.Instance,
+            timeManager,
+            actorItemInjectionDataSource,
+            actorRegistry
+        );
+        actorItemInjectionDataSource.ReadFromString(
+            @"
+MyActor:
+  MySensor:
+    Name: My Sensor
+    Desc: The description describing what my sensor is.
+"
+        );
+        var actor = actorFactory.Create<TestActor>("MyActor");
+
+        Assert.Equal("My Sensor", actor.MySensor.Name);
+        Assert.Equal("The description describing what my sensor is.", actor.MySensor.Desc);
     }
 
     public class TestActor : Actor
