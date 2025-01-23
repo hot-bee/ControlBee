@@ -91,11 +91,6 @@ public class DoubleActingActuator : ActorItem
 
     public override void UpdateSubItem() { }
 
-    public override void InjectProperties(IActorItemInjectionDataSource dataSource)
-    {
-        // TODO
-    }
-
     public override bool ProcessMessage(ActorItemMessage message)
     {
         switch (message.Name)
