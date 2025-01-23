@@ -5,7 +5,19 @@ namespace ControlBee.Models;
 
 public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManager), IDigitalInput
 {
-    protected bool InternalIsOn;
+    private bool _isOn;
+    protected bool InternalIsOn
+    {
+        get => _isOn;
+        set
+        {
+            if (_isOn.Equals(value))
+                return;
+            _isOn = value;
+            SendDataToUi(Guid.Empty);
+        }
+    }
+
     public Alert IsOffTimeout = new();
     public Alert IsOnTimeout = new();
 
@@ -75,6 +87,28 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     protected virtual void OnAfterSleepWaitingSensor()
     {
         // Empty
+    }
+
+    public override bool ProcessMessage(ActorItemMessage message)
+    {
+        switch (message.Name)
+        {
+            case "_itemDataRead":
+                SendDataToUi(message.Id);
+                return true;
+            case "_itemDataWrite":
+                throw new ValueError();
+        }
+
+        return base.ProcessMessage(message);
+    }
+
+    private void SendDataToUi(Guid requestId)
+    {
+        var payload = new Dictionary<string, object?> { [nameof(IsOn)] = IsOn };
+        Actor.Ui?.Send(
+            new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)
+        );
     }
 
     public virtual void ReadFromDevice()

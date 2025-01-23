@@ -15,7 +15,7 @@ public class DigitalOutput(IDeviceManager deviceManager) : DigitalIO(deviceManag
                 return;
             InternalOn = value;
             WriteToDevice();
-            SendToUi(Guid.Empty);
+            SendDataToUi(Guid.Empty);
         }
     }
 
@@ -32,7 +32,7 @@ public class DigitalOutput(IDeviceManager deviceManager) : DigitalIO(deviceManag
         switch (message.Name)
         {
             case "_itemDataRead":
-                SendToUi(message.Id);
+                SendDataToUi(message.Id);
                 return true;
             case "_itemDataWrite":
                 On = (bool)message.DictPayload!["On"]!;
@@ -42,7 +42,7 @@ public class DigitalOutput(IDeviceManager deviceManager) : DigitalIO(deviceManag
         return base.ProcessMessage(message);
     }
 
-    private void SendToUi(Guid requestId)
+    private void SendDataToUi(Guid requestId)
     {
         var payload = new Dictionary<string, object?> { [nameof(On)] = On };
         Actor.Ui?.Send(

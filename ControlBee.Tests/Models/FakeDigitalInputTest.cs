@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
@@ -168,6 +169,63 @@ MyActor:
         Assert.Equal("The description describing what my sensor is.", actor.MySensor.Desc);
     }
 
+    [Fact]
+    public void DataChangedTest()
+    {
+        var systemConfigurations = new SystemConfigurations { FakeMode = true };
+        var deviceManger = Mock.Of<IDeviceManager>();
+        var scenarioFlowTester = new ScenarioFlowTester();
+        using var timeManager = new FrozenTimeManager(new FrozenTimeManagerConfig());
+        var digitalInputFactory = new DigitalInputFactory(
+            systemConfigurations,
+            deviceManger,
+            scenarioFlowTester
+        );
+        var digitalOutputFactory = new DigitalOutputFactory(systemConfigurations, deviceManger);
+        var actorRegistry = new ActorRegistry();
+        var actorFactory = new ActorFactory(
+            EmptyAxisFactory.Instance,
+            digitalInputFactory,
+            digitalOutputFactory,
+            EmptyVariableManager.Instance,
+            timeManager,
+            EmptyActorItemInjectionDataSource.Instance,
+            actorRegistry
+        );
+        var uiActor = Mock.Of<IUiActor>();
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
+        actorRegistry.Add(uiActor);
+        var actor = actorFactory.Create<TestActor>("MyActor");
+
+        actor.Start();
+        actor.Send(new ActorItemMessage(uiActor, "/MySensor", "_itemDataRead"));
+        actor.Send(new Message(EmptyActor.Instance, "ChangeFakeDigitalInputValue"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        var match1 = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = (ActorItemMessage)message;
+            var payload = (Dictionary<string, object?>)actorItemMessage.Payload!;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/MySensor" }
+                && (bool)payload["IsOn"]! == false;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
+
+        var match2 = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = (ActorItemMessage)message;
+            var payload = (Dictionary<string, object?>)actorItemMessage.Payload!;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/MySensor" }
+                && (bool)payload["IsOn"]!;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
+    }
+
     public class TestActor : Actor
     {
         public IDigitalInput MySensor;
@@ -180,15 +238,23 @@ MyActor:
 
         protected override void ProcessMessage(Message message)
         {
-            if (message.Name == "go")
-                try
-                {
-                    MySensor.WaitOn(5000);
-                }
-                catch (TimeoutError)
-                {
-                    // Alert trigger will be checked.
-                }
+            switch (message.Name)
+            {
+                case "go":
+                    try
+                    {
+                        MySensor.WaitOn(5000);
+                    }
+                    catch (TimeoutError)
+                    {
+                        // Alert trigger will be checked.
+                    }
+
+                    break;
+                case "ChangeFakeDigitalInputValue":
+                    ((FakeDigitalInput)MySensor).On = true;
+                    break;
+            }
 
             base.ProcessMessage(message);
         }
