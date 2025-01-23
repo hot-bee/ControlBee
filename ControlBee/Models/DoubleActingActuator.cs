@@ -67,6 +67,9 @@ public class DoubleActingActuator : ActorItem
         }
     }
 
+    public bool InputOffValue => _inputOff?.IsOn ?? false;
+    public bool InputOnValue => _inputOn?.IsOn ?? false;
+
     private void InputOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         SendDataToUi(Guid.Empty);
@@ -75,12 +78,14 @@ public class DoubleActingActuator : ActorItem
     public void OnAndWait(int millisecondsTimeout)
     {
         On = true;
+        _inputOff?.WaitOff(millisecondsTimeout);
         _inputOn?.WaitOn(millisecondsTimeout);
     }
 
     public void OffAndWait(int millisecondsTimeout)
     {
         On = false;
+        _inputOn?.WaitOff(millisecondsTimeout);
         _inputOff?.WaitOn(millisecondsTimeout);
     }
 
@@ -108,7 +113,13 @@ public class DoubleActingActuator : ActorItem
 
     private void SendDataToUi(Guid requestId)
     {
-        var payload = new Dictionary<string, object?> { [nameof(On)] = On, [nameof(IsOn)] = IsOn };
+        var payload = new Dictionary<string, object?>
+        {
+            [nameof(On)] = On,
+            [nameof(IsOn)] = IsOn,
+            [nameof(InputOffValue)] = InputOffValue,
+            [nameof(InputOnValue)] = InputOnValue,
+        };
         Actor.Ui?.Send(
             new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)
         );
