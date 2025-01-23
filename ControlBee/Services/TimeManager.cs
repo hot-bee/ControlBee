@@ -32,4 +32,9 @@ public class TimeManager : ITimeManager
 
     public int CurrentMilliseconds => 0;
     public event EventHandler<int>? CurrentTimeChanged;
+
+    protected virtual void OnCurrentTimeChanged(int e)
+    {
+        CurrentTimeChanged?.Invoke(this, e);
+    }
 }

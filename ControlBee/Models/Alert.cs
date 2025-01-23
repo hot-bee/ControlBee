@@ -6,7 +6,7 @@ public class Alert : DialogItem
 {
     public override void Trigger()
     {
-        Actor.Ui.Send(new Message(Actor, "_requestDialog", new DialogContext()));
+        Actor.Ui?.Send(new Message(Actor, "_requestDialog", new DialogContext()));
     }
 
     public override bool ProcessMessage(ActorItemMessage message)

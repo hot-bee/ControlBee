@@ -15,7 +15,7 @@ namespace ControlBee.Tests.Models;
 public class FakeDigitalInputTest
 {
     [Fact]
-    public void SkipWaitOnTest()
+    public void WaitOnTest()
     {
         var systemConfigurations = new SystemConfigurations { FakeMode = true };
         var input = new FakeDigitalInput(systemConfigurations, EmptyScenarioFlowTester.Instance)
@@ -48,7 +48,9 @@ public class FakeDigitalInputTest
         };
         var input = new FakeDigitalInput(systemConfigurations, EmptyScenarioFlowTester.Instance);
         input.WaitOn();
+        Assert.True(input.IsOn);
         input.WaitOff();
+        Assert.False(input.IsOn);
     }
 
     [Fact]
@@ -88,7 +90,7 @@ public class FakeDigitalInputTest
     }
 
     [Fact]
-    public void WaitOnTest()
+    public void WaitOnWithDelayTest()
     {
         var systemConfigurations = new SystemConfigurations { FakeMode = true };
         var deviceManger = Mock.Of<IDeviceManager>();

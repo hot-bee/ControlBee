@@ -82,7 +82,7 @@ public class Position2DTest
         const string jsonString = """
             {"Values": [1.2, 3.4]}
             """;
-        var position = JsonSerializer.Deserialize<Position2D>(jsonString);
+        var position = JsonSerializer.Deserialize<Position2D>(jsonString)!;
         position.Values.Should().BeEquivalentTo([1.2, 3.4]);
     }
 

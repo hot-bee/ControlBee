@@ -18,16 +18,16 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry)
     private readonly Dictionary<Tuple<string, string>, IVariable> _variables = [];
     private string _localName = "Default";
 
-    private IActor _uiActor = EmptyActor.Instance;
+    private IActor? _uiActor;
 
     public VariableManager(IDatabase database)
         : this(database, EmptyActorRegistry.Instance) { }
 
-    private IActor UiActor
+    private IActor? UiActor
     {
         get
         {
-            if (_uiActor != EmptyActor.Instance)
+            if (_uiActor != null)
                 return _uiActor;
             if (actorRegistry == EmptyActorRegistry.Instance)
             {
@@ -108,7 +108,7 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry)
             ["OldValue"] = e.OldValue,
             ["NewValue"] = e.NewValue,
         };
-        UiActor.Send(
+        UiActor?.Send(
             new ActorItemMessage(variable.Actor, variable.ItemPath, "_itemDataChanged", payload)
         );
     }

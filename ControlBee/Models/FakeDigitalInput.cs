@@ -20,11 +20,14 @@ public class FakeDigitalInput(
         set => InternalIsOn = value;
     }
 
-    protected override void WaitSensor(Func<bool> sensorValue, int millisecondsTimeout)
+    protected override void WaitSensor(bool isOn, int millisecondsTimeout)
     {
         if (_skipWaitSensor)
+        {
+            On = isOn;
             return;
-        base.WaitSensor(sensorValue, millisecondsTimeout);
+        }
+        base.WaitSensor(isOn, millisecondsTimeout);
     }
 
     protected override void OnAfterSleepWaitingSensor()

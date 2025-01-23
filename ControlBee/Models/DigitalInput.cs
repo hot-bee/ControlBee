@@ -48,9 +48,9 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     {
         try
         {
-            WaitSensor(() => IsOn, millisecondsTimeout);
+            WaitSensor(true, millisecondsTimeout);
         }
-        catch (TimeoutError error)
+        catch (TimeoutError)
         {
             IsOnTimeout.Trigger();
             throw;
@@ -61,21 +61,21 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     {
         try
         {
-            WaitSensor(() => IsOff, millisecondsTimeout);
+            WaitSensor(false, millisecondsTimeout);
         }
-        catch (TimeoutError error)
+        catch (TimeoutError)
         {
             IsOffTimeout.Trigger();
             throw;
         }
     }
 
-    protected virtual void WaitSensor(Func<bool> sensorValue, int millisecondsTimeout)
+    protected virtual void WaitSensor(bool isOn, int millisecondsTimeout)
     {
         var watch = TimeManager.CreateWatch();
         while (true)
         {
-            if (sensorValue())
+            if (IsOn == isOn)
                 return;
             if (millisecondsTimeout > 0 && watch.ElapsedMilliseconds > millisecondsTimeout)
                 throw new TimeoutError();
