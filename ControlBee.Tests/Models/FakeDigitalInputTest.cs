@@ -233,10 +233,7 @@ MyActor:
         public IDigitalInput MySensor;
 
         public TestActor(ActorConfig config)
-            : base(config)
-        {
-            MySensor = DigitalInputFactory.Create();
-        }
+            : base(config) { }
 
         protected override void ProcessMessage(Message message)
         {

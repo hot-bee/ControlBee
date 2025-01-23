@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Services;
 using ControlBee.Variables;
@@ -135,8 +136,22 @@ public class Actor : IActorInternal, IDisposable
         foreach (var fieldInfo in fieldInfos)
             if (fieldInfo.FieldType.IsAssignableTo(typeof(IActorItem)))
             {
-                var actorItem = (IActorItem)fieldInfo.GetValue(actorItemHolder)!;
                 var itemPath = string.Join('/', itemPathPrefix, fieldInfo.Name);
+                var actorItem = fieldInfo.GetValue(actorItemHolder) as IActorItem;
+                if (actorItem == null)
+                {
+                    if (fieldInfo.FieldType.IsAssignableTo(typeof(IDigitalInput)))
+                    {
+                        actorItem = DigitalInputFactory.Create();
+                    }
+                    else if (fieldInfo.FieldType.IsAssignableTo(typeof(IDigitalOutput)))
+                    {
+                        actorItem = DigitalOutputFactory.Create();
+                    }
+                    else
+                        throw new ValueError();
+                    fieldInfo.SetValue(actorItemHolder, actorItem);
+                }
                 AddItem(actorItem, itemPath);
                 actorItem.InjectProperties(_actorItemInjectionDataSource);
                 InitActorItems(itemPath, actorItem);
