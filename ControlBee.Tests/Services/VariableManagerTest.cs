@@ -153,12 +153,11 @@ public class VariableManagerTest
             if (message.Name != "_itemDataChanged")
                 return false;
             var actorItemMessage = (ActorItemMessage)message;
-            var payload = (ValueChangedEventArgs)message.Payload!;
             return actorItemMessage.ActorName == "myActor"
                 && actorItemMessage.ItemPath == "/myVar"
-                && payload.Location == null
-                && (int)payload.OldValue! == 0
-                && (int)payload.NewValue! == 1;
+                && actorItemMessage.DictPayload!["Location"] == null
+                && (int)actorItemMessage.DictPayload["OldValue"]! == 0
+                && (int)actorItemMessage.DictPayload["NewValue"]! == 1;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);

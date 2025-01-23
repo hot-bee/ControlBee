@@ -26,4 +26,6 @@ public class Message(IActor sender, string name, object? payload)
     public IActor Sender { get; } = sender;
     public string Name { get; } = name;
     public object? Payload { get; } = payload;
+    public Dictionary<string, object?>? DictPayload { get; } =
+        payload as Dictionary<string, object?>;
 }

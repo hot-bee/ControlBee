@@ -102,8 +102,14 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry)
     private void Variable_ValueChanged(object? sender, ValueChangedEventArgs e)
     {
         var variable = (IVariable)sender!;
+        var payload = new Dictionary<string, object?>
+        {
+            ["Location"] = e.Location,
+            ["OldValue"] = e.OldValue,
+            ["NewValue"] = e.NewValue,
+        };
         UiActor.Send(
-            new ActorItemMessage(variable.Actor, variable.ItemPath, "_itemDataChanged", e)
+            new ActorItemMessage(variable.Actor, variable.ItemPath, "_itemDataChanged", payload)
         );
     }
 }

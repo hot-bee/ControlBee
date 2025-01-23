@@ -20,7 +20,7 @@ public abstract class ActorItem : IActorItem
         {
             case "_itemMetaDataRead":
             {
-                var payload = new Dictionary<string, object>
+                var payload = new Dictionary<string, object?>
                 {
                     [nameof(Name)] = Name,
                     [nameof(Desc)] = Desc,

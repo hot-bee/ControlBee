@@ -75,7 +75,7 @@ public class FakeDigitalOutputTest
         var match1 = new Func<Message, bool>(message =>
         {
             var actorItemMessage = (ActorItemMessage)message;
-            var payload = (Dictionary<string, object>)actorItemMessage.Payload!;
+            var payload = (Dictionary<string, object?>)actorItemMessage.Payload!;
             return actorItemMessage.Name == "_itemDataChanged"
                 && actorItemMessage.ActorName == "MyActor"
                 && actorItemMessage.ItemPath == "/Vacuum"
@@ -87,7 +87,7 @@ public class FakeDigitalOutputTest
         var match2 = new Func<Message, bool>(message =>
         {
             var actorItemMessage = (ActorItemMessage)message;
-            var payload = (Dictionary<string, object>)actorItemMessage.Payload!;
+            var payload = (Dictionary<string, object?>)actorItemMessage.Payload!;
             return actorItemMessage.Name == "_itemDataChanged"
                 && actorItemMessage.ActorName == "MyActor"
                 && actorItemMessage.ItemPath == "/Vacuum"

@@ -60,7 +60,7 @@ MyActor:
 
         var match = new Func<Message, bool>(message =>
         {
-            var metaData = (Dictionary<string, object>)message.Payload!;
+            var metaData = (Dictionary<string, object?>)message.Payload!;
             return message.Name == "_itemMetaData"
                 && metaData["Name"] as string == "My Empty Item"
                 && metaData["Desc"] as string

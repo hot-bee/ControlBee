@@ -1,4 +1,5 @@
-﻿using ControlBee.Interfaces;
+﻿using System.Collections.Generic;
+using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
 using ControlBee.Variables;
@@ -24,9 +25,9 @@ public class ActorItemBinderTest
         var called = false;
         binder.DataChanged += (sender, args) =>
         {
-            Assert.Null(args.Location);
-            Assert.Null(args.OldValue);
-            Assert.Equal(1, args.NewValue);
+            Assert.Null(args["Location"]);
+            Assert.Null(args["OldValue"]);
+            Assert.Equal(1, args["NewValue"]);
             called = true;
         };
         Mock.Get(uiActor)
@@ -37,7 +38,12 @@ public class ActorItemBinderTest
                     actor,
                     "/MyVar",
                     "_itemDataChanged",
-                    new ValueChangedEventArgs(null, null, 1)
+                    new Dictionary<string, object?>
+                    {
+                        ["Location"] = null,
+                        ["OldValue"] = null,
+                        ["NewValue"] = 1,
+                    }
                 )
             );
         Assert.True(called);
@@ -95,16 +101,16 @@ public class ActorItemBinderTest
             {
                 case 0:
                     callCount++;
-                    Assert.Null(args.Location);
-                    Assert.Null(args.OldValue);
-                    Assert.Equal(1, args.NewValue);
+                    Assert.Null(args["Location"]);
+                    Assert.Null(args["OldValue"]);
+                    Assert.Equal(1, args["NewValue"]);
                     variable.Value = 2;
                     break;
                 case 1:
                     callCount++;
-                    Assert.Null(args.Location);
-                    Assert.Equal(1, args.OldValue);
-                    Assert.Equal(2, args.NewValue);
+                    Assert.Null(args["Location"]);
+                    Assert.Equal(1, args["OldValue"]);
+                    Assert.Equal(2, args["NewValue"]);
                     actor.Send(new Message(EmptyActor.Instance, "_terminate"));
                     break;
             }

@@ -238,13 +238,10 @@ public class VariableTest
         var match = new Func<Message, bool>(message =>
         {
             var actorItemMessage = (ActorItemMessage)message;
-            var payload = (ValueChangedEventArgs)actorItemMessage.Payload;
-            if (payload == null)
-                return false;
             return actorItemMessage.Name == "_itemDataChanged"
-                && payload.Location == null
-                && payload.OldValue == null
-                && (int)payload.NewValue! == 1
+                && actorItemMessage.DictPayload!["Location"] == null
+                && actorItemMessage.DictPayload!["OldValue"] == null
+                && (int)(actorItemMessage.DictPayload["NewValue"])! == 1
                 && actorItemMessage.ActorName == "myActor"
                 && actorItemMessage.ItemPath == "/myVar";
         });
@@ -284,15 +281,11 @@ public class VariableTest
         var match = new Func<Message, bool>(message =>
         {
             var actorItemMessage = (ActorItemMessage)message;
-            var payload = (Dictionary<string, object>)actorItemMessage.Payload;
-            if (payload == null)
-                return false;
-            return actorItemMessage.Name == "_itemMetaData"
-                && actorItemMessage.ActorName == "MyActor"
-                && actorItemMessage.ItemPath == "/MyVar"
-                && payload["Name"] as string == "My variable"
-                && payload["Unit"] as string == "bool"
-                && payload["Desc"] as string == "This is a my variable.";
+            return actorItemMessage
+                    is { Name: "_itemMetaData", ActorName: "MyActor", ItemPath: "/MyVar" }
+                && actorItemMessage.DictPayload!["Name"] as string == "My variable"
+                && actorItemMessage.DictPayload!["Unit"] as string == "bool"
+                && actorItemMessage.DictPayload!["Desc"] as string == "This is a my variable.";
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);

@@ -87,7 +87,7 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
         {
             case "_itemMetaDataRead":
             {
-                var payload = new Dictionary<string, object>
+                var payload = new Dictionary<string, object?>
                 {
                     [nameof(Name)] = Name,
                     [nameof(Unit)] = Unit,
@@ -100,7 +100,12 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
             }
             case "_itemDataRead":
             {
-                var payload = new ValueChangedEventArgs(null, null, _value);
+                var payload = new Dictionary<string, object?>()
+                {
+                    ["Location"] = null,
+                    ["OldValue"] = null,
+                    ["NewValue"] = _value,
+                };
                 message.Sender.Send(
                     new ActorItemMessage(message.Id, Actor, ItemPath, "_itemDataChanged", payload)
                 );

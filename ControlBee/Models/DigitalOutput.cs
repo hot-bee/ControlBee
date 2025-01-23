@@ -41,7 +41,7 @@ public class DigitalOutput(IDeviceManager deviceManager) : DigitalIO(deviceManag
 
     private void SendToUi(Guid requestId)
     {
-        var payload = new Dictionary<string, object> { [nameof(On)] = On };
+        var payload = new Dictionary<string, object?> { [nameof(On)] = On };
         Actor.Ui?.Send(
             new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)
         );

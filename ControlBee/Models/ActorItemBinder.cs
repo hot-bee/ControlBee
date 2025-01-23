@@ -23,30 +23,30 @@ public class ActorItemBinder
         actor.Send(new ActorItemMessage(_uiActor, _itemPath, "_itemDataRead"));
     }
 
-    public event EventHandler<Dictionary<string, object>>? MetaDataChanged;
-    public event EventHandler<ValueChangedEventArgs>? DataChanged;
+    public event EventHandler<Dictionary<string, object?>>? MetaDataChanged;
+    public event EventHandler<Dictionary<string, object?>>? DataChanged;
 
     private void _uiActor_MessageArrived(object? sender, Message e)
     {
         if (e.RequestId == _itemMetaDataReadMessageId && e.Name == "_itemMetaData")
         {
-            OnMetaDataChanged((Dictionary<string, object>)e.Payload!);
+            OnMetaDataChanged((Dictionary<string, object?>)e.Payload!);
         }
 
         if (e.Name == "_itemDataChanged")
         {
             var actorItemMessage = (ActorItemMessage)e;
             if (actorItemMessage.ActorName == _actorName && actorItemMessage.ItemPath == _itemPath)
-                OnDataChanged((ValueChangedEventArgs)e.Payload!);
+                OnDataChanged((Dictionary<string, object?>)e.Payload!);
         }
     }
 
-    protected virtual void OnDataChanged(ValueChangedEventArgs e)
+    protected virtual void OnDataChanged(Dictionary<string, object?> e)
     {
         DataChanged?.Invoke(this, e);
     }
 
-    protected virtual void OnMetaDataChanged(Dictionary<string, object> e)
+    protected virtual void OnMetaDataChanged(Dictionary<string, object?> e)
     {
         MetaDataChanged?.Invoke(this, e);
     }
