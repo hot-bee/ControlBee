@@ -67,7 +67,7 @@ public class ActorTest
         var oldState = Mock.Of<IState>();
         var newState = Mock.Of<IState>();
         var actor = new Actor(
-            (self, state, message) =>
+            (_, state, message) =>
             {
                 if (state == oldState && message.Name == "foo")
                     return newState;
@@ -76,8 +76,8 @@ public class ActorTest
         );
         actor.State = oldState;
         var stateTransitMatched = false;
-        var RetryWithEmptyMessageMatched = false;
-        actor.MessageProcessed += (sender, tuple) =>
+        var retryWithEmptyMessageMatched = false;
+        actor.MessageProcessed += (_, tuple) =>
         {
             if (tuple.oldState == oldState && tuple.newState == newState)
                 stateTransitMatched = true;
@@ -86,14 +86,14 @@ public class ActorTest
                 && tuple.message == Message.Empty
                 && tuple.newState == newState
             )
-                RetryWithEmptyMessageMatched = true;
+                retryWithEmptyMessageMatched = true;
         };
         actor.Start();
         actor.Send(new Message(EmptyActor.Instance, "foo"));
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
         stateTransitMatched.Should().BeTrue();
-        RetryWithEmptyMessageMatched.Should().BeTrue();
+        retryWithEmptyMessageMatched.Should().BeTrue();
     }
 
     [Fact]
@@ -142,5 +142,39 @@ public class ActorTest
         actor.Join();
 
         Mock.Get(variable).Verify(m => m.ProcessMessage(It.IsAny<ActorItemMessage>()), Times.Once);
+    }
+
+    [Fact]
+    public void GetItemsTest()
+    {
+        var actor = new Actor(
+            new ActorConfig(
+                "myActor",
+                EmptyAxisFactory.Instance,
+                EmptyDigitalInputFactory.Instance,
+                EmptyDigitalOutputFactory.Instance,
+                EmptyVariableManager.Instance,
+                EmptyTimeManager.Instance,
+                EmptyActorItemInjectionDataSource.Instance
+            )
+        );
+        var myVariable = new Variable<int>(actor, "/MyVar", VariableScope.Global, 1);
+        actor.AddItem(myVariable, "/MyVar");
+        var myDigitalOutput = new FakeDigitalOutput();
+        actor.AddItem(myDigitalOutput, "/MyOutput");
+
+        var items = actor.GetItems();
+
+        Assert.Equal(2, items.Length);
+        Assert.Equal("/MyVar", items[0].itemPath);
+        Assert.True(items[0].type.IsAssignableTo(typeof(IVariable)));
+        Assert.Equal("/MyOutput", items[1].itemPath);
+        Assert.True(items[1].type.IsAssignableTo(typeof(IDigitalOutput)));
+    }
+
+    public class TestActor : Actor
+    {
+        public TestActor(ActorConfig config)
+            : base(config) { }
     }
 }

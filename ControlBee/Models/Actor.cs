@@ -65,7 +65,7 @@ public class Actor : IActorInternal, IDisposable
     public IAxisFactory AxisFactory { get; } // TODO: Not here
     public IDigitalInputFactory DigitalInputFactory { get; } // TODO: Not here
     public IDigitalOutputFactory DigitalOutputFactory { get; } // TODO: Not here
-    private IActorItemInjectionDataSource _actorItemInjectionDataSource;
+    private readonly IActorItemInjectionDataSource _actorItemInjectionDataSource;
 
     public string Name { get; }
 
@@ -83,6 +83,11 @@ public class Actor : IActorInternal, IDisposable
     {
         _mailbox.Add(message);
         return message.Id;
+    }
+
+    public (string itemPath, Type type)[] GetItems()
+    {
+        return _actorItems.ToList().ConvertAll(x => (x.Key, x.Value.GetType())).ToArray();
     }
 
     public ITimeManager TimeManager { get; }
