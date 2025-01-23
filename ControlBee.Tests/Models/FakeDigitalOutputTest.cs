@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
@@ -76,10 +75,9 @@ public class FakeDigitalOutputTest
         {
             var actorItemMessage = (ActorItemMessage)message;
             var payload = (Dictionary<string, object?>)actorItemMessage.Payload!;
-            return actorItemMessage.Name == "_itemDataChanged"
-                && actorItemMessage.ActorName == "MyActor"
-                && actorItemMessage.ItemPath == "/Vacuum"
-                && (bool)payload["On"] == false;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Vacuum" }
+                && (bool)payload["On"]! == false;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
@@ -88,10 +86,71 @@ public class FakeDigitalOutputTest
         {
             var actorItemMessage = (ActorItemMessage)message;
             var payload = (Dictionary<string, object?>)actorItemMessage.Payload!;
-            return actorItemMessage.Name == "_itemDataChanged"
-                && actorItemMessage.ActorName == "MyActor"
-                && actorItemMessage.ItemPath == "/Vacuum"
-                && (bool)payload["On"];
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Vacuum" }
+                && (bool)payload["On"]!;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
+    }
+
+    [Fact]
+    public void DataWriteTest()
+    {
+        var systemConfigurations = new SystemConfigurations { FakeMode = true };
+        var deviceManger = Mock.Of<IDeviceManager>();
+        var scenarioFlowTester = new ScenarioFlowTester();
+        using var timeManager = new FrozenTimeManager(new FrozenTimeManagerConfig());
+        var digitalInputFactory = new DigitalInputFactory(
+            systemConfigurations,
+            deviceManger,
+            scenarioFlowTester
+        );
+        var digitalOutputFactory = new DigitalOutputFactory(systemConfigurations, deviceManger);
+        var actorRegistry = new ActorRegistry();
+        var actorFactory = new ActorFactory(
+            EmptyAxisFactory.Instance,
+            digitalInputFactory,
+            digitalOutputFactory,
+            EmptyVariableManager.Instance,
+            timeManager,
+            EmptyActorItemInjectionDataSource.Instance,
+            actorRegistry
+        );
+        var uiActor = Mock.Of<IUiActor>();
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
+        actorRegistry.Add(uiActor);
+        var actor = actorFactory.Create<TestActor>("MyActor");
+
+        actor.Start();
+        actor.Send(new ActorItemMessage(uiActor, "/Vacuum", "_itemDataRead"));
+        actor.Send(
+            new ActorItemMessage(
+                uiActor,
+                "/Vacuum",
+                "_itemDataWrite",
+                new Dictionary<string, object?> { ["On"] = true }
+            )
+        );
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        var match1 = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = (ActorItemMessage)message;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Vacuum" }
+                && (bool)actorItemMessage.DictPayload!["On"]! == false;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
+
+        var match2 = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = (ActorItemMessage)message;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Vacuum" }
+                && (bool)actorItemMessage.DictPayload!["On"]!;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
@@ -114,6 +173,7 @@ public class FakeDigitalOutputTest
                 Vacuum.On = true;
                 return;
             }
+
             base.ProcessMessage(message);
         }
     }

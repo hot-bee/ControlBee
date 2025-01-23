@@ -34,6 +34,9 @@ public class DigitalOutput(IDeviceManager deviceManager) : DigitalIO(deviceManag
             case "_itemDataRead":
                 SendToUi(message.Id);
                 return true;
+            case "_itemDataWrite":
+                On = (bool)message.DictPayload!["On"]!;
+                return true;
         }
 
         return base.ProcessMessage(message);
