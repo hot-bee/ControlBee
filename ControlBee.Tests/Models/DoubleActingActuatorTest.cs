@@ -267,7 +267,7 @@ public class DoubleActingActuatorTest
 
     public class TestActor : Actor
     {
-        public DoubleActingActuator Cyl;
+        public IDoubleActingActuator Cyl;
 
         public IDigitalOutput CylBwd;
         public IDigitalInput CylBwdDet;
@@ -283,7 +283,7 @@ public class DoubleActingActuatorTest
             CylBwd = DigitalOutputFactory.Create();
             CylFwd = DigitalOutputFactory.Create();
 
-            Cyl = new DoubleActingActuator(CylBwd, CylFwd, CylBwdDet, CylFwdDet);
+            Cyl = new DoubleActingActuator(CylFwd, CylBwd, CylFwdDet, CylBwdDet);
         }
 
         protected override void ProcessMessage(Message message)

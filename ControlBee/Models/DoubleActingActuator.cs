@@ -3,25 +3,25 @@ using ControlBee.Interfaces;
 
 namespace ControlBee.Models;
 
-public class DoubleActingActuator : ActorItem
+public class DoubleActingActuator : ActorItem, IDoubleActingActuator
 {
-    private readonly IDigitalInput? _inputOff;
-    private readonly IDigitalInput? _inputOn;
-    private readonly IDigitalOutput _outputOff;
     private readonly IDigitalOutput _outputOn;
+    private readonly IDigitalOutput? _outputOff;
+    private readonly IDigitalInput? _inputOn;
+    private readonly IDigitalInput? _inputOff;
     private bool _on;
 
     public DoubleActingActuator(
-        IDigitalOutput outputOff,
         IDigitalOutput outputOn,
-        IDigitalInput? inputOff,
-        IDigitalInput? inputOn
+        IDigitalOutput? outputOff,
+        IDigitalInput? inputOn,
+        IDigitalInput? inputOff
     )
     {
-        _outputOff = outputOff;
         _outputOn = outputOn;
-        _inputOff = inputOff;
+        _outputOff = outputOff;
         _inputOn = inputOn;
+        _inputOff = inputOff;
 
         if (inputOff != null)
             inputOff.PropertyChanged += InputOnPropertyChanged;
@@ -35,8 +35,9 @@ public class DoubleActingActuator : ActorItem
         set
         {
             _on = value;
-            _outputOff.On = !_on;
             _outputOn.On = _on;
+            if (_outputOff != null)
+                _outputOff.On = !_on;
             SendDataToUi(Guid.Empty);
         }
     }
@@ -67,8 +68,8 @@ public class DoubleActingActuator : ActorItem
         }
     }
 
-    public bool InputOffValue => _inputOff?.IsOn ?? false;
     public bool InputOnValue => _inputOn?.IsOn ?? false;
+    public bool InputOffValue => _inputOff?.IsOn ?? false;
 
     private void InputOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
