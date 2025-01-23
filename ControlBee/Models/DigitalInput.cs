@@ -11,10 +11,8 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         get => _isOn;
         set
         {
-            if (_isOn.Equals(value))
-                return;
-            _isOn = value;
-            SendDataToUi(Guid.Empty);
+            if (SetField(ref _isOn, value))
+                SendDataToUi(Guid.Empty);
         }
     }
 

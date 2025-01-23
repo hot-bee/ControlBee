@@ -1,15 +1,33 @@
-﻿using ControlBee.Interfaces;
+﻿using System.ComponentModel;
+using ControlBee.Interfaces;
 
 namespace ControlBee.Models;
 
-public class DoubleActingActuator(
-    IDigitalOutput outputOff,
-    IDigitalOutput outputOn,
-    IDigitalInput? inputOff,
-    IDigitalInput? inputOn
-) : ActorItem
+public class DoubleActingActuator : ActorItem
 {
+    private readonly IDigitalInput? _inputOff;
+    private readonly IDigitalInput? _inputOn;
+    private readonly IDigitalOutput _outputOff;
+    private readonly IDigitalOutput _outputOn;
     private bool _on;
+
+    public DoubleActingActuator(
+        IDigitalOutput outputOff,
+        IDigitalOutput outputOn,
+        IDigitalInput? inputOff,
+        IDigitalInput? inputOn
+    )
+    {
+        _outputOff = outputOff;
+        _outputOn = outputOn;
+        _inputOff = inputOff;
+        _inputOn = inputOn;
+
+        if (inputOff != null)
+            inputOff.PropertyChanged += InputOnPropertyChanged;
+        if (inputOn != null)
+            inputOn.PropertyChanged += InputOnPropertyChanged;
+    }
 
     public bool On
     {
@@ -17,8 +35,9 @@ public class DoubleActingActuator(
         set
         {
             _on = value;
-            outputOff.On = !_on;
-            outputOn.On = _on;
+            _outputOff.On = !_on;
+            _outputOn.On = _on;
+            SendDataToUi(Guid.Empty);
         }
     }
 
@@ -34,7 +53,7 @@ public class DoubleActingActuator(
         {
             if (Off)
                 return false;
-            return inputOn == null || inputOn.IsOn;
+            return _inputOn == null || _inputOn.IsOn;
         }
     }
 
@@ -44,20 +63,25 @@ public class DoubleActingActuator(
         {
             if (On)
                 return false;
-            return inputOff == null || inputOff.IsOn;
+            return _inputOff == null || _inputOff.IsOn;
         }
+    }
+
+    private void InputOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        SendDataToUi(Guid.Empty);
     }
 
     public void OnAndWait(int millisecondsTimeout)
     {
         On = true;
-        inputOn?.WaitOn(millisecondsTimeout);
+        _inputOn?.WaitOn(millisecondsTimeout);
     }
 
     public void OffAndWait(int millisecondsTimeout)
     {
         On = false;
-        inputOff?.WaitOn(millisecondsTimeout);
+        _inputOff?.WaitOn(millisecondsTimeout);
     }
 
     public override void UpdateSubItem() { }
@@ -65,5 +89,28 @@ public class DoubleActingActuator(
     public override void InjectProperties(IActorItemInjectionDataSource dataSource)
     {
         // TODO
+    }
+
+    public override bool ProcessMessage(ActorItemMessage message)
+    {
+        switch (message.Name)
+        {
+            case "_itemDataRead":
+                SendDataToUi(message.Id);
+                return true;
+            case "_itemDataWrite":
+                On = (bool)message.DictPayload!["On"]!;
+                return true;
+        }
+
+        return base.ProcessMessage(message);
+    }
+
+    private void SendDataToUi(Guid requestId)
+    {
+        var payload = new Dictionary<string, object?> { [nameof(On)] = On, [nameof(IsOn)] = IsOn };
+        Actor.Ui?.Send(
+            new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)
+        );
     }
 }

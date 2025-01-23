@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
@@ -51,7 +52,7 @@ public class DoubleActingActuatorTest
         );
 
         actor.Start();
-        actor.Send(new Message(EmptyActor.Instance, "go"));
+        actor.Send(new Message(EmptyActor.Instance, "Go"));
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
@@ -89,13 +90,130 @@ public class DoubleActingActuatorTest
         var actor = actorFactory.Create<TestActor>("myActor");
 
         actor.Start();
-        actor.Send(new Message(EmptyActor.Instance, "go"));
+        actor.Send(new Message(EmptyActor.Instance, "Go"));
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
         var match = new Func<Message, bool>(message => message.Name == "_requestDialog");
         Mock.Get(ui).Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);
         Assert.True(timeManager.CurrentMilliseconds >= 5000);
+    }
+
+    [Fact]
+    public void DataChangedTest()
+    {
+        var systemConfigurations = new SystemConfigurations
+        {
+            FakeMode = true,
+            SkipWaitSensor = true,
+        };
+        var deviceManger = Mock.Of<IDeviceManager>();
+        var scenarioFlowTester = new ScenarioFlowTester();
+        using var timeManager = new FrozenTimeManager(new FrozenTimeManagerConfig());
+        var digitalInputFactory = new DigitalInputFactory(
+            systemConfigurations,
+            deviceManger,
+            scenarioFlowTester
+        );
+        var digitalOutputFactory = new DigitalOutputFactory(systemConfigurations, deviceManger);
+        var actorRegistry = new ActorRegistry();
+        var actorFactory = new ActorFactory(
+            EmptyAxisFactory.Instance,
+            digitalInputFactory,
+            digitalOutputFactory,
+            EmptyVariableManager.Instance,
+            timeManager,
+            EmptyActorItemInjectionDataSource.Instance,
+            actorRegistry
+        );
+        var uiActor = Mock.Of<IUiActor>();
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
+        actorRegistry.Add(uiActor);
+        var actor = actorFactory.Create<TestActor>("MyActor");
+
+        actor.Start();
+        actor.Send(new ActorItemMessage(uiActor, "/Cyl", "_itemDataRead"));
+        actor.Send(new Message(EmptyActor.Instance, "Go"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        var match1 = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = (ActorItemMessage)message;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Cyl" }
+                && (bool)actorItemMessage.DictPayload!["On"]! == false
+                && (bool)actorItemMessage.DictPayload!["IsOn"]! == false;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
+
+        var match2 = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = (ActorItemMessage)message;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Cyl" }
+                && (bool)actorItemMessage.DictPayload!["On"]!
+                && (bool)actorItemMessage.DictPayload!["IsOn"]!;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
+    }
+
+    [Fact]
+    public void DataWriteTest()
+    {
+        var systemConfigurations = new SystemConfigurations
+        {
+            FakeMode = true,
+            SkipWaitSensor = true,
+        };
+        var deviceManger = Mock.Of<IDeviceManager>();
+        var scenarioFlowTester = new ScenarioFlowTester();
+        using var timeManager = new FrozenTimeManager(new FrozenTimeManagerConfig());
+        var digitalInputFactory = new DigitalInputFactory(
+            systemConfigurations,
+            deviceManger,
+            scenarioFlowTester
+        );
+        var digitalOutputFactory = new DigitalOutputFactory(systemConfigurations, deviceManger);
+        var actorRegistry = new ActorRegistry();
+        var actorFactory = new ActorFactory(
+            EmptyAxisFactory.Instance,
+            digitalInputFactory,
+            digitalOutputFactory,
+            EmptyVariableManager.Instance,
+            timeManager,
+            EmptyActorItemInjectionDataSource.Instance,
+            actorRegistry
+        );
+        var uiActor = Mock.Of<IUiActor>();
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
+        actorRegistry.Add(uiActor);
+        var actor = actorFactory.Create<TestActor>("MyActor");
+
+        actor.Start();
+        actor.Send(
+            new ActorItemMessage(
+                uiActor,
+                "/Cyl",
+                "_itemDataWrite",
+                new Dictionary<string, object?> { ["On"] = true }
+            )
+        );
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        var match = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = (ActorItemMessage)message;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Cyl" }
+                && (bool)actorItemMessage.DictPayload!["On"]!
+                && !(bool)actorItemMessage.DictPayload!["IsOn"]!;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);
     }
 
     public class TestActor : Actor
@@ -121,7 +239,7 @@ public class DoubleActingActuatorTest
 
         protected override void ProcessMessage(Message message)
         {
-            if (message.Name == "go")
+            if (message.Name == "Go")
                 try
                 {
                     Cyl.OnAndWait(5000);
