@@ -5,11 +5,11 @@ namespace ControlBee.Models;
 
 public class DoubleActingActuator : ActorItem, IDoubleActingActuator
 {
-    private readonly IDigitalOutput _outputOn;
-    private readonly IDigitalOutput? _outputOff;
-    private readonly IDigitalInput? _inputOn;
-    private readonly IDigitalInput? _inputOff;
+    private IDigitalInput? _inputOff;
+    private IDigitalInput? _inputOn;
     private bool _on;
+    private IDigitalOutput? _outputOff;
+    private IDigitalOutput _outputOn;
 
     public DoubleActingActuator(
         IDigitalOutput outputOn,
@@ -22,11 +22,7 @@ public class DoubleActingActuator : ActorItem, IDoubleActingActuator
         _outputOff = outputOff;
         _inputOn = inputOn;
         _inputOff = inputOff;
-
-        if (inputOff != null)
-            inputOff.PropertyChanged += InputOnPropertyChanged;
-        if (inputOn != null)
-            inputOn.PropertyChanged += InputOnPropertyChanged;
+        Subscribe();
     }
 
     public bool On
@@ -71,11 +67,6 @@ public class DoubleActingActuator : ActorItem, IDoubleActingActuator
     public bool InputOnValue => _inputOn?.IsOn ?? false;
     public bool InputOffValue => _inputOff?.IsOn ?? false;
 
-    private void InputOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        SendDataToUi(Guid.Empty);
-    }
-
     public void OnAndWait(int millisecondsTimeout)
     {
         On = true;
@@ -105,6 +96,37 @@ public class DoubleActingActuator : ActorItem, IDoubleActingActuator
         }
 
         return base.ProcessMessage(message);
+    }
+
+    public void ReplacePlaceholder(PlaceholderManager manager)
+    {
+        Unsubscribe();
+        _outputOn = manager.TryGet(_outputOn);
+        _outputOff = manager.TryGet(_outputOff);
+        _inputOn = manager.TryGet(_inputOn);
+        _inputOff = manager.TryGet(_inputOff);
+        Subscribe();
+    }
+
+    private void Unsubscribe()
+    {
+        if (_inputOff != null)
+            _inputOff.PropertyChanged -= InputOnPropertyChanged;
+        if (_inputOn != null)
+            _inputOn.PropertyChanged -= InputOnPropertyChanged;
+    }
+
+    private void Subscribe()
+    {
+        if (_inputOff != null)
+            _inputOff.PropertyChanged += InputOnPropertyChanged;
+        if (_inputOn != null)
+            _inputOn.PropertyChanged += InputOnPropertyChanged;
+    }
+
+    private void InputOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        SendDataToUi(Guid.Empty);
     }
 
     private void SendDataToUi(Guid requestId)

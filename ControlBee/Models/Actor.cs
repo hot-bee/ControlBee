@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Reflection;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Services;
@@ -10,6 +11,7 @@ namespace ControlBee.Models;
 public class Actor : IActorInternal, IDisposable
 {
     private static readonly ILog Logger = LogManager.GetLogger(typeof(Actor));
+    private readonly IActorItemInjectionDataSource _actorItemInjectionDataSource;
 
     private readonly Dictionary<string, IActorItem> _actorItems = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
@@ -21,6 +23,7 @@ public class Actor : IActorInternal, IDisposable
     private bool _init;
 
     private string _title = string.Empty;
+    private readonly PlaceholderManager _placeholderManager = new();
 
     public IState State;
 
@@ -66,7 +69,6 @@ public class Actor : IActorInternal, IDisposable
     public IAxisFactory AxisFactory { get; } // TODO: Not here
     public IDigitalInputFactory DigitalInputFactory { get; } // TODO: Not here
     public IDigitalOutputFactory DigitalOutputFactory { get; } // TODO: Not here
-    private readonly IActorItemInjectionDataSource _actorItemInjectionDataSource;
 
     public string Name { get; }
 
@@ -103,7 +105,8 @@ public class Actor : IActorInternal, IDisposable
             throw new ApplicationException();
         _init = true;
 
-        InitActorItems(string.Empty, this);
+        IterateItems(string.Empty, this, InitItem);
+        IterateItems(string.Empty, this, ReplacePlaceholder);
         PositionAxesMap.UpdateMap();
     }
 
@@ -130,32 +133,62 @@ public class Actor : IActorInternal, IDisposable
         _title = title;
     }
 
-    private void InitActorItems(string itemPathPrefix, object actorItemHolder)
+    private void IterateItems(
+        string itemPathPrefix,
+        object actorItemHolder,
+        Func<object, IActorItem, FieldInfo, string, IActorItem> func
+    )
     {
         var fieldInfos = actorItemHolder.GetType().GetFields();
         foreach (var fieldInfo in fieldInfos)
             if (fieldInfo.FieldType.IsAssignableTo(typeof(IActorItem)))
             {
                 var itemPath = string.Join('/', itemPathPrefix, fieldInfo.Name);
-                var actorItem = fieldInfo.GetValue(actorItemHolder) as IActorItem;
-                if (actorItem == null)
-                {
-                    if (fieldInfo.FieldType.IsAssignableTo(typeof(IDigitalInput)))
-                    {
-                        actorItem = DigitalInputFactory.Create();
-                    }
-                    else if (fieldInfo.FieldType.IsAssignableTo(typeof(IDigitalOutput)))
-                    {
-                        actorItem = DigitalOutputFactory.Create();
-                    }
-                    else
-                        throw new ValueError();
-                    fieldInfo.SetValue(actorItemHolder, actorItem);
-                }
-                AddItem(actorItem, itemPath);
-                actorItem.InjectProperties(_actorItemInjectionDataSource);
-                InitActorItems(itemPath, actorItem);
+                var actorItem = (IActorItem)fieldInfo.GetValue(actorItemHolder)!;
+
+                actorItem = func(actorItemHolder, actorItem, fieldInfo, itemPath);
+
+                IterateItems(itemPath, actorItem, func);
             }
+    }
+
+    private IActorItem InitItem(
+        object actorItemHolder,
+        IActorItem actorItem,
+        FieldInfo fieldInfo,
+        string itemPath
+    )
+    {
+        if (actorItem is IPlaceholder placeHolder)
+        {
+            IActorItem newItem;
+            if (fieldInfo.FieldType.IsAssignableTo(typeof(IDigitalInput)))
+                newItem = DigitalInputFactory.Create();
+            else if (fieldInfo.FieldType.IsAssignableTo(typeof(IDigitalOutput)))
+                newItem = DigitalOutputFactory.Create();
+            else
+                throw new ValueError();
+            _placeholderManager.Add(placeHolder, newItem);
+            actorItem = newItem;
+            fieldInfo.SetValue(actorItemHolder, actorItem);
+        }
+        AddItem(actorItem, itemPath);
+        actorItem.InjectProperties(_actorItemInjectionDataSource);
+        return actorItem;
+    }
+
+    private IActorItem ReplacePlaceholder(
+        object actorItemHolder,
+        IActorItem actorItem,
+        FieldInfo fieldInfo,
+        string itemPath
+    )
+    {
+        if (actorItem is IUsesPlaceholder usesPlaceholder)
+        {
+            usesPlaceholder.ReplacePlaceholder(_placeholderManager);
+        }
+        return actorItem;
     }
 
     public void AddItem(IActorItem actorItem, string itemPath)

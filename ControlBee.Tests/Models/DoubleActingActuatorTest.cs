@@ -269,20 +269,14 @@ public class DoubleActingActuatorTest
     {
         public IDoubleActingActuator Cyl;
 
-        public IDigitalOutput CylBwd;
-        public IDigitalInput CylBwdDet;
-        public IDigitalOutput CylFwd;
-        public IDigitalInput CylFwdDet;
+        public IDigitalOutput CylBwd = new DigitalOutputPlaceholder();
+        public IDigitalInput CylBwdDet = new DigitalInputPlaceholder();
+        public IDigitalOutput CylFwd = new DigitalOutputPlaceholder();
+        public IDigitalInput CylFwdDet = new DigitalInputPlaceholder();
 
         public TestActor(ActorConfig config)
             : base(config)
         {
-            CylBwdDet = DigitalInputFactory.Create();
-            CylFwdDet = DigitalInputFactory.Create();
-
-            CylBwd = DigitalOutputFactory.Create();
-            CylFwd = DigitalOutputFactory.Create();
-
             Cyl = new DoubleActingActuator(CylFwd, CylBwd, CylFwdDet, CylBwdDet);
         }
 

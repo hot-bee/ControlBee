@@ -230,7 +230,7 @@ MyActor:
 
     public class TestActor : Actor
     {
-        public IDigitalInput MySensor;
+        public IDigitalInput MySensor = new DigitalInputPlaceholder();
 
         public TestActor(ActorConfig config)
             : base(config) { }
