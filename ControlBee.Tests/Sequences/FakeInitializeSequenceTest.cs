@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.IO;
+using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Sequences;
@@ -9,36 +10,16 @@ using MathNet.Numerics.LinearAlgebra.Double;
 using Moq;
 using Xunit;
 
-namespace ControlBee.Tests.Services;
+namespace ControlBee.Tests.Sequences;
 
-[TestSubject(typeof(InitializeSequenceFactory))]
-public class InitializeSequenceFactoryTest
+[TestSubject(typeof(FakeInitializeSequence))]
+public class FakeInitializeSequenceTest
 {
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void CreateTest(bool fakeMode)
-    {
-        var systemConfigurations = new SystemConfigurations { FakeMode = fakeMode };
-        var initializeSequenceFactory = new InitializeSequenceFactory(systemConfigurations);
-        var sequence = initializeSequenceFactory.Create(
-            Mock.Of<IAxis>(),
-            new SpeedProfile(),
-            new Position1D()
-        );
-        if (fakeMode)
-            Assert.IsType<FakeInitializeSequence>(sequence);
-        else
-            Assert.IsType<InitializeSequence>(sequence);
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void CreateFromActor(bool fakeMode)
+    [Fact]
+    public void RunTest()
     {
         var database = Mock.Of<IDatabase>();
-        var systemConfigurations = new SystemConfigurations { FakeMode = fakeMode };
+        var systemConfigurations = new SystemConfigurations { FakeMode = true };
         var deviceManager = new DeviceManager();
         using var timeManager = new FrozenTimeManager();
         var scenarioFlowTester = new ScenarioFlowTester();
@@ -68,21 +49,25 @@ public class InitializeSequenceFactoryTest
             actorItemInjectionDataSource,
             actorRegistry
         );
-
         var actor = actorFactory.Create<TestActor>("MyActor");
-        if (fakeMode)
-            Assert.IsType<FakeInitializeSequence>(actor.InitializeSequenceX);
-        else
-            Assert.IsType<InitializeSequence>(actor.InitializeSequenceX);
+
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "Go"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+        Assert.Equal(100.0, actor.X.GetPosition());
     }
 
     public class TestActor : Actor
     {
         public Variable<Position1D> HomePositionX = new(
             VariableScope.Global,
-            new Position1D(DenseVector.OfArray([10.0]))
+            new Position1D(DenseVector.OfArray([100.0]))
         );
-        public Variable<SpeedProfile> HomeSpeedX = new();
+        public Variable<SpeedProfile> HomeSpeedX = new(
+            VariableScope.Global,
+            new SpeedProfile() { Velocity = 10.0 }
+        );
         public IInitializeSequence InitializeSequenceX;
         public IAxis X;
 
@@ -90,7 +75,17 @@ public class InitializeSequenceFactoryTest
             : base(config)
         {
             X = AxisFactory.Create();
+            PositionAxesMap.Add(HomePositionX, [X]);
             InitializeSequenceX = InitializeSequenceFactory.Create(X, HomeSpeedX, HomePositionX);
+        }
+
+        protected override void ProcessMessage(Message message)
+        {
+            base.ProcessMessage(message);
+            if (message.Name == "Go")
+            {
+                InitializeSequenceX.Run();
+            }
         }
     }
 }

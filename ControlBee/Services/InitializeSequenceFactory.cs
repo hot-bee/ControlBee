@@ -20,7 +20,7 @@ public class InitializeSequenceFactory(SystemConfigurations systemConfigurations
     public IInitializeSequence Create(IAxis axis, SpeedProfile homingSpeed, Position1D homePosition)
     {
         if (systemConfigurations.FakeMode)
-            return new FakeInitializeSequence();
+            return new FakeInitializeSequence(axis, homingSpeed, homePosition);
         return new InitializeSequence(axis, homingSpeed, homePosition);
     }
 }
