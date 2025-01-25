@@ -9,6 +9,7 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
     : DeviceChannel(deviceManager),
         IAxis
 {
+    private Action? _initializeAction;
     protected SpeedProfile? SpeedProfile;
 
     public virtual bool HomeSensor { get; } = false;
@@ -92,12 +93,16 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         }
     }
 
-    protected void ValidateBeforeMoving()
+    public void SetInitializeAction(Action initializeAction)
     {
-        if (SpeedProfile == null)
-            throw new ValueError("You need to provide a SpeedProfile to move the axis.");
-        if (SpeedProfile!.Velocity == 0)
-            throw new ValueError("You must provide a speed greater than 0 to move the axis.");
+        _initializeAction = initializeAction;
+    }
+
+    public void Initialize()
+    {
+        if (_initializeAction == null)
+            throw new PlatformException("The initialize action must be set before it can be used.");
+        _initializeAction();
     }
 
     public override void UpdateSubItem() { }
@@ -105,5 +110,13 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
     public override void InjectProperties(IActorItemInjectionDataSource dataSource)
     {
         // TODO
+    }
+
+    protected void ValidateBeforeMoving()
+    {
+        if (SpeedProfile == null)
+            throw new ValueError("You need to provide a SpeedProfile to move the axis.");
+        if (SpeedProfile!.Velocity == 0)
+            throw new ValueError("You must provide a speed greater than 0 to move the axis.");
     }
 }

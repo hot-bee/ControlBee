@@ -21,4 +21,6 @@ public interface IAxis : IDeviceChannel
     double GetPosition(PositionType type = PositionType.Command);
     bool GetSensorValue(AxisSensorType type);
     void WaitSensor(AxisSensorType type, bool waitingValue, int millisecondsTimeout);
+    void Initialize();
+    void SetInitializeAction(Action initializeAction);
 }
