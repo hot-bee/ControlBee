@@ -4,6 +4,7 @@ using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Sequences;
+using ControlBee.Tests.TestUtils;
 using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
@@ -11,11 +12,11 @@ using Xunit;
 
 namespace ControlBee.Tests.Sequences;
 
-[TestSubject(typeof(GlobalInitializationSequence))]
-public class GlobalInitializationSequenceTest
+[TestSubject(typeof(GlobalInitializeSequence))]
+public class GlobalInitializeSequenceTest : ActorFactoryBase
 {
     [Fact]
-    public void RunTest()
+    public void RunMessageTest()
     {
         var syncerActor = Mock.Of<IActor>();
         var turret = Mock.Of<IActor>();
@@ -24,7 +25,7 @@ public class GlobalInitializationSequenceTest
         var mandrel2 = Mock.Of<IActor>();
         var notSetActor = Mock.Of<IActor>();
 
-        var globalInitializationSequence = new GlobalInitializationSequence(
+        var globalInitializationSequence = new GlobalInitializeSequence(
             syncerActor,
             sequence =>
             {
@@ -36,27 +37,8 @@ public class GlobalInitializationSequenceTest
                     return;
 
                 sequence.InitializeIfPossible(turret);
-            }
-        );
-        globalInitializationSequence.SetInitializationState(
-            EmptyActor.Instance,
-            InitializationStatus.Skipped
-        );
-        globalInitializationSequence.SetInitializationState(
-            mandrel0,
-            InitializationStatus.Uninitialized
-        );
-        globalInitializationSequence.SetInitializationState(
-            mandrel1,
-            InitializationStatus.Uninitialized
-        );
-        globalInitializationSequence.SetInitializationState(
-            mandrel2,
-            InitializationStatus.Uninitialized
-        );
-        globalInitializationSequence.SetInitializationState(
-            turret,
-            InitializationStatus.Uninitialized
+            },
+            [mandrel0, mandrel1, mandrel2, turret]
         );
         globalInitializationSequence.Run();
         Mock.Get(mandrel0)
@@ -76,7 +58,7 @@ public class GlobalInitializationSequenceTest
             );
         Mock.Get(turret)
             .Verify(
-                m => m.Send(It.Is<Message>(message => message.Name == "_unReady")),
+                m => m.Send(It.Is<Message>(message => message.Name == "_resetState")),
                 Times.Never
             );
         Mock.Get(turret)
@@ -122,7 +104,7 @@ public class GlobalInitializationSequenceTest
                 Times.Never
             );
         Mock.Get(turret)
-            .Verify(m => m.Send(It.Is<Message>(message => message.Name == "_unReady")), Times.Once);
+            .Verify(m => m.Send(It.Is<Message>(message => message.Name == "_resetState")), Times.Once);
         Mock.Get(turret)
             .Verify(
                 m => m.Send(It.Is<Message>(message => message.Name == "_initialize")),
@@ -138,15 +120,7 @@ public class GlobalInitializationSequenceTest
         var mandrel0 = Mock.Of<IActor>();
         var mandrel1 = Mock.Of<IActor>();
         var mandrel2 = Mock.Of<IActor>();
-        var globalInitializationSequence = new GlobalInitializationSequence(syncerActor, _ => { });
-        globalInitializationSequence.SetInitializationState(
-            EmptyActor.Instance,
-            InitializationStatus.Skipped
-        );
-        globalInitializationSequence.SetInitializationState(
-            mandrel0,
-            InitializationStatus.Uninitialized
-        );
+        var globalInitializationSequence = new GlobalInitializeSequence(syncerActor, _ => { }, [mandrel0]);
         globalInitializationSequence.SetInitializationState(mandrel1, InitializationStatus.Skipped);
         globalInitializationSequence.SetInitializationState(mandrel2, InitializationStatus.Error);
         globalInitializationSequence.SetInitializationState(
@@ -186,13 +160,11 @@ public class GlobalInitializationSequenceTest
         var mandrel0 = Mock.Of<IActor>();
         Mock.Get(turret).Setup(m => m.Name).Returns("turret");
         Mock.Get(mandrel0).Setup(m => m.Name).Returns("mandrel0");
-        var globalInitializationSequence = new GlobalInitializationSequence(syncerActor, _ => { });
+        var globalInitializationSequence = new GlobalInitializeSequence(syncerActor, _ => { },
+            []);
 
         var changedCalls = new List<(string actorName, InitializationStatus status)>();
-        globalInitializationSequence.StateChanged += (sender, tuple) =>
-        {
-            changedCalls.Add(tuple);
-        };
+        globalInitializationSequence.StateChanged += (sender, tuple) => { changedCalls.Add(tuple); };
         globalInitializationSequence.SetInitializationState(
             turret,
             InitializationStatus.Uninitialized
@@ -218,5 +190,100 @@ public class GlobalInitializationSequenceTest
         Assert.Equal(InitializationStatus.Initializing, changedCalls[2].status);
         Assert.Equal("mandrel0", changedCalls[3].actorName);
         Assert.Equal(InitializationStatus.Initialized, changedCalls[3].status);
+    }
+
+    [Fact]
+    public void InitializeTest()
+    {
+        var subActor = ActorFactory.Create<SubActor>("SubActor");
+        var syncerActor = ActorFactory.Create<SyncerActor>("Syncer", subActor);
+
+        subActor.Start();
+        syncerActor.Start();
+
+        var initializingActors = new IActor[] { subActor };
+        syncerActor.Send(new Message(syncerActor, "_initialize", initializingActors));
+        syncerActor.Send(new Message(syncerActor, "_terminate"));
+
+        syncerActor.Join();
+        subActor.Join();
+
+        Assert.IsType<IdleState>(subActor.State);
+    }
+
+    [Fact]
+    public void InitializeOnIdleTest()
+    {
+        var subActor = ActorFactory.Create<SubActor>("SubActor");
+        var syncerActor = ActorFactory.Create<SyncerActor>("Syncer", subActor);
+
+        subActor.State = new IdleState();
+
+        var transited = false;
+        subActor.MessageProcessed += (_, tuple) =>
+        {
+            var (_, oldState, newState) = tuple;
+            if (oldState.GetType() == typeof(IdleState) && newState.GetType() == typeof(InactiveState))
+                transited = true;
+        };
+
+        syncerActor.Start();
+        subActor.Start();
+
+        var initializingActors = new IActor[] { subActor };
+        syncerActor.Send(new Message(syncerActor, "_initialize", initializingActors));
+        syncerActor.Send(new Message(syncerActor, "_terminate"));
+
+        syncerActor.Join();
+        subActor.Join();
+
+        Assert.IsType<IdleState>(subActor.State);
+        Assert.True(transited);
+    }
+
+
+    public class SubActor : Actor
+    {
+        public SubActor(ActorConfig config) : base(config)
+        {
+            State = new InactiveState(this);
+        }
+    }
+
+    public class InactiveState(SubActor actor) : State<SubActor>(actor)
+    {
+        public override IState ProcessMessage(Message message)
+        {
+            if (message.Name == "_initialize")
+            {
+                Actor.Send(new Message(Actor, "_terminate"));
+                return new IdleState();
+            }
+
+            return this;
+        }
+    }
+
+    public class IdleState : IState
+    {
+        public IState ProcessMessage(Message message)
+        {
+            return this;
+        }
+    }
+
+    public class SyncerActor(ActorConfig config, IActor subActor) : Actor(config)
+    {
+        protected override void ProcessMessage(Message message)
+        {
+            base.ProcessMessage(message);
+            if (message.Name == "_initialize")
+            {
+                var initializingActors = (IEnumerable<IActor>)message.Payload!;
+                var globalInitializationSequence = new GlobalInitializeSequence(this,
+                    seq => { seq.InitializeIfPossible(subActor); }, initializingActors);
+                globalInitializationSequence.Run();
+            }
+        }
     }
 }

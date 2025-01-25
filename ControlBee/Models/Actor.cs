@@ -264,10 +264,10 @@ public class Actor : IActorInternal, IDisposable
                 return;
             }
 
-            _ActorBuiltinMessageHandler.ProcessMessage(message);
             while (true)
             {
                 var oldState = State;
+                _ActorBuiltinMessageHandler.ProcessMessage(message);
                 State =
                     _messageHandler != null
                         ? _messageHandler.Invoke(this, State, message)

@@ -7,23 +7,33 @@ using log4net;
 
 namespace ControlBee.Sequences;
 
-public class GlobalInitializationSequence(
-    IActor actor,
-    Action<GlobalInitializationSequence> runAction
-)
+public class GlobalInitializeSequence
 {
     private static readonly ILog Logger = LogManager.GetLogger(
         MethodBase.GetCurrentMethod()!.DeclaringType!
     );
 
+    private readonly IActor _actor;
+
     private readonly Dictionary<IActor, InitializationStatus> _initializationState = new();
+    private readonly Action<GlobalInitializeSequence> _runAction;
+
+    public GlobalInitializeSequence(IActor actor,
+        Action<GlobalInitializeSequence> runAction,
+        IEnumerable<IActor> initializingActors)
+    {
+        _actor = actor;
+        _runAction = runAction;
+        foreach (var initializingActor in initializingActors)
+            SetInitializationState(initializingActor, InitializationStatus.Uninitialized);
+    }
 
     public bool IsComplete =>
         _initializationState.All(x =>
             x.Value
                 is InitializationStatus.Initialized
-                    or InitializationStatus.Skipped
-                    or InitializationStatus.Error
+                or InitializationStatus.Skipped
+                or InitializationStatus.Error
         );
 
     public bool IsInitializingActors =>
@@ -41,8 +51,8 @@ public class GlobalInitializationSequence(
     private void Initialize(IActor initActor)
     {
         Logger.Info($"Initializing {initActor.Name}...");
-        initActor.Send(new Message(actor, "_unReady"));
-        initActor.Send(new Message(actor, "_initialize"));
+        initActor.Send(new Message(_actor, "_resetState"));
+        initActor.Send(new Message(_actor, "_initialize"));
         SetInitializationState(initActor, InitializationStatus.Initializing);
     }
 
@@ -61,7 +71,7 @@ public class GlobalInitializationSequence(
                 "This operation cannot be performed while any actor is in the initializing state."
             );
 
-        runAction(this);
+        _runAction(this);
     }
 
     protected virtual void OnStateChanged((string actorName, InitializationStatus status) e)
