@@ -7,6 +7,7 @@ public class ActorConfig(
     IAxisFactory axisFactory,
     IDigitalInputFactory digitalInputFactory,
     IDigitalOutputFactory digitalOutputFactory,
+    IInitializeSequenceFactory initializeSequenceFactory,
     IVariableManager variableManager,
     ITimeManager timeManager,
     IActorItemInjectionDataSource actorItemInjectionDataSource,
@@ -18,6 +19,7 @@ public class ActorConfig(
         IAxisFactory axisFactory,
         IDigitalInputFactory digitalInputFactory,
         IDigitalOutputFactory digitalOutputFactory,
+        IInitializeSequenceFactory initializeSequenceFactory,
         IVariableManager variableManager,
         ITimeManager timeManager,
         IActorItemInjectionDataSource actorItemInjectionDataSource
@@ -27,6 +29,7 @@ public class ActorConfig(
             axisFactory,
             digitalInputFactory,
             digitalOutputFactory,
+            initializeSequenceFactory,
             variableManager,
             timeManager,
             actorItemInjectionDataSource,
@@ -39,7 +42,10 @@ public class ActorConfig(
     public IAxisFactory AxisFactory => axisFactory;
     public IDigitalInputFactory DigitalInputFactory => digitalInputFactory;
     public IDigitalOutputFactory DigitalOutputFactory => digitalOutputFactory;
+    public IInitializeSequenceFactory InitializeSequenceFactory => initializeSequenceFactory;
+
     public IActorItemInjectionDataSource ActorItemInjectionDataSource =>
         actorItemInjectionDataSource;
-    public IActor? UiActor { get; } = uiActor;
+
+    public IActor? UiActor => uiActor;
 }

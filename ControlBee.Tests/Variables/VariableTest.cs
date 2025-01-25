@@ -25,6 +25,7 @@ public class VariableTest
                 EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
+                EmptyInitializeSequenceFactory.Instance,
                 variableManagerMock.Object,
                 new TimeManager(),
                 EmptyActorItemInjectionDataSource.Instance
@@ -56,6 +57,7 @@ public class VariableTest
                 EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
+                EmptyInitializeSequenceFactory.Instance,
                 variableManagerMock.Object,
                 new TimeManager(),
                 EmptyActorItemInjectionDataSource.Instance
@@ -87,6 +89,7 @@ public class VariableTest
                 EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
+                EmptyInitializeSequenceFactory.Instance,
                 variableManagerMock.Object,
                 new TimeManager(),
                 EmptyActorItemInjectionDataSource.Instance
@@ -123,6 +126,7 @@ public class VariableTest
                 EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
+                EmptyInitializeSequenceFactory.Instance,
                 variableManagerMock.Object,
                 new TimeManager(),
                 EmptyActorItemInjectionDataSource.Instance
@@ -158,6 +162,7 @@ public class VariableTest
                 EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
+                EmptyInitializeSequenceFactory.Instance,
                 variableManagerMock.Object,
                 new TimeManager(),
                 EmptyActorItemInjectionDataSource.Instance
@@ -193,6 +198,7 @@ public class VariableTest
                 EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
+                EmptyInitializeSequenceFactory.Instance,
                 variableManagerMock.Object,
                 new TimeManager(),
                 EmptyActorItemInjectionDataSource.Instance

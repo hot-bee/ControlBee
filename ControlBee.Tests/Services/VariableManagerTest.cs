@@ -24,6 +24,7 @@ public class VariableManagerTest
                 EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
+                EmptyInitializeSequenceFactory.Instance,
                 variableManager,
                 new TimeManager(),
                 EmptyActorItemInjectionDataSource.Instance
@@ -52,6 +53,7 @@ public class VariableManagerTest
                 EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
+                EmptyInitializeSequenceFactory.Instance,
                 variableManager,
                 new TimeManager(),
                 EmptyActorItemInjectionDataSource.Instance
@@ -75,6 +77,7 @@ public class VariableManagerTest
                 EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
+                EmptyInitializeSequenceFactory.Instance,
                 variableManager,
                 timeManager,
                 EmptyActorItemInjectionDataSource.Instance
@@ -86,6 +89,7 @@ public class VariableManagerTest
                 EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
+                EmptyInitializeSequenceFactory.Instance,
                 variableManager,
                 timeManager,
                 EmptyActorItemInjectionDataSource.Instance
@@ -135,6 +139,7 @@ public class VariableManagerTest
             EmptyAxisFactory.Instance,
             EmptyDigitalInputFactory.Instance,
             EmptyDigitalOutputFactory.Instance,
+            EmptyInitializeSequenceFactory.Instance,
             variableManager,
             EmptyTimeManager.Instance,
             EmptyActorItemInjectionDataSource.Instance,

@@ -32,6 +32,7 @@ public class EmptyActorItemTest
             EmptyAxisFactory.Instance,
             digitalInputFactory,
             EmptyDigitalOutputFactory.Instance,
+            EmptyInitializeSequenceFactory.Instance,
             EmptyVariableManager.Instance,
             timeManager,
             actorItemInjectionDataSource,

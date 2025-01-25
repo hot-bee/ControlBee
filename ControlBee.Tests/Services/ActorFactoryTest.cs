@@ -37,6 +37,7 @@ public class ActorFactoryTest
             axisFactory,
             EmptyDigitalInputFactory.Instance,
             digitalOutputFactory,
+            EmptyInitializeSequenceFactory.Instance,
             variableManager,
             timeManager,
             EmptyActorItemInjectionDataSource.Instance,

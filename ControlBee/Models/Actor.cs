@@ -37,6 +37,7 @@ public class Actor : IActorInternal, IDisposable
                 EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
+                EmptyInitializeSequenceFactory.Instance,
                 EmptyVariableManager.Instance,
                 EmptyTimeManager.Instance,
                 EmptyActorItemInjectionDataSource.Instance
@@ -56,6 +57,7 @@ public class Actor : IActorInternal, IDisposable
         AxisFactory = config.AxisFactory;
         DigitalInputFactory = config.DigitalInputFactory;
         DigitalOutputFactory = config.DigitalOutputFactory;
+        InitializeSequenceFactory = config.InitializeSequenceFactory;
         VariableManager = config.VariableManager;
         TimeManager = config.TimeManager;
         _actorItemInjectionDataSource = config.ActorItemInjectionDataSource;
@@ -69,6 +71,7 @@ public class Actor : IActorInternal, IDisposable
     public IAxisFactory AxisFactory { get; } // TODO: Not here
     public IDigitalInputFactory DigitalInputFactory { get; } // TODO: Not here
     public IDigitalOutputFactory DigitalOutputFactory { get; } // TODO: Not here
+    public IInitializeSequenceFactory InitializeSequenceFactory { get; }
 
     public string Name { get; }
 

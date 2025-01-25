@@ -6,6 +6,7 @@ using ControlBee.Variables;
 namespace ControlBee.Services;
 
 public class InitializeSequenceFactory(SystemConfigurations systemConfigurations)
+    : IInitializeSequenceFactory
 {
     public IInitializeSequence Create(
         IAxis axis,

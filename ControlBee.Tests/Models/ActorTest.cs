@@ -113,6 +113,7 @@ public class ActorTest
                 EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
+                EmptyInitializeSequenceFactory.Instance,
                 EmptyVariableManager.Instance,
                 timeManager,
                 EmptyActorItemInjectionDataSource.Instance
@@ -153,6 +154,7 @@ public class ActorTest
                 EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
+                EmptyInitializeSequenceFactory.Instance,
                 EmptyVariableManager.Instance,
                 EmptyTimeManager.Instance,
                 EmptyActorItemInjectionDataSource.Instance

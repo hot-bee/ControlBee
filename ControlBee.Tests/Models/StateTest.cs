@@ -19,6 +19,7 @@ public class StateTest
             EmptyAxisFactory.Instance,
             EmptyDigitalInputFactory.Instance,
             EmptyDigitalOutputFactory.Instance,
+            EmptyInitializeSequenceFactory.Instance,
             EmptyVariableManager.Instance,
             new TimeManager(),
             EmptyActorItemInjectionDataSource.Instance

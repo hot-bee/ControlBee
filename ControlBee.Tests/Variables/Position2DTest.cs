@@ -128,6 +128,7 @@ public class Position2DTest
                 EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
+                EmptyInitializeSequenceFactory.Instance,
                 EmptyVariableManager.Instance,
                 new TimeManager(),
                 EmptyActorItemInjectionDataSource.Instance

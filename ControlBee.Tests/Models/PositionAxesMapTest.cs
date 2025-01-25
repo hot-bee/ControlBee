@@ -19,6 +19,7 @@ public class PositionAxesMapTest
             EmptyAxisFactory.Instance,
             EmptyDigitalInputFactory.Instance,
             EmptyDigitalOutputFactory.Instance,
+            EmptyInitializeSequenceFactory.Instance,
             variableManagerMock.Object,
             new TimeManager(),
             EmptyActorItemInjectionDataSource.Instance,

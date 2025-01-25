@@ -56,6 +56,7 @@ public class FrozenTimeManagerTest
             axisFactory,
             EmptyDigitalInputFactory.Instance,
             EmptyDigitalOutputFactory.Instance,
+            EmptyInitializeSequenceFactory.Instance,
             EmptyVariableManager.Instance,
             frozenTimeManager,
             EmptyActorItemInjectionDataSource.Instance,

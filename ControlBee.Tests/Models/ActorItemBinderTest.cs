@@ -61,6 +61,7 @@ public class ActorItemBinderTest
                 EmptyAxisFactory.Instance,
                 EmptyDigitalInputFactory.Instance,
                 EmptyDigitalOutputFactory.Instance,
+                EmptyInitializeSequenceFactory.Instance,
                 variableManager,
                 EmptyTimeManager.Instance,
                 EmptyActorItemInjectionDataSource.Instance
