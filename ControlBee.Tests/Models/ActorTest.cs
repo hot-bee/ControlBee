@@ -4,6 +4,7 @@ using System.Linq;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
+using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
@@ -13,7 +14,7 @@ using Xunit;
 namespace ControlBee.Tests.Models;
 
 [TestSubject(typeof(Actor))]
-public class ActorTest
+public class ActorTest : ActorFactoryBase
 {
     [Fact]
     public void SendMessageTest()
@@ -176,7 +177,20 @@ public class ActorTest
 
     public class TestActor : Actor
     {
+        public IAxis X;
+
         public TestActor(ActorConfig config)
-            : base(config) { }
+            : base(config)
+        {
+            X = AxisFactory.Create();
+        }
+    }
+
+    [Fact]
+    public void GetItemTest()
+    {
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+        Assert.Equal(actor.X, actor.GetItem("X"));
+        Assert.Equal(actor.X, actor.GetItem("/X"));
     }
 }

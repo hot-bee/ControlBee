@@ -18,12 +18,12 @@ public class Actor : IActorInternal, IDisposable
     private readonly BlockingCollection<Message> _mailbox = new();
 
     private readonly Func<IActor, IState, Message, IState>? _messageHandler;
+    private readonly PlaceholderManager _placeholderManager = new();
     private readonly Thread _thread;
 
     private bool _init;
 
     private string _title = string.Empty;
-    private readonly PlaceholderManager _placeholderManager = new();
 
     public IState State;
 
@@ -175,6 +175,7 @@ public class Actor : IActorInternal, IDisposable
             actorItem = newItem;
             fieldInfo.SetValue(actorItemHolder, actorItem);
         }
+
         AddItem(actorItem, itemPath);
         actorItem.InjectProperties(_actorItemInjectionDataSource);
         return actorItem;
@@ -188,9 +189,7 @@ public class Actor : IActorInternal, IDisposable
     )
     {
         if (actorItem is IUsesPlaceholder usesPlaceholder)
-        {
             usesPlaceholder.ReplacePlaceholder(_placeholderManager);
-        }
         return actorItem;
     }
 
@@ -234,14 +233,19 @@ public class Actor : IActorInternal, IDisposable
         }
     }
 
+    public IActorItem? GetItem(string itemPath)
+    {
+        if (!itemPath.StartsWith("/"))
+            itemPath = "/" + itemPath;
+        return _actorItems.GetValueOrDefault(itemPath);
+    }
+
     protected virtual void ProcessMessage(Message message)
     {
         if (message is ActorItemMessage actorItemMessage)
         {
-            var path = actorItemMessage.ItemPath;
-            if (!path.StartsWith("/"))
-                path = "/" + path;
-            _actorItems[path].ProcessMessage(actorItemMessage);
+            var item = GetItem(actorItemMessage.ItemPath);
+            item?.ProcessMessage(actorItemMessage);
             return;
         }
 
