@@ -11,8 +11,8 @@ using Xunit;
 
 namespace ControlBee.Tests.Models;
 
-[TestSubject(typeof(DoubleActingActuator))]
-public class DoubleActingActuatorTest
+[TestSubject(typeof(BinaryActuator))]
+public class BinaryActuatorTest
 {
     [Fact]
     public void OnAndWaitTest()
@@ -272,7 +272,7 @@ public class DoubleActingActuatorTest
 
     public class TestActor : Actor
     {
-        public IDoubleActingActuator Cyl;
+        public IBinaryActuator Cyl;
 
         public IDigitalOutput CylBwd = new DigitalOutputPlaceholder();
         public IDigitalInput CylBwdDet = new DigitalInputPlaceholder();
@@ -282,7 +282,7 @@ public class DoubleActingActuatorTest
         public TestActor(ActorConfig config)
             : base(config)
         {
-            Cyl = new DoubleActingActuator(CylFwd, CylBwd, CylFwdDet, CylBwdDet);
+            Cyl = new BinaryActuator(CylFwd, CylBwd, CylFwdDet, CylBwdDet);
         }
 
         protected override void ProcessMessage(Message message)

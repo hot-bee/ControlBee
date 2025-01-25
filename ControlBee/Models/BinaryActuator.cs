@@ -3,7 +3,7 @@ using ControlBee.Interfaces;
 
 namespace ControlBee.Models;
 
-public class DoubleActingActuator : ActorItem, IDoubleActingActuator
+public class BinaryActuator : ActorItem, IBinaryActuator
 {
     private IDigitalInput? _inputOff;
     private IDigitalInput? _inputOn;
@@ -11,7 +11,7 @@ public class DoubleActingActuator : ActorItem, IDoubleActingActuator
     private IDigitalOutput? _outputOff;
     private IDigitalOutput _outputOn;
 
-    public DoubleActingActuator(
+    public BinaryActuator(
         IDigitalOutput outputOn,
         IDigitalOutput? outputOff,
         IDigitalInput? inputOn,

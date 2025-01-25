@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ControlBee.Interfaces
 {
-    public interface IDoubleActingActuator : IActorItem, IUsesPlaceholder
+    public interface IBinaryActuator : IActorItem, IUsesPlaceholder
     {
         bool On { get; set; }
         bool Off { get; set; }
