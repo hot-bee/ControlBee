@@ -26,6 +26,20 @@ public class ActorBuiltinMessageHandlerTest : ActorFactoryBase
         Assert.IsType<EmptyState>(actor.State);
     }
 
+    [Fact]
+    public void ResetStateTest()
+    {
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+        actor.State = new IdleState(actor);
+
+        actor.Start();
+        actor.Send(new Message(actor, "_resetState"));
+        actor.Send(new Message(actor, "_terminate"));
+        actor.Join();
+
+        Assert.IsType<EmptyState>(actor.State);
+    }
+
     public class TestActor : Actor
     {
         public Variable<Position1D> HomePositionX = new(

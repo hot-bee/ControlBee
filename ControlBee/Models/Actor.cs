@@ -140,6 +140,11 @@ public class Actor : IActorInternal, IDisposable
         Logger.Info("Actor instance successfully disposed.");
     }
 
+    public void ResetState()
+    {
+        State = _initialState;
+    }
+
     public event EventHandler<(
         Message message,
         IState oldState,
@@ -216,7 +221,7 @@ public class Actor : IActorInternal, IDisposable
         _actorItems[itemPath] = actorItem;
 
         if (actorItem is IVariable variable)
-            VariableManager?.Add(variable);
+            VariableManager.Add(variable);
     }
 
     public virtual void Start()

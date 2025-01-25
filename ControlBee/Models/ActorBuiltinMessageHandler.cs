@@ -2,7 +2,7 @@
 
 namespace ControlBee.Models;
 
-public class ActorBuiltinMessageHandler(IActor actor)
+public class ActorBuiltinMessageHandler(Actor actor)
 {
     public void ProcessMessage(Message message)
     {
@@ -13,6 +13,11 @@ public class ActorBuiltinMessageHandler(IActor actor)
                 var itemPath = (string)message.Payload!;
                 var axis = (IAxis)actor.GetItem(itemPath)!;
                 axis.Initialize();
+                break;
+            }
+            case "_resetState":
+            {
+                actor.ResetState();
                 break;
             }
         }
