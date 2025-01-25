@@ -7,7 +7,8 @@ using ControlBee.Variables;
 namespace ControlBee.Sequences;
 
 public class InitializeSequence(IAxis axis, SpeedProfile homingSpeed, Position1D homePosition)
-    : ActorItem
+    : ActorItem,
+        IInitializeSequence
 {
     public Alert SensorEntryTimeout = new();
     public Alert SensorExitTimeout = new();
