@@ -11,6 +11,8 @@ namespace ControlBee.Models;
 public class Actor : IActorInternal, IDisposable
 {
     private static readonly ILog Logger = LogManager.GetLogger(typeof(Actor));
+
+    private readonly ActorBuiltinMessageHandler _ActorBuiltinMessageHandler;
     private readonly IActorItemInjectionDataSource _actorItemInjectionDataSource;
 
     private readonly Dictionary<string, IActorItem> _actorItems = new();
@@ -22,6 +24,8 @@ public class Actor : IActorInternal, IDisposable
     private readonly Thread _thread;
 
     private bool _init;
+
+    private IState _initialState;
 
     private string _title = string.Empty;
 
@@ -66,6 +70,9 @@ public class Actor : IActorInternal, IDisposable
         Ui = config.UiActor;
 
         State = new EmptyState(this);
+        _initialState = State;
+
+        _ActorBuiltinMessageHandler = new ActorBuiltinMessageHandler(this);
     }
 
     public IAxisFactory AxisFactory { get; } // TODO: Not here
@@ -108,9 +115,17 @@ public class Actor : IActorInternal, IDisposable
             throw new ApplicationException();
         _init = true;
 
+        _initialState = State;
         IterateItems(string.Empty, this, InitItem);
         IterateItems(string.Empty, this, ReplacePlaceholder);
         PositionAxesMap.UpdateMap();
+    }
+
+    public IActorItem? GetItem(string itemPath)
+    {
+        if (!itemPath.StartsWith("/"))
+            itemPath = "/" + itemPath;
+        return _actorItems.GetValueOrDefault(itemPath);
     }
 
     public void Dispose()
@@ -233,33 +248,34 @@ public class Actor : IActorInternal, IDisposable
         }
     }
 
-    public IActorItem? GetItem(string itemPath)
-    {
-        if (!itemPath.StartsWith("/"))
-            itemPath = "/" + itemPath;
-        return _actorItems.GetValueOrDefault(itemPath);
-    }
-
     protected virtual void ProcessMessage(Message message)
     {
-        if (message is ActorItemMessage actorItemMessage)
+        try
         {
-            var item = GetItem(actorItemMessage.ItemPath);
-            item?.ProcessMessage(actorItemMessage);
-            return;
-        }
+            if (message is ActorItemMessage actorItemMessage)
+            {
+                var item = GetItem(actorItemMessage.ItemPath);
+                item?.ProcessMessage(actorItemMessage);
+                return;
+            }
 
-        while (true)
+            _ActorBuiltinMessageHandler.ProcessMessage(message);
+            while (true)
+            {
+                var oldState = State;
+                State =
+                    _messageHandler != null
+                        ? _messageHandler.Invoke(this, State, message)
+                        : State.ProcessMessage(message);
+                OnMessageProcessed((message, oldState, State));
+                if (State == oldState)
+                    break;
+                message = Message.Empty;
+            }
+        }
+        catch (FatalSequenceError)
         {
-            var oldState = State;
-            State =
-                _messageHandler != null
-                    ? _messageHandler.Invoke(this, State, message)
-                    : State.ProcessMessage(message);
-            OnMessageProcessed((message, oldState, State));
-            if (State == oldState)
-                break;
-            message = Message.Empty;
+            State = _initialState;
         }
     }
 

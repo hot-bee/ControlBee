@@ -175,6 +175,14 @@ public class ActorTest : ActorFactoryBase
         Assert.True(items[1].type.IsAssignableTo(typeof(IDigitalOutput)));
     }
 
+    [Fact]
+    public void GetItemTest()
+    {
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+        Assert.Equal(actor.X, actor.GetItem("X"));
+        Assert.Equal(actor.X, actor.GetItem("/X"));
+    }
+
     public class TestActor : Actor
     {
         public IAxis X;
@@ -184,13 +192,5 @@ public class ActorTest : ActorFactoryBase
         {
             X = AxisFactory.Create();
         }
-    }
-
-    [Fact]
-    public void GetItemTest()
-    {
-        var actor = ActorFactory.Create<TestActor>("MyActor");
-        Assert.Equal(actor.X, actor.GetItem("X"));
-        Assert.Equal(actor.X, actor.GetItem("/X"));
     }
 }

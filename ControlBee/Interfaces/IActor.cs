@@ -8,4 +8,5 @@ public interface IActor
     string Title { get; }
     Guid Send(Message message);
     (string itemPath, Type type)[] GetItems();
+    IActorItem? GetItem(string itemPath);
 }
