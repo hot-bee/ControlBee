@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Services;
+using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
@@ -13,24 +12,12 @@ using String = ControlBee.Variables.String;
 namespace ControlBee.Tests.Variables;
 
 [TestSubject(typeof(Variable<>))]
-public class VariableTest
+public class VariableTest : ActorFactoryBase
 {
     [Fact]
     public void IntVariableTest()
     {
-        var variableManagerMock = new Mock<IVariableManager>();
-        var actor = new Actor(
-            new ActorConfig(
-                "myActor",
-                EmptyAxisFactory.Instance,
-                EmptyDigitalInputFactory.Instance,
-                EmptyDigitalOutputFactory.Instance,
-                EmptyInitializeSequenceFactory.Instance,
-                variableManagerMock.Object,
-                new TimeManager(),
-                EmptyActorItemInjectionDataSource.Instance
-            )
-        );
+        var actor = ActorFactory.Create<Actor>("MyActor");
         var intVariable = new Variable<int>(actor, "myId", VariableScope.Global, 1);
         Assert.Equal(1, intVariable.Value);
 
@@ -50,19 +37,7 @@ public class VariableTest
     [Fact]
     public void SerializeTest()
     {
-        var variableManagerMock = new Mock<IVariableManager>();
-        var actor = new Actor(
-            new ActorConfig(
-                "myActor",
-                EmptyAxisFactory.Instance,
-                EmptyDigitalInputFactory.Instance,
-                EmptyDigitalOutputFactory.Instance,
-                EmptyInitializeSequenceFactory.Instance,
-                variableManagerMock.Object,
-                new TimeManager(),
-                EmptyActorItemInjectionDataSource.Instance
-            )
-        );
+        var actor = ActorFactory.Create<Actor>("MyActor");
         var intVariable = new Variable<int>(actor, "myId", VariableScope.Global, 1);
         Assert.Equal("1", intVariable.ToJson());
 
@@ -83,18 +58,7 @@ public class VariableTest
     public void StringVariableTest()
     {
         var variableManagerMock = new Mock<IVariableManager>();
-        var actor = new Actor(
-            new ActorConfig(
-                "myActor",
-                EmptyAxisFactory.Instance,
-                EmptyDigitalInputFactory.Instance,
-                EmptyDigitalOutputFactory.Instance,
-                EmptyInitializeSequenceFactory.Instance,
-                variableManagerMock.Object,
-                new TimeManager(),
-                EmptyActorItemInjectionDataSource.Instance
-            )
-        );
+        var actor = ActorFactory.Create<Actor>("MyActor");
         var stringVariable = new Variable<String>(
             actor,
             "myId",
@@ -119,19 +83,7 @@ public class VariableTest
     [Fact]
     public void Array1DVariableTest()
     {
-        var variableManagerMock = new Mock<IVariableManager>();
-        var actor = new Actor(
-            new ActorConfig(
-                "myActor",
-                EmptyAxisFactory.Instance,
-                EmptyDigitalInputFactory.Instance,
-                EmptyDigitalOutputFactory.Instance,
-                EmptyInitializeSequenceFactory.Instance,
-                variableManagerMock.Object,
-                new TimeManager(),
-                EmptyActorItemInjectionDataSource.Instance
-            )
-        );
+        var actor = ActorFactory.Create<Actor>("MyActor");
         var arrayVariable = new Variable<Array1D<int>>(
             actor,
             "myId",
@@ -155,19 +107,7 @@ public class VariableTest
     [Fact]
     public void Array2DVariableTest()
     {
-        var variableManagerMock = new Mock<IVariableManager>();
-        var actor = new Actor(
-            new ActorConfig(
-                "myActor",
-                EmptyAxisFactory.Instance,
-                EmptyDigitalInputFactory.Instance,
-                EmptyDigitalOutputFactory.Instance,
-                EmptyInitializeSequenceFactory.Instance,
-                variableManagerMock.Object,
-                new TimeManager(),
-                EmptyActorItemInjectionDataSource.Instance
-            )
-        );
+        var actor = ActorFactory.Create<Actor>("MyActor");
         var arrayVariable = new Variable<Array2D<int>>(
             actor,
             "myId",
@@ -191,19 +131,7 @@ public class VariableTest
     [Fact]
     public void Array3DVariableTest()
     {
-        var variableManagerMock = new Mock<IVariableManager>();
-        var actor = new Actor(
-            new ActorConfig(
-                "myActor",
-                EmptyAxisFactory.Instance,
-                EmptyDigitalInputFactory.Instance,
-                EmptyDigitalOutputFactory.Instance,
-                EmptyInitializeSequenceFactory.Instance,
-                variableManagerMock.Object,
-                new TimeManager(),
-                EmptyActorItemInjectionDataSource.Instance
-            )
-        );
+        var actor = ActorFactory.Create<Actor>("MyActor");
         var arrayVariable = new Variable<Array3D<int>>(
             actor,
             "myId",
@@ -227,11 +155,9 @@ public class VariableTest
     [Fact]
     public void DataReadTest()
     {
-        var database = Mock.Of<IDatabase>();
-        var variableManager = new VariableManager(database);
-        var actor = new Actor("myActor");
+        var actor = ActorFactory.Create<Actor>("MyActor");
         var intVariable = new Variable<int>(
-            variableManager,
+            VariableManager,
             actor,
             "/myVar",
             VariableScope.Global,
@@ -247,8 +173,8 @@ public class VariableTest
             return actorItemMessage.Name == "_itemDataChanged"
                 && actorItemMessage.DictPayload!["Location"] == null
                 && actorItemMessage.DictPayload!["OldValue"] == null
-                && (int)(actorItemMessage.DictPayload["NewValue"])! == 1
-                && actorItemMessage.ActorName == "myActor"
+                && (int)actorItemMessage.DictPayload["NewValue"]! == 1
+                && actorItemMessage.ActorName == "MyActor"
                 && actorItemMessage.ItemPath == "/myVar";
         });
         Mock.Get(uiActor)
@@ -258,11 +184,9 @@ public class VariableTest
     [Fact]
     public void MetaDataReadTest()
     {
-        var database = Mock.Of<IDatabase>();
-        var variableManager = new VariableManager(database);
-        var actor = new Actor("MyActor");
+        var actor = ActorFactory.Create<Actor>("MyActor");
         var intVariable = new Variable<int>(
-            variableManager,
+            VariableManager,
             actor,
             "/MyVar",
             VariableScope.Global,
@@ -300,11 +224,9 @@ public class VariableTest
     [Fact]
     public void DataWriteTest()
     {
-        var database = Mock.Of<IDatabase>();
-        var variableManager = new VariableManager(database);
-        var actor = new Actor("myActor");
+        var actor = ActorFactory.Create<Actor>("MyActor");
         var intVariable = new Variable<int>(
-            variableManager,
+            VariableManager,
             actor,
             "/myVar",
             VariableScope.Global,
@@ -320,9 +242,7 @@ public class VariableTest
     [Fact]
     public void InjectPropertiesTest()
     {
-        var database = Mock.Of<IDatabase>();
-        var actorItemInjectionDataSource = new ActorItemInjectionDataSource();
-        actorItemInjectionDataSource.ReadFromString(
+        ActorItemInjectionDataSource.ReadFromString(
             @"
 MyActor:
   MyVar1:
@@ -334,17 +254,16 @@ MyActor:
     Desc: The second variable.
 "
         );
-        var variableManager = new VariableManager(database);
-        var actor = new Actor("MyActor");
+        var actor = ActorFactory.Create<Actor>("MyActor");
         var myVariable1 = new Variable<int>(
-            variableManager,
+            VariableManager,
             actor,
             "/MyVar1",
             VariableScope.Global,
             1
         );
         var myVariable2 = new Variable<int>(
-            variableManager,
+            VariableManager,
             actor,
             "/MyVar2",
             VariableScope.Global,
@@ -352,8 +271,8 @@ MyActor:
         );
 
         Assert.Equal("/MyVar1", myVariable1.Name);
-        myVariable1.InjectProperties(actorItemInjectionDataSource);
-        myVariable2.InjectProperties(actorItemInjectionDataSource);
+        myVariable1.InjectProperties(ActorItemInjectionDataSource);
+        myVariable2.InjectProperties(ActorItemInjectionDataSource);
 
         Assert.Equal("My Variable 1", myVariable1.Name);
         Assert.Equal("mm", myVariable1.Unit);

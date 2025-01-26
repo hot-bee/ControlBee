@@ -8,14 +8,17 @@ namespace ControlBee.Interfaces
 {
     public interface IBinaryActuator : IActorItem, IUsesPlaceholder
     {
-        bool On { get; set; }
-        bool Off { get; set; }
-        bool IsOn { get; }
-        bool IsOff { get; }
-        public bool InputOnValue { get; }
-        public bool InputOffValue { get; }
-        void OnAndWait(int millisecondsTimeout);
+        bool GetCommandOn();
+        bool GetCommandOff();
+        void On();
+        void Off();
+        bool? IsOn { get; }
+        bool? IsOff { get; }
+        public bool OnDetect { get; }
+        public bool OffDetect { get; }
+        void OnAndWait();
 
-        void OffAndWait(int millisecondsTimeout);
+        void OffAndWait();
+        void Wait();
     }
 }

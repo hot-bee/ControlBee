@@ -3,6 +3,7 @@ using System.Text.Json;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
+using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
@@ -14,7 +15,7 @@ using Xunit;
 namespace ControlBee.Tests.Variables;
 
 [TestSubject(typeof(Position2D))]
-public class Position2DTest
+public class Position2DTest : ActorFactoryBase
 {
     [Fact]
     public void InitialValuesTest()
@@ -97,7 +98,7 @@ public class Position2DTest
     [Fact]
     public void MoveWithAxesSettingTest()
     {
-        var actor = new Actor();
+        var actor = ActorFactory.Create<Actor>("MyActor");
         var variable = new Variable<Position2D>(
             VariableScope.Global,
             new Position2D(DenseVector.OfArray([1.2, 3.4]))
@@ -122,18 +123,7 @@ public class Position2DTest
     [Fact]
     public void MoveWithWrongAxesSettingTest()
     {
-        var actor = new Actor(
-            new ActorConfig(
-                "myActor",
-                EmptyAxisFactory.Instance,
-                EmptyDigitalInputFactory.Instance,
-                EmptyDigitalOutputFactory.Instance,
-                EmptyInitializeSequenceFactory.Instance,
-                EmptyVariableManager.Instance,
-                new TimeManager(),
-                EmptyActorItemInjectionDataSource.Instance
-            )
-        );
+        var actor = ActorFactory.Create<Actor>("MyActor");
         var variable = new Variable<Position2D>(
             VariableScope.Global,
             new Position2D(DenseVector.OfArray([1.2, 3.4]))

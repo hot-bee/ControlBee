@@ -2,6 +2,7 @@
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
+using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
@@ -11,90 +12,64 @@ using Xunit;
 namespace ControlBee.Tests.Services;
 
 [TestSubject(typeof(VariableManager))]
-public class VariableManagerTest
+public class VariableManagerTest : ActorFactoryBase
 {
     [Fact]
     public void SaveTest()
     {
-        var databaseMock = new Mock<IDatabase>();
-        var variableManager = new VariableManager(databaseMock.Object, EmptyActorRegistry.Instance);
-        var actor = new Actor(
-            new ActorConfig(
-                "myActor",
-                EmptyAxisFactory.Instance,
-                EmptyDigitalInputFactory.Instance,
-                EmptyDigitalOutputFactory.Instance,
-                EmptyInitializeSequenceFactory.Instance,
-                variableManager,
-                new TimeManager(),
-                EmptyActorItemInjectionDataSource.Instance
-            )
-        );
+        var actor = ActorFactory.Create<Actor>("myActor");
         _ = new Variable<int>(actor, "myId", VariableScope.Local, 1);
-        variableManager.LocalName.Should().Be("Default");
-        variableManager.Save("myRecipe");
-        databaseMock.Verify(
-            m => m.Write(VariableScope.Local, "myRecipe", "myActor", "myId", "1"),
-            Times.Once
-        );
-        variableManager.LocalName.Should().Be("myRecipe");
+        VariableManager.LocalName.Should().Be("Default");
+        VariableManager.Save("myRecipe");
+        Mock.Get(Database)
+            .Verify(
+                m => m.Write(VariableScope.Local, "myRecipe", "myActor", "myId", "1"),
+                Times.Once
+            );
+        VariableManager.LocalName.Should().Be("myRecipe");
     }
 
     [Fact]
     public void LoadTest()
     {
-        var databaseMock = new Mock<IDatabase>();
-        var variableManager = new VariableManager(databaseMock.Object, EmptyActorRegistry.Instance);
-        databaseMock.Setup(m => m.Read("myRecipe", "myActor", "myId")).Returns("2");
-        variableManager.LocalName.Should().Be("Default");
-        var actor = new Actor(
-            new ActorConfig(
-                "myActor",
-                EmptyAxisFactory.Instance,
-                EmptyDigitalInputFactory.Instance,
-                EmptyDigitalOutputFactory.Instance,
-                EmptyInitializeSequenceFactory.Instance,
-                variableManager,
-                new TimeManager(),
-                EmptyActorItemInjectionDataSource.Instance
-            )
+        Database = Mock.Of<IDatabase>();
+        VariableManager = new VariableManager(Database, EmptyActorRegistry.Instance);
+        DigitalInputFactory = new DigitalInputFactory(
+            SystemConfigurations,
+            DeviceManager,
+            ScenarioFlowTester
         );
+        DigitalOutputFactory = new DigitalOutputFactory(SystemConfigurations, DeviceManager);
+        InitializeSequenceFactory = new InitializeSequenceFactory(SystemConfigurations);
+        ActorItemInjectionDataSource = new ActorItemInjectionDataSource();
+        ActorRegistry = new ActorRegistry();
+        ActorFactory = new ActorFactory(
+            SystemConfigurations,
+            AxisFactory,
+            DigitalInputFactory,
+            DigitalOutputFactory,
+            InitializeSequenceFactory,
+            VariableManager,
+            TimeManager,
+            ScenarioFlowTester,
+            ActorItemInjectionDataSource,
+            ActorRegistry
+        );
+
+        Mock.Get(Database).Setup(m => m.Read("myRecipe", "MyActor", "myId")).Returns("2");
+        VariableManager.LocalName.Should().Be("Default");
+        var actor = ActorFactory.Create<Actor>("MyActor");
         var variable = new Variable<int>(actor, "myId", VariableScope.Local, 1);
-        variableManager.Load("myRecipe");
+        VariableManager.Load("myRecipe");
         variable.Value.Should().Be(2);
-        variableManager.LocalName.Should().Be("myRecipe");
+        VariableManager.LocalName.Should().Be("myRecipe");
     }
 
     [Fact]
     public void DuplicateUidTest()
     {
-        var databaseMock = new Mock<IDatabase>();
-        var variableManager = new VariableManager(databaseMock.Object, EmptyActorRegistry.Instance);
-        var timeManager = new TimeManager();
-        var actor = new Actor(
-            new ActorConfig(
-                "myActor",
-                EmptyAxisFactory.Instance,
-                EmptyDigitalInputFactory.Instance,
-                EmptyDigitalOutputFactory.Instance,
-                EmptyInitializeSequenceFactory.Instance,
-                variableManager,
-                timeManager,
-                EmptyActorItemInjectionDataSource.Instance
-            )
-        );
-        var actor2 = new Actor(
-            new ActorConfig(
-                "myActor2",
-                EmptyAxisFactory.Instance,
-                EmptyDigitalInputFactory.Instance,
-                EmptyDigitalOutputFactory.Instance,
-                EmptyInitializeSequenceFactory.Instance,
-                variableManager,
-                timeManager,
-                EmptyActorItemInjectionDataSource.Instance
-            )
-        );
+        var actor = ActorFactory.Create<Actor>("MyActor");
+        var actor2 = ActorFactory.Create<Actor>("MyActor2");
         _ = new Variable<int>(actor, "myId", VariableScope.Local, 1);
 
         var act1 = () => new Variable<int>(actor, "myId", VariableScope.Local, 1);
@@ -132,24 +107,11 @@ public class VariableManagerTest
     [Fact]
     public void VariableChangedTest()
     {
-        var database = Mock.Of<IDatabase>();
-        var actorRegistry = Mock.Of<IActorRegistry>();
-        var variableManager = new VariableManager(database, actorRegistry);
-        var actorFactory = new ActorFactory(
-            EmptyAxisFactory.Instance,
-            EmptyDigitalInputFactory.Instance,
-            EmptyDigitalOutputFactory.Instance,
-            EmptyInitializeSequenceFactory.Instance,
-            variableManager,
-            EmptyTimeManager.Instance,
-            EmptyActorItemInjectionDataSource.Instance,
-            actorRegistry
-        );
-
         var uiActor = Mock.Of<IUiActor>();
-        Mock.Get(actorRegistry).Setup(m => m.Get("ui")).Returns(uiActor);
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
+        ActorRegistry.Add(uiActor);
 
-        var actor = actorFactory.Create<Actor>("myActor");
+        var actor = ActorFactory.Create<Actor>("myActor");
         var variable = new Variable<int>(actor, "/myVar", VariableScope.Global);
 
         variable.Value = 1;

@@ -1,8 +1,7 @@
-﻿using System.IO;
-using System.Threading;
-using ControlBee.Interfaces;
+﻿using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
+using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
@@ -12,38 +11,36 @@ using Xunit;
 namespace ControlBee.Tests.Services;
 
 [TestSubject(typeof(ActorFactory))]
-public class ActorFactoryTest
+public class ActorFactoryTest()
+    : ActorFactoryBase(
+        new ActorFactoryBaseConfig
+        {
+            SystemConfigurations = new SystemConfigurations
+            {
+                FakeMode = true,
+                SkipWaitSensor = true,
+            },
+        }
+    )
 {
     [Fact]
     public void InitVariablesTest()
     {
-        var systemConfiguration = new SystemConfigurations
-        {
-            FakeMode = true,
-            SkipWaitSensor = true,
-        };
-        var timeManager = Mock.Of<ITimeManager>();
-        var deviceManager = Mock.Of<IDeviceManager>();
-        var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
         var variableManager = Mock.Of<IVariableManager>();
-        var axisFactory = new AxisFactory(
-            systemConfiguration,
-            deviceManager,
-            timeManager,
-            scenarioFlowTester
-        );
-        var digitalOutputFactory = new DigitalOutputFactory(systemConfiguration, deviceManager);
-        var actorFactory = new ActorFactory(
-            axisFactory,
-            EmptyDigitalInputFactory.Instance,
-            digitalOutputFactory,
-            EmptyInitializeSequenceFactory.Instance,
+        ActorFactory = new ActorFactory(
+            SystemConfigurations,
+            AxisFactory,
+            DigitalInputFactory,
+            DigitalOutputFactory,
+            InitializeSequenceFactory,
             variableManager,
-            timeManager,
-            EmptyActorItemInjectionDataSource.Instance,
-            Mock.Of<IActorRegistry>()
+            TimeManager,
+            ScenarioFlowTester,
+            ActorItemInjectionDataSource,
+            ActorRegistry
         );
-        var actor = actorFactory.Create<ActorWithVariables>("testActor");
+
+        var actor = ActorFactory.Create<ActorWithVariables>("testActor");
         Mock.Get(variableManager).Verify(m => m.Add(actor.Foo), Times.Once);
         Mock.Get(variableManager).Verify(m => m.Add(actor.Bar), Times.Once);
         Mock.Get(variableManager).Verify(m => m.Add(actor.PickupPosition), Times.Once);
@@ -79,9 +76,9 @@ public class ActorFactoryTest
             new Array2D<Position1D>(1, 1)
         );
 
-        public IDigitalOutput Vacuum;
+        public readonly IDigitalOutput Vacuum;
 
-        public IAxis X;
+        public readonly IAxis X;
 
         public ActorWithVariables(ActorConfig config)
             : base(config)

@@ -155,6 +155,18 @@ public class FrozenTimeManager : ITimeManager, IDisposable
         return task;
     }
 
+    public Task<T> RunTask<T>(Func<T> func)
+    {
+        var task = Task.Run(() =>
+        {
+            Register();
+            var ret = func();
+            Unregister();
+            return ret;
+        });
+        return task;
+    }
+
     private void _tick(int elapsedMilliseconds)
     {
         if (_config.EmulationMode)

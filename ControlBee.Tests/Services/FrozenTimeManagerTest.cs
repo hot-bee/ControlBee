@@ -1,10 +1,12 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Sequences;
 using ControlBee.Services;
+using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
@@ -17,7 +19,7 @@ using Xunit;
 namespace ControlBee.Tests.Services;
 
 [TestSubject(typeof(FrozenTimeManager))]
-public class FrozenTimeManagerTest
+public class FrozenTimeManagerTest : ActorFactoryBase
 {
     [Fact]
     public async Task RunTaskTest()
@@ -41,33 +43,11 @@ public class FrozenTimeManagerTest
     [Fact]
     public void RunTaskAndEmptyActorTest()
     {
-        using var frozenTimeManager = new FrozenTimeManager();
-        var scenarioFlowTester = new ScenarioFlowTester();
-
-        var systemConfigurations = new SystemConfigurations { FakeMode = true };
-        var deviceManager = Mock.Of<IDeviceManager>();
-        var axisFactory = new AxisFactory(
-            systemConfigurations,
-            deviceManager,
-            frozenTimeManager,
-            scenarioFlowTester
-        );
-        var actorFactory = new ActorFactory(
-            axisFactory,
-            EmptyDigitalInputFactory.Instance,
-            EmptyDigitalOutputFactory.Instance,
-            EmptyInitializeSequenceFactory.Instance,
-            EmptyVariableManager.Instance,
-            frozenTimeManager,
-            EmptyActorItemInjectionDataSource.Instance,
-            Mock.Of<IActorRegistry>()
-        );
-        var testActor = actorFactory.Create<TestActor>("testActor");
+        var testActor = ActorFactory.Create<TestActor>("testActor");
         var axisX = (FakeAxis)testActor.X;
 
-        scenarioFlowTester.Setup(
-            new ISimulationStep[][]
-            {
+        ScenarioFlowTester.Setup(
+            [
                 [
                     new ConditionStep(() => testActor.X.GetPosition() < -0.1),
                     new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, true)),
@@ -77,14 +57,14 @@ public class FrozenTimeManagerTest
                     new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, true)),
                     new ConditionStep(() => testActor.X.GetPosition() == 10.0),
                 ],
-            }
+            ]
         );
 
         testActor.Start();
         testActor.Send(new Message(EmptyActor.Instance, "_initialize"));
         testActor.Send(new Message(EmptyActor.Instance, "_terminate"));
         testActor.Join();
-        scenarioFlowTester.Complete.Should().BeTrue();
+        ScenarioFlowTester.Complete.Should().BeTrue();
     }
 
     // ReSharper disable once ClassNeverInstantiated.Local
@@ -116,7 +96,13 @@ public class FrozenTimeManagerTest
         protected override void ProcessMessage(Message message)
         {
             if (message.Name == "_initialize")
-                TimeManager.RunTask(() => InitializeSequenceX.Run()).Wait();
+                TimeManager
+                    .RunTask(() =>
+                    {
+                        InitializeSequenceX.Run();
+                        return 0;
+                    })
+                    .Wait();
         }
     }
 }

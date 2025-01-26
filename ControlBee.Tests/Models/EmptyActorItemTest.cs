@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
+using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using JetBrains.Annotations;
 using Moq;
@@ -12,33 +13,12 @@ using Xunit.Sdk;
 namespace ControlBee.Tests.Models;
 
 [TestSubject(typeof(EmptyActorItem))]
-public class EmptyActorItemTest
+public class EmptyActorItemTest() : ActorFactoryBase
 {
     [Fact]
     public void GetMetaDataTest()
     {
-        var systemConfigurations = new SystemConfigurations();
-        var actorItemInjectionDataSource = new ActorItemInjectionDataSource();
-        var deviceManger = Mock.Of<IDeviceManager>();
-        var scenarioFlowTester = new ScenarioFlowTester();
-        using var timeManager = new FrozenTimeManager(new FrozenTimeManagerConfig());
-        var digitalInputFactory = new DigitalInputFactory(
-            systemConfigurations,
-            deviceManger,
-            scenarioFlowTester
-        );
-        var actorRegistry = new ActorRegistry();
-        var actorFactory = new ActorFactory(
-            EmptyAxisFactory.Instance,
-            digitalInputFactory,
-            EmptyDigitalOutputFactory.Instance,
-            EmptyInitializeSequenceFactory.Instance,
-            EmptyVariableManager.Instance,
-            timeManager,
-            actorItemInjectionDataSource,
-            actorRegistry
-        );
-        actorItemInjectionDataSource.ReadFromString(
+        ActorItemInjectionDataSource.ReadFromString(
             @"
 MyActor:
   EmptyItem:
@@ -48,8 +28,8 @@ MyActor:
         );
         var uiActor = Mock.Of<IUiActor>();
         Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
-        actorRegistry.Add(uiActor);
-        var actor = actorFactory.Create<TestActor>("MyActor");
+        ActorRegistry.Add(uiActor);
+        var actor = ActorFactory.Create<TestActor>("MyActor");
 
         Assert.Equal("My Empty Item", actor.EmptyItem.Name);
         Assert.Equal("The description describing what my empty item is.", actor.EmptyItem.Desc);

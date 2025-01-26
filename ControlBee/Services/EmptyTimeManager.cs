@@ -36,6 +36,11 @@ public class EmptyTimeManager : ITimeManager
         return Task.Run(action);
     }
 
+    public Task<T> RunTask<T>(Func<T> func)
+    {
+        return Task.Run(func);
+    }
+
     public int CurrentMilliseconds => 0;
     public event EventHandler<int>? CurrentTimeChanged;
 
@@ -43,4 +48,6 @@ public class EmptyTimeManager : ITimeManager
     {
         CurrentTimeChanged?.Invoke(this, e);
     }
+
+    public void Dispose() { }
 }

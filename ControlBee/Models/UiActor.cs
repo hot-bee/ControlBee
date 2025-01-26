@@ -8,20 +8,6 @@ public class UiActor(ActorConfig config) : Actor(config), IUiActor
 {
     private IUiActorMessageHandler? _messageHandler;
 
-    public UiActor()
-        : this(
-            new ActorConfig(
-                "ui",
-                EmptyAxisFactory.Instance,
-                EmptyDigitalInputFactory.Instance,
-                EmptyDigitalOutputFactory.Instance,
-                EmptyInitializeSequenceFactory.Instance,
-                EmptyVariableManager.Instance,
-                EmptyTimeManager.Instance,
-                EmptyActorItemInjectionDataSource.Instance
-            )
-        ) { }
-
     public event EventHandler<Message>? MessageArrived;
 
     public override Guid Send(Message message)

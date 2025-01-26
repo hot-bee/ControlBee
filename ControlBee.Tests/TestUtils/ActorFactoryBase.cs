@@ -22,43 +22,61 @@ public abstract class ActorFactoryBase : IDisposable
     protected SystemConfigurations SystemConfigurations;
     protected IDatabase Database;
 
-    protected ActorFactoryBase()
+    protected ActorFactoryBase(ActorFactoryBaseConfig config)
     {
-        Database = Mock.Of<IDatabase>();
-        SystemConfigurations = new SystemConfigurations { FakeMode = true };
-        DeviceManager = new DeviceManager();
-        TimeManager = new FrozenTimeManager();
-        ScenarioFlowTester = new ScenarioFlowTester();
-        AxisFactory = new AxisFactory(
-            SystemConfigurations,
-            DeviceManager,
-            TimeManager,
-            ScenarioFlowTester
-        );
-        VariableManager = new VariableManager(Database);
-        DigitalInputFactory = new DigitalInputFactory(
-            SystemConfigurations,
-            DeviceManager,
-            ScenarioFlowTester
-        );
-        DigitalOutputFactory = new DigitalOutputFactory(SystemConfigurations, DeviceManager);
-        InitializeSequenceFactory = new InitializeSequenceFactory(SystemConfigurations);
-        ActorItemInjectionDataSource = EmptyActorItemInjectionDataSource.Instance;
-        ActorRegistry = new ActorRegistry();
-        ActorFactory = new ActorFactory(
-            AxisFactory,
-            DigitalInputFactory,
-            DigitalOutputFactory,
-            InitializeSequenceFactory,
-            VariableManager,
-            TimeManager,
-            ActorItemInjectionDataSource,
-            ActorRegistry
-        );
+        Recreate(config);
+    }
+
+    protected ActorFactoryBase()
+        : this(new ActorFactoryBaseConfig()) { }
+
+    public void Recreate(ActorFactoryBaseConfig config)
+    {
+        Dispose();
+        TimeManager = config.TimeManager ?? new FrozenTimeManager();
+        Database = config.Database ?? Mock.Of<IDatabase>();
+        SystemConfigurations =
+            config.SystemConfigurations ?? new SystemConfigurations() { FakeMode = true };
+        DeviceManager = config.DeviceManager ?? new DeviceManager();
+        ScenarioFlowTester = config.ScenarioFlowTester ?? new ScenarioFlowTester();
+        AxisFactory =
+            config.AxisFactory
+            ?? new AxisFactory(
+                SystemConfigurations,
+                DeviceManager,
+                TimeManager,
+                ScenarioFlowTester
+            );
+        ActorRegistry = config.ActorRegistry ?? new ActorRegistry();
+        VariableManager = config.VariableManager ?? new VariableManager(Database, ActorRegistry);
+        DigitalInputFactory =
+            config.DigitalInputFactory
+            ?? new DigitalInputFactory(SystemConfigurations, DeviceManager, ScenarioFlowTester);
+        DigitalOutputFactory =
+            config.DigitalOutputFactory
+            ?? new DigitalOutputFactory(SystemConfigurations, DeviceManager);
+        InitializeSequenceFactory =
+            config.InitializeSequenceFactory ?? new InitializeSequenceFactory(SystemConfigurations);
+        ActorItemInjectionDataSource =
+            config.ActorItemInjectionDataSource ?? new ActorItemInjectionDataSource();
+        ActorFactory =
+            config.ActorFactory
+            ?? new ActorFactory(
+                SystemConfigurations,
+                AxisFactory,
+                DigitalInputFactory,
+                DigitalOutputFactory,
+                InitializeSequenceFactory,
+                VariableManager,
+                TimeManager,
+                ScenarioFlowTester,
+                ActorItemInjectionDataSource,
+                ActorRegistry
+            );
     }
 
     public void Dispose()
     {
-        TimeManager.Dispose();
+        TimeManager?.Dispose();
     }
 }

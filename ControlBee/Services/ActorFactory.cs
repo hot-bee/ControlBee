@@ -4,12 +4,14 @@ using ControlBee.Models;
 namespace ControlBee.Services;
 
 public class ActorFactory(
+    SystemConfigurations systemConfigurations,
     IAxisFactory axisFactory,
     IDigitalInputFactory digitalInputFactory,
     IDigitalOutputFactory digitalOutputFactory,
     IInitializeSequenceFactory initializeSequenceFactory,
     IVariableManager variableManager,
     ITimeManager timeManager,
+    IScenarioFlowTester scenarioFlowTester,
     IActorItemInjectionDataSource actorItemInjectionDataSource,
     IActorRegistry actorRegistry
 )
@@ -24,12 +26,14 @@ public class ActorFactory(
         var uiActor = actorRegistry.Get("ui");
         var actorConfig = new ActorConfig(
             actorName,
+            systemConfigurations,
             axisFactory,
             digitalInputFactory,
             digitalOutputFactory,
             initializeSequenceFactory,
             variableManager,
             timeManager,
+            scenarioFlowTester,
             actorItemInjectionDataSource,
             uiActor
         );

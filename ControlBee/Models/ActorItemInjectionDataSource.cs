@@ -7,7 +7,7 @@ namespace ControlBee.Models;
 
 public class ActorItemInjectionDataSource : IActorItemInjectionDataSource
 {
-    private object _data = new();
+    private object? _data = new Dictionary<object, object>();
 
     public object? GetValue(string actorName, string itemPath, string propertyName)
     {

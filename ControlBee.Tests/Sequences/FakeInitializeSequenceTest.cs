@@ -4,6 +4,7 @@ using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Sequences;
 using ControlBee.Services;
+using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
@@ -13,43 +14,12 @@ using Xunit;
 namespace ControlBee.Tests.Sequences;
 
 [TestSubject(typeof(FakeInitializeSequence))]
-public class FakeInitializeSequenceTest
+public class FakeInitializeSequenceTest : ActorFactoryBase
 {
     [Fact]
     public void RunTest()
     {
-        var database = Mock.Of<IDatabase>();
-        var systemConfigurations = new SystemConfigurations { FakeMode = true };
-        var deviceManager = new DeviceManager();
-        using var timeManager = new FrozenTimeManager();
-        var scenarioFlowTester = new ScenarioFlowTester();
-        var axisFactory = new AxisFactory(
-            systemConfigurations,
-            deviceManager,
-            timeManager,
-            scenarioFlowTester
-        );
-        var variableManager = new VariableManager(database);
-        var digitalInputFactory = new DigitalInputFactory(
-            systemConfigurations,
-            deviceManager,
-            scenarioFlowTester
-        );
-        var digitalOutputFactory = new DigitalOutputFactory(systemConfigurations, deviceManager);
-        var initializeSequenceFactory = new InitializeSequenceFactory(systemConfigurations);
-        var actorItemInjectionDataSource = EmptyActorItemInjectionDataSource.Instance;
-        var actorRegistry = new ActorRegistry();
-        var actorFactory = new ActorFactory(
-            axisFactory,
-            digitalInputFactory,
-            digitalOutputFactory,
-            initializeSequenceFactory,
-            variableManager,
-            timeManager,
-            actorItemInjectionDataSource,
-            actorRegistry
-        );
-        var actor = actorFactory.Create<TestActor>("MyActor");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
 
         actor.Start();
         actor.Send(new Message(EmptyActor.Instance, "Go"));

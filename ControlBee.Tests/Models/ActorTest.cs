@@ -20,27 +20,9 @@ public class ActorTest : ActorFactoryBase
     public void SendMessageTest()
     {
         var listener = new ConcurrentQueue<string>();
-        var actor1 = new Actor(
-            (self, state, message) =>
-            {
-                listener.Enqueue(message.Name);
-                message.Sender.Send(new Message(self, "foo"));
-                if (listener.Count > 10)
-                    throw new OperationCanceledException();
-                return state;
-            }
-        );
+        var actor1 = ActorFactory.Create<TestActorA>("MyActor1", "foo", listener);
+        var actor2 = ActorFactory.Create<TestActorA>("MyActor2", "bar", listener);
 
-        var actor2 = new Actor(
-            (self, state, message) =>
-            {
-                listener.Enqueue(message.Name);
-                message.Sender.Send(new Message(self, "bar"));
-                if (listener.Count > 10)
-                    throw new OperationCanceledException();
-                return state;
-            }
-        );
         actor1.Start();
         actor2.Start();
 
@@ -56,7 +38,7 @@ public class ActorTest : ActorFactoryBase
     [Fact]
     public void TitleTest()
     {
-        var actor = new Actor("myActor");
+        var actor = ActorFactory.Create<Actor>("myActor");
         actor.Title.Should().Be("myActor");
         actor.SetTitle("MyActor");
         actor.Title.Should().Be("MyActor");
@@ -65,27 +47,20 @@ public class ActorTest : ActorFactoryBase
     [Fact]
     public void MessageProcessedTest()
     {
-        var oldState = Mock.Of<IState>();
-        var newState = Mock.Of<IState>();
-        var actor = new Actor(
-            (_, state, message) =>
-            {
-                if (state == oldState && message.Name == "foo")
-                    return newState;
-                return state;
-            }
-        );
-        actor.State = oldState;
+        var actor = ActorFactory.Create<TestActorB>("MyActor");
         var stateTransitMatched = false;
         var retryWithEmptyMessageMatched = false;
         actor.MessageProcessed += (_, tuple) =>
         {
-            if (tuple.oldState == oldState && tuple.newState == newState)
+            if (
+                tuple.oldState.GetType() == typeof(StateA)
+                && tuple.newState.GetType() == typeof(StateB)
+            )
                 stateTransitMatched = true;
             if (
-                tuple.oldState == newState
+                tuple.oldState.GetType() == typeof(StateB)
                 && tuple.message == Message.Empty
-                && tuple.newState == newState
+                && tuple.newState.GetType() == typeof(StateB)
             )
                 retryWithEmptyMessageMatched = true;
         };
@@ -100,7 +75,7 @@ public class ActorTest : ActorFactoryBase
     [Fact]
     public void DisposeActorWithoutStartingTest()
     {
-        var actor = new Actor("myActor");
+        var actor = ActorFactory.Create<Actor>("MyActor");
         actor.Dispose();
     }
 
@@ -108,18 +83,19 @@ public class ActorTest : ActorFactoryBase
     public void ActorLifeTest()
     {
         var timeManager = Mock.Of<ITimeManager>();
-        var actor = new Actor(
-            new ActorConfig(
-                "myActor",
-                EmptyAxisFactory.Instance,
-                EmptyDigitalInputFactory.Instance,
-                EmptyDigitalOutputFactory.Instance,
-                EmptyInitializeSequenceFactory.Instance,
-                EmptyVariableManager.Instance,
-                timeManager,
-                EmptyActorItemInjectionDataSource.Instance
-            )
+        ActorFactory = new ActorFactory(
+            SystemConfigurations,
+            AxisFactory,
+            DigitalInputFactory,
+            DigitalOutputFactory,
+            InitializeSequenceFactory,
+            VariableManager,
+            timeManager,
+            ScenarioFlowTester,
+            ActorItemInjectionDataSource,
+            ActorRegistry
         );
+        var actor = ActorFactory.Create<Actor>("MyActor");
         actor.Start();
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
@@ -130,13 +106,10 @@ public class ActorTest : ActorFactoryBase
     [Fact]
     public void ProcessMessageTest()
     {
-        var database = Mock.Of<IDatabase>();
-        var variableManager = new VariableManager(database);
-        var actor = new Actor("myActor");
+        var actor = ActorFactory.Create<Actor>("MyActor");
         var variable = Mock.Of<IVariable>();
         Mock.Get(variable).Setup(m => m.Actor).Returns(actor);
         actor.AddItem(variable, "/myVar");
-        variableManager.Add(variable);
 
         actor.Start();
         actor.Send(new ActorItemMessage(EmptyActor.Instance, "myVar", "hello"));
@@ -149,19 +122,8 @@ public class ActorTest : ActorFactoryBase
     [Fact]
     public void GetItemsTest()
     {
-        var actor = new Actor(
-            new ActorConfig(
-                "myActor",
-                EmptyAxisFactory.Instance,
-                EmptyDigitalInputFactory.Instance,
-                EmptyDigitalOutputFactory.Instance,
-                EmptyInitializeSequenceFactory.Instance,
-                EmptyVariableManager.Instance,
-                EmptyTimeManager.Instance,
-                EmptyActorItemInjectionDataSource.Instance
-            )
-        );
-        var myVariable = new Variable<int>(actor, "/MyVar", VariableScope.Global, 1);
+        var actor = ActorFactory.Create<Actor>("MyActor");
+        var myVariable = new Variable<int>(VariableScope.Global, 1);
         actor.AddItem(myVariable, "/MyVar");
         var myDigitalOutput = new FakeDigitalOutput();
         actor.AddItem(myDigitalOutput, "/MyOutput");
@@ -178,16 +140,58 @@ public class ActorTest : ActorFactoryBase
     [Fact]
     public void GetItemTest()
     {
-        var actor = ActorFactory.Create<TestActor>("MyActor");
+        var actor = ActorFactory.Create<TestActorC>("MyActor");
         Assert.Equal(actor.X, actor.GetItem("X"));
         Assert.Equal(actor.X, actor.GetItem("/X"));
     }
 
-    public class TestActor : Actor
+    public class TestActorA(
+        ActorConfig config,
+        string messageName,
+        ConcurrentQueue<string> listener
+    ) : Actor(config)
+    {
+        protected override void ProcessMessage(Message message)
+        {
+            listener.Enqueue(message.Name);
+            message.Sender.Send(new Message(this, messageName));
+            if (listener.Count > 10)
+                throw new OperationCanceledException();
+        }
+    }
+
+    public class TestActorB : Actor
+    {
+        public TestActorB(ActorConfig config)
+            : base(config)
+        {
+            State = new StateA();
+        }
+    }
+
+    public class StateA : IState
+    {
+        public IState ProcessMessage(Message message)
+        {
+            if (message.Name == "foo")
+                return new StateB();
+            return this;
+        }
+    }
+
+    public class StateB : IState
+    {
+        public IState ProcessMessage(Message message)
+        {
+            return this;
+        }
+    }
+
+    public class TestActorC : Actor
     {
         public IAxis X;
 
-        public TestActor(ActorConfig config)
+        public TestActorC(ActorConfig config)
             : base(config)
         {
             X = AxisFactory.Create();

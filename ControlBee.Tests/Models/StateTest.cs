@@ -1,6 +1,7 @@
 ﻿using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
+using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
@@ -9,22 +10,12 @@ using Xunit;
 namespace ControlBee.Tests.Models;
 
 [TestSubject(typeof(State<>))]
-public class StateTest
+public class StateTest : ActorFactoryBase
 {
     [Fact]
     public void StateTransitionTest()
     {
-        var config = new ActorConfig(
-            "testActor",
-            EmptyAxisFactory.Instance,
-            EmptyDigitalInputFactory.Instance,
-            EmptyDigitalOutputFactory.Instance,
-            EmptyInitializeSequenceFactory.Instance,
-            EmptyVariableManager.Instance,
-            new TimeManager(),
-            EmptyActorItemInjectionDataSource.Instance
-        );
-        var actor = new TestPickerActor(config);
+        var actor = ActorFactory.Create<TestPickerActor>("MyActor");
 
         actor.Start();
         actor.Send(new Message(EmptyActor.Instance, "Pickup"));

@@ -30,6 +30,11 @@ public class TimeManager : ITimeManager
         return Task.Run(action);
     }
 
+    public Task<T> RunTask<T>(Func<T> func)
+    {
+        return Task.Run<T>(func);
+    }
+
     public int CurrentMilliseconds => 0;
     public event EventHandler<int>? CurrentTimeChanged;
 

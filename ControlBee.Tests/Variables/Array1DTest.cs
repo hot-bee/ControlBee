@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using ControlBee.Interfaces;
 using ControlBee.Models;
+using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
@@ -10,7 +11,7 @@ using Xunit;
 namespace ControlBee.Tests.Variables;
 
 [TestSubject(typeof(Array1D<>))]
-public class Array1DTest
+public class Array1DTest : ActorFactoryBase
 {
     [Fact]
     public void SerializeTest()
@@ -74,7 +75,7 @@ public class Array1DTest
     public void UpdateSubItemTest()
     {
         var array = new Array1D<Position1D>(1);
-        var actor = new Actor();
+        var actor = ActorFactory.Create<Actor>("MyActor");
         array.Actor = actor;
         array.ItemPath = "myItem";
         array.UpdateSubItem();

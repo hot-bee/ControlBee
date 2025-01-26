@@ -3,6 +3,7 @@ using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Sequences;
 using ControlBee.Services;
+using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
@@ -12,7 +13,7 @@ using Xunit;
 namespace ControlBee.Tests.Services;
 
 [TestSubject(typeof(InitializeSequenceFactory))]
-public class InitializeSequenceFactoryTest
+public class InitializeSequenceFactoryTest : ActorFactoryBase
 {
     [Theory]
     [InlineData(true)]
@@ -37,39 +38,39 @@ public class InitializeSequenceFactoryTest
     [InlineData(false)]
     public void CreateFromActor(bool fakeMode)
     {
-        var database = Mock.Of<IDatabase>();
-        var systemConfigurations = new SystemConfigurations { FakeMode = fakeMode };
-        var deviceManager = new DeviceManager();
-        using var timeManager = new FrozenTimeManager();
-        var scenarioFlowTester = new ScenarioFlowTester();
-        var axisFactory = new AxisFactory(
-            systemConfigurations,
-            deviceManager,
-            timeManager,
-            scenarioFlowTester
+        SystemConfigurations = new SystemConfigurations() { FakeMode = fakeMode };
+        DeviceManager = new DeviceManager();
+        ScenarioFlowTester = new ScenarioFlowTester();
+        AxisFactory = new AxisFactory(
+            SystemConfigurations,
+            DeviceManager,
+            TimeManager,
+            ScenarioFlowTester
         );
-        var variableManager = new VariableManager(database);
-        var digitalInputFactory = new DigitalInputFactory(
-            systemConfigurations,
-            deviceManager,
-            scenarioFlowTester
+        ActorRegistry = new ActorRegistry();
+        VariableManager = new VariableManager(Database, ActorRegistry);
+        DigitalInputFactory = new DigitalInputFactory(
+            SystemConfigurations,
+            DeviceManager,
+            ScenarioFlowTester
         );
-        var digitalOutputFactory = new DigitalOutputFactory(systemConfigurations, deviceManager);
-        var initializeSequenceFactory = new InitializeSequenceFactory(systemConfigurations);
-        var actorItemInjectionDataSource = EmptyActorItemInjectionDataSource.Instance;
-        var actorRegistry = new ActorRegistry();
-        var actorFactory = new ActorFactory(
-            axisFactory,
-            digitalInputFactory,
-            digitalOutputFactory,
-            initializeSequenceFactory,
-            variableManager,
-            timeManager,
-            actorItemInjectionDataSource,
-            actorRegistry
+        DigitalOutputFactory = new DigitalOutputFactory(SystemConfigurations, DeviceManager);
+        InitializeSequenceFactory = new InitializeSequenceFactory(SystemConfigurations);
+        ActorItemInjectionDataSource = new ActorItemInjectionDataSource();
+        ActorFactory = new ActorFactory(
+            SystemConfigurations,
+            AxisFactory,
+            DigitalInputFactory,
+            DigitalOutputFactory,
+            InitializeSequenceFactory,
+            VariableManager,
+            TimeManager,
+            ScenarioFlowTester,
+            ActorItemInjectionDataSource,
+            ActorRegistry
         );
 
-        var actor = actorFactory.Create<TestActor>("MyActor");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
         if (fakeMode)
             Assert.IsType<FakeInitializeSequence>(actor.InitializeSequenceX);
         else

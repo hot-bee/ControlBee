@@ -5,6 +5,7 @@ using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Sequences;
 using ControlBee.Services;
+using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
@@ -17,40 +18,18 @@ using Xunit;
 namespace ControlBee.Tests.Sequences;
 
 [TestSubject(typeof(InitializeSequence))]
-public class InitializeSequenceTest
+public class InitializeSequenceTest : ActorFactoryBase
 {
     [Fact]
     public void NormalTest()
     {
-        using var frozenTimeManager = new FrozenTimeManager();
-        var scenarioFlowTester = new ScenarioFlowTester();
-
-        var systemConfigurations = new SystemConfigurations { FakeMode = true };
-        var deviceManager = Mock.Of<IDeviceManager>();
-        var axisFactory = new AxisFactory(
-            systemConfigurations,
-            deviceManager,
-            frozenTimeManager,
-            scenarioFlowTester
-        );
-        var actorFactory = new ActorFactory(
-            axisFactory,
-            EmptyDigitalInputFactory.Instance,
-            EmptyDigitalOutputFactory.Instance,
-            EmptyInitializeSequenceFactory.Instance,
-            EmptyVariableManager.Instance,
-            frozenTimeManager,
-            EmptyActorItemInjectionDataSource.Instance,
-            Mock.Of<IActorRegistry>()
-        );
-        var testActor = actorFactory.Create<TestActor>("testActor");
+        var testActor = ActorFactory.Create<TestActor>("testActor");
         var axisX = (FakeAxis)testActor.X;
         var axisY = (FakeAxis)testActor.Y;
         var axisZ = (FakeAxis)testActor.Z;
 
-        scenarioFlowTester.Setup(
-            new ISimulationStep[][]
-            {
+        ScenarioFlowTester.Setup(
+            [
                 [
                     new ConditionStep(() => testActor.X.GetPosition() < -0.1),
                     new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, true)),
@@ -78,14 +57,14 @@ public class InitializeSequenceTest
                     new BehaviorStep(() => axisZ.SetSensorValue(AxisSensorType.Home, true)),
                     new ConditionStep(() => testActor.Z.GetPosition() == 10.0),
                 ],
-            }
+            ]
         );
 
         testActor.Start();
         testActor.Send(new Message(EmptyActor.Instance, "_initialize"));
         testActor.Send(new Message(EmptyActor.Instance, "_terminate"));
         testActor.Join();
-        scenarioFlowTester.Complete.Should().BeTrue();
+        ScenarioFlowTester.Complete.Should().BeTrue();
     }
 
     // ReSharper disable once ClassNeverInstantiated.Local
@@ -152,8 +131,16 @@ public class InitializeSequenceTest
             {
                 InitializeSequenceZ.Run();
                 Task.WaitAll(
-                    TimeManager.RunTask(() => InitializeSequenceX.Run()),
-                    TimeManager.RunTask(() => InitializeSequenceY.Run())
+                    TimeManager.RunTask(() =>
+                    {
+                        InitializeSequenceX.Run();
+                        return 0;
+                    }),
+                    TimeManager.RunTask(() =>
+                    {
+                        InitializeSequenceY.Run();
+                        return 0;
+                    })
                 );
             }
         }

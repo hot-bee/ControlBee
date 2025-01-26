@@ -1,6 +1,7 @@
 ﻿using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
+using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using JetBrains.Annotations;
 using Moq;
@@ -9,30 +10,18 @@ using Xunit;
 namespace ControlBee.Tests.Models;
 
 [TestSubject(typeof(PositionAxesMap))]
-public class PositionAxesMapTest
+public class PositionAxesMapTest : ActorFactoryBase
 {
     [Fact]
     public void AddPositionAxisTest()
     {
-        var variableManagerMock = new Mock<IVariableManager>();
-        var actorFactory = new ActorFactory(
-            EmptyAxisFactory.Instance,
-            EmptyDigitalInputFactory.Instance,
-            EmptyDigitalOutputFactory.Instance,
-            EmptyInitializeSequenceFactory.Instance,
-            variableManagerMock.Object,
-            new TimeManager(),
-            EmptyActorItemInjectionDataSource.Instance,
-            Mock.Of<IActorRegistry>()
-        );
-
         var axisXMock = new Mock<IAxis>();
         var axisX = axisXMock.Object;
 
         var axisYMock = new Mock<IAxis>();
         var axisY = axisYMock.Object;
 
-        var actor = actorFactory.Create<TestActor>("testActor", axisX, axisY);
+        var actor = ActorFactory.Create<TestActor>("testActor", axisX, axisY);
 
         actor.Position.Value.Move();
         axisXMock.Verify(m => m.Move(It.IsAny<double>()), Times.Once);

@@ -4,6 +4,7 @@ using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
+using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using JetBrains.Annotations;
 using Moq;
@@ -12,7 +13,7 @@ using Xunit;
 namespace ControlBee.Tests.Models;
 
 [TestSubject(typeof(FakeDigitalInput))]
-public class FakeDigitalInputTest
+public class FakeDigitalInputTest : ActorFactoryBase
 {
     [Fact]
     public void WaitOnTest()
@@ -22,19 +23,7 @@ public class FakeDigitalInputTest
         {
             On = true,
         };
-        using var timeManager = new FrozenTimeManager();
-        var actor = new Actor(
-            new ActorConfig(
-                "MyActor",
-                EmptyAxisFactory.Instance,
-                EmptyDigitalInputFactory.Instance,
-                EmptyDigitalOutputFactory.Instance,
-                EmptyInitializeSequenceFactory.Instance,
-                EmptyVariableManager.Instance,
-                timeManager,
-                EmptyActorItemInjectionDataSource.Instance
-            )
-        );
+        var actor = ActorFactory.Create<Actor>("MyActor");
         input.Actor = actor;
         input.WaitOn();
     }
@@ -57,30 +46,10 @@ public class FakeDigitalInputTest
     [Fact]
     public void TimeoutTest()
     {
-        var systemConfigurations = new SystemConfigurations { FakeMode = true };
-
-        var deviceManger = Mock.Of<IDeviceManager>();
-        using var timeManager = new FrozenTimeManager(new FrozenTimeManagerConfig());
-        var digitalInputFactory = new DigitalInputFactory(
-            systemConfigurations,
-            deviceManger,
-            EmptyScenarioFlowTester.Instance
-        );
-        var actorRegistry = new ActorRegistry();
-        var actorFactory = new ActorFactory(
-            EmptyAxisFactory.Instance,
-            digitalInputFactory,
-            EmptyDigitalOutputFactory.Instance,
-            EmptyInitializeSequenceFactory.Instance,
-            EmptyVariableManager.Instance,
-            timeManager,
-            EmptyActorItemInjectionDataSource.Instance,
-            actorRegistry
-        );
         var ui = Mock.Of<IUiActor>();
         Mock.Get(ui).Setup(m => m.Name).Returns("ui");
-        actorRegistry.Add(ui);
-        var actor = actorFactory.Create<TestActor>("MyActor");
+        ActorRegistry.Add(ui);
+        var actor = ActorFactory.Create<TestActor>("MyActor");
 
         actor.Start();
         actor.Send(new Message(EmptyActor.Instance, "go"));
@@ -94,35 +63,15 @@ public class FakeDigitalInputTest
     [Fact]
     public void WaitOnWithDelayTest()
     {
-        var systemConfigurations = new SystemConfigurations { FakeMode = true };
-        var deviceManger = Mock.Of<IDeviceManager>();
-        var scenarioFlowTester = new ScenarioFlowTester();
-        using var timeManager = new FrozenTimeManager(new FrozenTimeManagerConfig());
-        var digitalInputFactory = new DigitalInputFactory(
-            systemConfigurations,
-            deviceManger,
-            scenarioFlowTester
-        );
-        var actorRegistry = new ActorRegistry();
-        var actorFactory = new ActorFactory(
-            EmptyAxisFactory.Instance,
-            digitalInputFactory,
-            EmptyDigitalOutputFactory.Instance,
-            EmptyInitializeSequenceFactory.Instance,
-            EmptyVariableManager.Instance,
-            timeManager,
-            EmptyActorItemInjectionDataSource.Instance,
-            actorRegistry
-        );
         var ui = Mock.Of<IUiActor>();
         Mock.Get(ui).Setup(m => m.Name).Returns("ui");
-        actorRegistry.Add(ui);
-        var actor = actorFactory.Create<TestActor>("MyActor");
-        scenarioFlowTester.Setup(
+        ActorRegistry.Add(ui);
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+        ScenarioFlowTester.Setup(
             [
                 [
                     // ReSharper disable once AccessToDisposedClosure
-                    new ConditionStep(() => timeManager.CurrentMilliseconds > 1000),
+                    new ConditionStep(() => TimeManager.CurrentMilliseconds > 1000),
                     new BehaviorStep(() => ((FakeDigitalInput)actor.MySensor).On = true),
                 ],
             ]
@@ -140,28 +89,7 @@ public class FakeDigitalInputTest
     [Fact]
     public void InjectPropertiesTest()
     {
-        var systemConfigurations = new SystemConfigurations { FakeMode = true };
-        var actorItemInjectionDataSource = new ActorItemInjectionDataSource();
-        var deviceManger = Mock.Of<IDeviceManager>();
-        var scenarioFlowTester = new ScenarioFlowTester();
-        using var timeManager = new FrozenTimeManager(new FrozenTimeManagerConfig());
-        var digitalInputFactory = new DigitalInputFactory(
-            systemConfigurations,
-            deviceManger,
-            scenarioFlowTester
-        );
-        var actorRegistry = new ActorRegistry();
-        var actorFactory = new ActorFactory(
-            EmptyAxisFactory.Instance,
-            digitalInputFactory,
-            EmptyDigitalOutputFactory.Instance,
-            EmptyInitializeSequenceFactory.Instance,
-            EmptyVariableManager.Instance,
-            timeManager,
-            actorItemInjectionDataSource,
-            actorRegistry
-        );
-        actorItemInjectionDataSource.ReadFromString(
+        ActorItemInjectionDataSource.ReadFromString(
             @"
 MyActor:
   MySensor:
@@ -169,7 +97,7 @@ MyActor:
     Desc: The description describing what my sensor is.
 "
         );
-        var actor = actorFactory.Create<TestActor>("MyActor");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
 
         Assert.Equal("My Sensor", actor.MySensor.Name);
         Assert.Equal("The description describing what my sensor is.", actor.MySensor.Desc);
@@ -178,31 +106,10 @@ MyActor:
     [Fact]
     public void DataChangedTest()
     {
-        var systemConfigurations = new SystemConfigurations { FakeMode = true };
-        var deviceManger = Mock.Of<IDeviceManager>();
-        var scenarioFlowTester = new ScenarioFlowTester();
-        using var timeManager = new FrozenTimeManager(new FrozenTimeManagerConfig());
-        var digitalInputFactory = new DigitalInputFactory(
-            systemConfigurations,
-            deviceManger,
-            scenarioFlowTester
-        );
-        var digitalOutputFactory = new DigitalOutputFactory(systemConfigurations, deviceManger);
-        var actorRegistry = new ActorRegistry();
-        var actorFactory = new ActorFactory(
-            EmptyAxisFactory.Instance,
-            digitalInputFactory,
-            digitalOutputFactory,
-            EmptyInitializeSequenceFactory.Instance,
-            EmptyVariableManager.Instance,
-            timeManager,
-            EmptyActorItemInjectionDataSource.Instance,
-            actorRegistry
-        );
         var uiActor = Mock.Of<IUiActor>();
         Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
-        actorRegistry.Add(uiActor);
-        var actor = actorFactory.Create<TestActor>("MyActor");
+        ActorRegistry.Add(uiActor);
+        var actor = ActorFactory.Create<TestActor>("MyActor");
 
         actor.Start();
         actor.Send(new ActorItemMessage(uiActor, "/MySensor", "_itemDataRead"));

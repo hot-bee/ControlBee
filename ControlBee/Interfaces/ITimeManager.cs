@@ -10,6 +10,7 @@ public interface ITimeManager
     void Register();
     void Unregister();
     Task RunTask(Action action);
+    Task<T> RunTask<T>(Func<T> func);
     int CurrentMilliseconds { get; }
     event EventHandler<int> CurrentTimeChanged;
 }

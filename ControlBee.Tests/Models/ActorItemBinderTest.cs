@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Services;
+using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using JetBrains.Annotations;
 using Moq;
@@ -10,18 +10,17 @@ using Xunit;
 namespace ControlBee.Tests.Models;
 
 [TestSubject(typeof(ActorItemBinder))]
-public class ActorItemBinderTest
+public class ActorItemBinderTest : ActorFactoryBase
 {
     [Fact]
     public void DataChangedTest()
     {
-        var actorRegistry = new ActorRegistry();
         var uiActor = Mock.Of<IUiActor>();
         Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
-        var actor = new Actor("MyActor");
-        actorRegistry.Add(uiActor);
-        actorRegistry.Add(actor);
-        var binder = new ActorItemBinder(actorRegistry, "MyActor", "/MyVar");
+
+        ActorRegistry.Add(uiActor);
+        var actor = ActorFactory.Create<Actor>("MyActor");
+        var binder = new ActorItemBinder(ActorRegistry, "MyActor", "/MyVar");
         var called = false;
         binder.DataChanged += (sender, args) =>
         {
@@ -52,26 +51,10 @@ public class ActorItemBinderTest
     [Fact]
     public void BindingTest()
     {
-        var database = Mock.Of<IDatabase>();
-        var actorRegistry = new ActorRegistry();
-        var variableManager = new VariableManager(database, actorRegistry);
-        var uiActor = new UiActor(
-            new ActorConfig(
-                "ui",
-                EmptyAxisFactory.Instance,
-                EmptyDigitalInputFactory.Instance,
-                EmptyDigitalOutputFactory.Instance,
-                EmptyInitializeSequenceFactory.Instance,
-                variableManager,
-                EmptyTimeManager.Instance,
-                EmptyActorItemInjectionDataSource.Instance
-            )
-        );
-        var actor = new Actor("MyActor");
+        var uiActor = ActorFactory.Create<UiActor>("ui");
+        var actor = ActorFactory.Create<Actor>("MyActor");
         uiActor.SetHandler(new DirectUiActorMessageHandler());
-        actorRegistry.Add(uiActor);
-        actorRegistry.Add(actor);
-        var variable = new Variable<int>(variableManager, actor, "/MyVar", VariableScope.Global, 1);
+        var variable = new Variable<int>(VariableScope.Global, 1);
         actor.AddItem(variable, "/MyVar");
 
         var actorItemInjectionDataSource = Mock.Of<IActorItemInjectionDataSource>();
@@ -86,7 +69,7 @@ public class ActorItemBinderTest
             .Returns("This is a my variable.");
         variable.InjectProperties(actorItemInjectionDataSource);
 
-        var binder = new ActorItemBinder(actorRegistry, "MyActor", "/MyVar");
+        var binder = new ActorItemBinder(ActorRegistry, "MyActor", "/MyVar");
         var metaDataChangedCall = false;
         binder.MetaDataChanged += (sender, metaData) =>
         {

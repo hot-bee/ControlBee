@@ -31,33 +31,14 @@ public class Actor : IActorInternal, IDisposable
 
     public IState State;
 
-    public Actor()
-        : this(string.Empty) { }
-
-    public Actor(string actorName)
-        : this(
-            new ActorConfig(
-                actorName,
-                EmptyAxisFactory.Instance,
-                EmptyDigitalInputFactory.Instance,
-                EmptyDigitalOutputFactory.Instance,
-                EmptyInitializeSequenceFactory.Instance,
-                EmptyVariableManager.Instance,
-                EmptyTimeManager.Instance,
-                EmptyActorItemInjectionDataSource.Instance
-            )
-        ) { }
-
-    public Actor(Func<IActor, IState, Message, IState> messageHandler)
-        : this()
-    {
-        _messageHandler = messageHandler;
-    }
+    protected ActorConfig Config;
 
     public Actor(ActorConfig config)
     {
         Logger.Info($"Creating an instance of Actor. ({config.ActorName})");
         _thread = new Thread(RunThread);
+
+        Config = config;
         AxisFactory = config.AxisFactory;
         DigitalInputFactory = config.DigitalInputFactory;
         DigitalOutputFactory = config.DigitalOutputFactory;

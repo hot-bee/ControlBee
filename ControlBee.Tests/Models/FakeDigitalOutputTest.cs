@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
+using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using JetBrains.Annotations;
 using Moq;
@@ -11,7 +12,7 @@ using Xunit;
 namespace ControlBee.Tests.Models;
 
 [TestSubject(typeof(FakeDigitalOutput))]
-public class FakeDigitalOutputTest
+public class FakeDigitalOutputTest : ActorFactoryBase
 {
     [Fact]
     public void OnOffTest()
@@ -40,31 +41,10 @@ public class FakeDigitalOutputTest
     [Fact]
     public void DataChangedTest()
     {
-        var systemConfigurations = new SystemConfigurations { FakeMode = true };
-        var deviceManger = Mock.Of<IDeviceManager>();
-        var scenarioFlowTester = new ScenarioFlowTester();
-        using var timeManager = new FrozenTimeManager(new FrozenTimeManagerConfig());
-        var digitalInputFactory = new DigitalInputFactory(
-            systemConfigurations,
-            deviceManger,
-            scenarioFlowTester
-        );
-        var digitalOutputFactory = new DigitalOutputFactory(systemConfigurations, deviceManger);
-        var actorRegistry = new ActorRegistry();
-        var actorFactory = new ActorFactory(
-            EmptyAxisFactory.Instance,
-            digitalInputFactory,
-            digitalOutputFactory,
-            EmptyInitializeSequenceFactory.Instance,
-            EmptyVariableManager.Instance,
-            timeManager,
-            EmptyActorItemInjectionDataSource.Instance,
-            actorRegistry
-        );
         var uiActor = Mock.Of<IUiActor>();
         Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
-        actorRegistry.Add(uiActor);
-        var actor = actorFactory.Create<TestActor>("MyActor");
+        ActorRegistry.Add(uiActor);
+        var actor = ActorFactory.Create<TestActor>("MyActor");
 
         actor.Start();
         actor.Send(new ActorItemMessage(uiActor, "/Vacuum", "_itemDataRead"));
@@ -98,31 +78,10 @@ public class FakeDigitalOutputTest
     [Fact]
     public void DataWriteTest()
     {
-        var systemConfigurations = new SystemConfigurations { FakeMode = true };
-        var deviceManger = Mock.Of<IDeviceManager>();
-        var scenarioFlowTester = new ScenarioFlowTester();
-        using var timeManager = new FrozenTimeManager(new FrozenTimeManagerConfig());
-        var digitalInputFactory = new DigitalInputFactory(
-            systemConfigurations,
-            deviceManger,
-            scenarioFlowTester
-        );
-        var digitalOutputFactory = new DigitalOutputFactory(systemConfigurations, deviceManger);
-        var actorRegistry = new ActorRegistry();
-        var actorFactory = new ActorFactory(
-            EmptyAxisFactory.Instance,
-            digitalInputFactory,
-            digitalOutputFactory,
-            EmptyInitializeSequenceFactory.Instance,
-            EmptyVariableManager.Instance,
-            timeManager,
-            EmptyActorItemInjectionDataSource.Instance,
-            actorRegistry
-        );
         var uiActor = Mock.Of<IUiActor>();
         Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
-        actorRegistry.Add(uiActor);
-        var actor = actorFactory.Create<TestActor>("MyActor");
+        ActorRegistry.Add(uiActor);
+        var actor = ActorFactory.Create<TestActor>("MyActor");
 
         actor.Start();
         actor.Send(new ActorItemMessage(uiActor, "/Vacuum", "_itemDataRead"));

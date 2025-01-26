@@ -20,6 +20,11 @@ public class FakeDigitalInput(
         set => InternalIsOn = value;
     }
 
+    public bool Off
+    {
+        set => On = !value;
+    }
+
     protected override void WaitSensor(bool isOn, int millisecondsTimeout)
     {
         if (_skipWaitSensor)
