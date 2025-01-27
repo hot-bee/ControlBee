@@ -295,24 +295,8 @@ public class BinaryActuatorTest()
         public TestActor(ActorConfig config)
             : base(config)
         {
-            Cyl1 = new BinaryActuator(
-                config.SystemConfigurations,
-                TimeManager,
-                config.ScenarioFlowTester,
-                CylFwd1,
-                CylBwd1,
-                CylFwdDet1,
-                CylBwdDet1
-            );
-            Cyl2 = new BinaryActuator(
-                config.SystemConfigurations,
-                TimeManager,
-                config.ScenarioFlowTester,
-                CylFwd2,
-                CylBwd2,
-                CylFwdDet2,
-                CylBwdDet2
-            );
+            Cyl1 = config.BinaryActuatorFactory.Create(CylFwd1, CylBwd1, CylFwdDet1, CylBwdDet1);
+            Cyl2 = config.BinaryActuatorFactory.Create(CylFwd2, CylBwd2, CylFwdDet2, CylBwdDet2);
         }
 
         protected override void ProcessMessage(Message message)

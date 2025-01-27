@@ -9,6 +9,7 @@ public class ActorConfig(
     IDigitalInputFactory digitalInputFactory,
     IDigitalOutputFactory digitalOutputFactory,
     IInitializeSequenceFactory initializeSequenceFactory,
+    IBinaryActuatorFactory binaryActuatorFactory,
     IVariableManager variableManager,
     ITimeManager timeManager,
     IScenarioFlowTester scenarioFlowTester,
@@ -17,6 +18,7 @@ public class ActorConfig(
 )
 {
     public SystemConfigurations SystemConfigurations { get; } = systemConfigurations;
+    public IBinaryActuatorFactory BinaryActuatorFactory { get; } = binaryActuatorFactory;
     public IScenarioFlowTester ScenarioFlowTester { get; } = scenarioFlowTester;
     public string ActorName => actorName;
     public IVariableManager VariableManager => variableManager;

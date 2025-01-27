@@ -13,4 +13,6 @@ public class EmptyVariableManager : IVariableManager
     public void Save(string? localName = null) { }
 
     public void Load(string? localName = null) { }
+
+    public string LocalName { get; }
 }

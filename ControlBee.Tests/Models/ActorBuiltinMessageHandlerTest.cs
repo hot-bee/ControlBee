@@ -53,8 +53,12 @@ public class ActorBuiltinMessageHandlerTest : ActorFactoryBase
         public TestActor(ActorConfig config)
             : base(config)
         {
-            X = AxisFactory.Create();
-            InitializeSequenceX = InitializeSequenceFactory.Create(X, HomeSpeedX, HomePositionX);
+            X = config.AxisFactory.Create();
+            InitializeSequenceX = config.InitializeSequenceFactory.Create(
+                X,
+                HomeSpeedX,
+                HomePositionX
+            );
             X.SetInitializeAction(() => throw new FatalSequenceError());
         }
     }

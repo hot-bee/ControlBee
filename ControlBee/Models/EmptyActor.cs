@@ -13,6 +13,7 @@ public class EmptyActor
             EmptyDigitalInputFactory.Instance,
             EmptyDigitalOutputFactory.Instance,
             EmptyInitializeSequenceFactory.Instance,
+            EmptyBinaryActuatorFactory.Instance,
             EmptyVariableManager.Instance,
             EmptyTimeManager.Instance,
             EmptyScenarioFlowTester.Instance,

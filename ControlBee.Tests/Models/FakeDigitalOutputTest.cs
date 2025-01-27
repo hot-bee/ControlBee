@@ -145,7 +145,7 @@ public class FakeDigitalOutputTest : ActorFactoryBase
         public TestActor(ActorConfig config)
             : base(config)
         {
-            Vacuum = DigitalOutputFactory.Create();
+            Vacuum = config.DigitalOutputFactory.Create();
         }
 
         protected override void ProcessMessage(Message message)

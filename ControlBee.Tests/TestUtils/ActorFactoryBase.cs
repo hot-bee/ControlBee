@@ -8,21 +8,24 @@ namespace ControlBee.Tests.TestUtils;
 
 public abstract class ActorFactoryBase : IDisposable
 {
-    protected ActorFactory ActorFactory;
-    protected ActorRegistry ActorRegistry;
-    protected IActorItemInjectionDataSource ActorItemInjectionDataSource;
-    protected InitializeSequenceFactory InitializeSequenceFactory;
-    protected DigitalOutputFactory DigitalOutputFactory;
-    protected DigitalInputFactory DigitalInputFactory;
-    protected VariableManager VariableManager;
-    protected AxisFactory AxisFactory;
-    protected ScenarioFlowTester ScenarioFlowTester;
-    protected FrozenTimeManager TimeManager;
-    protected DeviceManager DeviceManager;
     protected SystemConfigurations SystemConfigurations;
+    protected IActorFactory ActorFactory;
+    protected IActorRegistry ActorRegistry;
+    protected IActorItemInjectionDataSource ActorItemInjectionDataSource;
+    protected IInitializeSequenceFactory InitializeSequenceFactory;
+    protected IDigitalOutputFactory DigitalOutputFactory;
+    protected IDigitalInputFactory DigitalInputFactory;
+    protected IBinaryActuatorFactory BinaryActuatorFactory;
+    protected IVariableManager VariableManager;
+    protected IAxisFactory AxisFactory;
+    protected IScenarioFlowTester ScenarioFlowTester;
+    protected ITimeManager TimeManager;
+    protected IDeviceManager DeviceManager;
     protected IDatabase Database;
 
+#pragma warning disable CS8618, CS9264
     protected ActorFactoryBase(ActorFactoryBaseConfig config)
+#pragma warning restore CS8618, CS9264
     {
         Recreate(config);
     }
@@ -57,6 +60,9 @@ public abstract class ActorFactoryBase : IDisposable
             ?? new DigitalOutputFactory(SystemConfigurations, DeviceManager, TimeManager);
         InitializeSequenceFactory =
             config.InitializeSequenceFactory ?? new InitializeSequenceFactory(SystemConfigurations);
+        BinaryActuatorFactory =
+            config.BinaryActuatorFactory
+            ?? new BinaryActuatorFactory(SystemConfigurations, TimeManager, ScenarioFlowTester);
         ActorItemInjectionDataSource =
             config.ActorItemInjectionDataSource ?? new ActorItemInjectionDataSource();
         ActorFactory =
@@ -67,6 +73,7 @@ public abstract class ActorFactoryBase : IDisposable
                 DigitalInputFactory,
                 DigitalOutputFactory,
                 InitializeSequenceFactory,
+                BinaryActuatorFactory,
                 VariableManager,
                 TimeManager,
                 ScenarioFlowTester,

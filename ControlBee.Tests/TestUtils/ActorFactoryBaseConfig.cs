@@ -6,17 +6,18 @@ namespace ControlBee.Tests.TestUtils;
 
 public class ActorFactoryBaseConfig
 {
-    public ActorFactory? ActorFactory;
-    public ActorRegistry? ActorRegistry;
-    public IActorItemInjectionDataSource? ActorItemInjectionDataSource;
-    public InitializeSequenceFactory? InitializeSequenceFactory;
-    public DigitalOutputFactory? DigitalOutputFactory;
-    public DigitalInputFactory? DigitalInputFactory;
-    public VariableManager? VariableManager;
-    public AxisFactory? AxisFactory;
-    public ScenarioFlowTester? ScenarioFlowTester;
-    public FrozenTimeManager? TimeManager;
-    public DeviceManager? DeviceManager;
     public SystemConfigurations? SystemConfigurations;
+    public IActorFactory? ActorFactory;
+    public IActorRegistry? ActorRegistry;
+    public IActorItemInjectionDataSource? ActorItemInjectionDataSource;
+    public IInitializeSequenceFactory? InitializeSequenceFactory;
+    public IDigitalOutputFactory? DigitalOutputFactory;
+    public IDigitalInputFactory? DigitalInputFactory;
+    public IBinaryActuatorFactory? BinaryActuatorFactory;
+    public IVariableManager? VariableManager;
+    public IAxisFactory? AxisFactory;
+    public IScenarioFlowTester? ScenarioFlowTester;
+    public ITimeManager? TimeManager;
+    public IDeviceManager? DeviceManager;
     public IDatabase? Database;
 }

@@ -9,12 +9,13 @@ public class ActorFactory(
     IDigitalInputFactory digitalInputFactory,
     IDigitalOutputFactory digitalOutputFactory,
     IInitializeSequenceFactory initializeSequenceFactory,
+    IBinaryActuatorFactory binaryActuatorFactory,
     IVariableManager variableManager,
     ITimeManager timeManager,
     IScenarioFlowTester scenarioFlowTester,
     IActorItemInjectionDataSource actorItemInjectionDataSource,
     IActorRegistry actorRegistry
-)
+) : IActorFactory
 {
     public T Create<T>(string actorName, params object?[]? args)
         where T : IActorInternal
@@ -31,6 +32,7 @@ public class ActorFactory(
             digitalInputFactory,
             digitalOutputFactory,
             initializeSequenceFactory,
+            binaryActuatorFactory,
             variableManager,
             timeManager,
             scenarioFlowTester,
@@ -42,7 +44,7 @@ public class ActorFactory(
             actorArgs.AddRange(args);
 
         var actor = (T)Activator.CreateInstance(typeof(T), actorArgs.ToArray())!;
-        actor.Init();
+        actor.Init(actorConfig);
         actorRegistry?.Add(actor);
         return actor;
     }

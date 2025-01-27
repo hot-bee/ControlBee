@@ -88,7 +88,7 @@ public class FrozenTimeManagerTest : ActorFactoryBase
         public TestActor(ActorConfig config)
             : base(config)
         {
-            X = AxisFactory.Create();
+            X = config.AxisFactory.Create();
             PositionAxesMap.Add(HomePositionX, [X]);
             InitializeSequenceX = new InitializeSequence(X, HomingSpeedX, HomePositionX);
         }

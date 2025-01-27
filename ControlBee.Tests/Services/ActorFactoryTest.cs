@@ -27,18 +27,7 @@ public class ActorFactoryTest()
     public void InitVariablesTest()
     {
         var variableManager = Mock.Of<IVariableManager>();
-        ActorFactory = new ActorFactory(
-            SystemConfigurations,
-            AxisFactory,
-            DigitalInputFactory,
-            DigitalOutputFactory,
-            InitializeSequenceFactory,
-            variableManager,
-            TimeManager,
-            ScenarioFlowTester,
-            ActorItemInjectionDataSource,
-            ActorRegistry
-        );
+        Recreate(new ActorFactoryBaseConfig() { VariableManager = variableManager });
 
         var actor = ActorFactory.Create<ActorWithVariables>("testActor");
         Mock.Get(variableManager).Verify(m => m.Add(actor.Foo), Times.Once);
@@ -83,8 +72,8 @@ public class ActorFactoryTest()
         public ActorWithVariables(ActorConfig config)
             : base(config)
         {
-            X = AxisFactory.Create();
-            Vacuum = DigitalOutputFactory.Create();
+            X = config.AxisFactory.Create();
+            Vacuum = config.DigitalOutputFactory.Create();
         }
     }
 }

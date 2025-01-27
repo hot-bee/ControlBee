@@ -31,18 +31,11 @@ public class Actor : IActorInternal, IDisposable
 
     public IState State;
 
-    protected ActorConfig Config;
-
     public Actor(ActorConfig config)
     {
         Logger.Info($"Creating an instance of Actor. ({config.ActorName})");
         _thread = new Thread(RunThread);
 
-        Config = config;
-        AxisFactory = config.AxisFactory;
-        DigitalInputFactory = config.DigitalInputFactory;
-        DigitalOutputFactory = config.DigitalOutputFactory;
-        InitializeSequenceFactory = config.InitializeSequenceFactory;
         VariableManager = config.VariableManager;
         TimeManager = config.TimeManager;
         _actorItemInjectionDataSource = config.ActorItemInjectionDataSource;
@@ -55,11 +48,6 @@ public class Actor : IActorInternal, IDisposable
 
         _ActorBuiltinMessageHandler = new ActorBuiltinMessageHandler(this);
     }
-
-    public IAxisFactory AxisFactory { get; } // TODO: Not here
-    public IDigitalInputFactory DigitalInputFactory { get; } // TODO: Not here
-    public IDigitalOutputFactory DigitalOutputFactory { get; } // TODO: Not here
-    public IInitializeSequenceFactory InitializeSequenceFactory { get; }
 
     public string Name { get; }
 
@@ -90,15 +78,15 @@ public class Actor : IActorInternal, IDisposable
     public IPositionAxesMap PositionAxesMap { get; }
     public IVariableManager VariableManager { get; }
 
-    public void Init()
+    public void Init(ActorConfig config)
     {
         if (_init)
             throw new ApplicationException();
         _init = true;
 
         _initialState = State;
-        IterateItems(string.Empty, this, InitItem);
-        IterateItems(string.Empty, this, ReplacePlaceholder);
+        IterateItems(string.Empty, this, InitItem, config);
+        IterateItems(string.Empty, this, ReplacePlaceholder, config);
         PositionAxesMap.UpdateMap();
     }
 
@@ -140,7 +128,8 @@ public class Actor : IActorInternal, IDisposable
     private void IterateItems(
         string itemPathPrefix,
         object actorItemHolder,
-        Func<object, IActorItem, FieldInfo, string, IActorItem> func
+        Func<object, IActorItem, FieldInfo, string, ActorConfig, IActorItem> func,
+        ActorConfig config
     )
     {
         var fieldInfos = actorItemHolder.GetType().GetFields();
@@ -150,9 +139,9 @@ public class Actor : IActorInternal, IDisposable
                 var itemPath = string.Join('/', itemPathPrefix, fieldInfo.Name);
                 var actorItem = (IActorItem)fieldInfo.GetValue(actorItemHolder)!;
 
-                actorItem = func(actorItemHolder, actorItem, fieldInfo, itemPath);
+                actorItem = func(actorItemHolder, actorItem, fieldInfo, itemPath, config);
 
-                IterateItems(itemPath, actorItem, func);
+                IterateItems(itemPath, actorItem, func, config);
             }
     }
 
@@ -160,16 +149,17 @@ public class Actor : IActorInternal, IDisposable
         object actorItemHolder,
         IActorItem actorItem,
         FieldInfo fieldInfo,
-        string itemPath
+        string itemPath,
+        ActorConfig config
     )
     {
         if (actorItem is IPlaceholder placeHolder)
         {
             IActorItem newItem;
             if (fieldInfo.FieldType.IsAssignableTo(typeof(IDigitalInput)))
-                newItem = DigitalInputFactory.Create();
+                newItem = config.DigitalInputFactory.Create();
             else if (fieldInfo.FieldType.IsAssignableTo(typeof(IDigitalOutput)))
-                newItem = DigitalOutputFactory.Create();
+                newItem = config.DigitalOutputFactory.Create();
             else
                 throw new ValueError();
             _placeholderManager.Add(placeHolder, newItem);
@@ -186,7 +176,8 @@ public class Actor : IActorInternal, IDisposable
         object actorItemHolder,
         IActorItem actorItem,
         FieldInfo fieldInfo,
-        string itemPath
+        string itemPath,
+        ActorConfig config
     )
     {
         if (actorItem is IUsesPlaceholder usesPlaceholder)

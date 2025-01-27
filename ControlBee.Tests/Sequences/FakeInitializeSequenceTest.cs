@@ -44,9 +44,13 @@ public class FakeInitializeSequenceTest : ActorFactoryBase
         public TestActor(ActorConfig config)
             : base(config)
         {
-            X = AxisFactory.Create();
+            X = config.AxisFactory.Create();
             PositionAxesMap.Add(HomePositionX, [X]);
-            InitializeSequenceX = InitializeSequenceFactory.Create(X, HomeSpeedX, HomePositionX);
+            InitializeSequenceX = config.InitializeSequenceFactory.Create(
+                X,
+                HomeSpeedX,
+                HomePositionX
+            );
         }
 
         protected override void ProcessMessage(Message message)

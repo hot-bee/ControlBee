@@ -1,4 +1,6 @@
-﻿namespace ControlBee.Interfaces;
+﻿using ControlBee.Models;
+
+namespace ControlBee.Interfaces;
 
 public interface IActorInternal : IActor
 {
@@ -6,5 +8,5 @@ public interface IActorInternal : IActor
     IPositionAxesMap PositionAxesMap { get; }
     ITimeManager TimeManager { get; }
     IActor? Ui { get; }
-    void Init();
+    void Init(ActorConfig config);
 }

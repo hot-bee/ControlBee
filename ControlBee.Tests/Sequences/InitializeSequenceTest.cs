@@ -112,9 +112,9 @@ public class InitializeSequenceTest : ActorFactoryBase
         public TestActor(ActorConfig config)
             : base(config)
         {
-            X = AxisFactory.Create();
-            Y = AxisFactory.Create();
-            Z = AxisFactory.Create();
+            X = config.AxisFactory.Create();
+            Y = config.AxisFactory.Create();
+            Z = config.AxisFactory.Create();
 
             PositionAxesMap.Add(HomePositionX, [X]);
             PositionAxesMap.Add(HomePositionY, [Y]);

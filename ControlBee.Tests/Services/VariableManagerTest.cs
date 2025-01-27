@@ -32,34 +32,6 @@ public class VariableManagerTest : ActorFactoryBase
     [Fact]
     public void LoadTest()
     {
-        Database = Mock.Of<IDatabase>();
-        VariableManager = new VariableManager(Database, EmptyActorRegistry.Instance);
-        DigitalInputFactory = new DigitalInputFactory(
-            SystemConfigurations,
-            DeviceManager,
-            ScenarioFlowTester
-        );
-        DigitalOutputFactory = new DigitalOutputFactory(
-            SystemConfigurations,
-            DeviceManager,
-            TimeManager
-        );
-        InitializeSequenceFactory = new InitializeSequenceFactory(SystemConfigurations);
-        ActorItemInjectionDataSource = new ActorItemInjectionDataSource();
-        ActorRegistry = new ActorRegistry();
-        ActorFactory = new ActorFactory(
-            SystemConfigurations,
-            AxisFactory,
-            DigitalInputFactory,
-            DigitalOutputFactory,
-            InitializeSequenceFactory,
-            VariableManager,
-            TimeManager,
-            ScenarioFlowTester,
-            ActorItemInjectionDataSource,
-            ActorRegistry
-        );
-
         Mock.Get(Database).Setup(m => m.Read("myRecipe", "MyActor", "myId")).Returns("2");
         VariableManager.LocalName.Should().Be("Default");
         var actor = ActorFactory.Create<Actor>("MyActor");

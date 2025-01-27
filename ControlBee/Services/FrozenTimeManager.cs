@@ -5,7 +5,7 @@ using ControlBee.Utils;
 
 namespace ControlBee.Services;
 
-public class FrozenTimeManager : ITimeManager, IDisposable
+public class FrozenTimeManager : ITimeManager
 {
     private readonly FrozenTimeManagerConfig _config;
 

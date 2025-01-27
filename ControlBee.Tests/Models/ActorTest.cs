@@ -83,18 +83,8 @@ public class ActorTest : ActorFactoryBase
     public void ActorLifeTest()
     {
         var timeManager = Mock.Of<ITimeManager>();
-        ActorFactory = new ActorFactory(
-            SystemConfigurations,
-            AxisFactory,
-            DigitalInputFactory,
-            DigitalOutputFactory,
-            InitializeSequenceFactory,
-            VariableManager,
-            timeManager,
-            ScenarioFlowTester,
-            ActorItemInjectionDataSource,
-            ActorRegistry
-        );
+        Recreate(new ActorFactoryBaseConfig() { TimeManager = timeManager });
+
         var actor = ActorFactory.Create<Actor>("MyActor");
         actor.Start();
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
@@ -194,7 +184,7 @@ public class ActorTest : ActorFactoryBase
         public TestActorC(ActorConfig config)
             : base(config)
         {
-            X = AxisFactory.Create();
+            X = config.AxisFactory.Create();
         }
     }
 }

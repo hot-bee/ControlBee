@@ -42,4 +42,6 @@ public class TimeManager : ITimeManager
     {
         CurrentTimeChanged?.Invoke(this, e);
     }
+
+    public void Dispose() { }
 }
