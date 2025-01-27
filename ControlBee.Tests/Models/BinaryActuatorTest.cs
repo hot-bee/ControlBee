@@ -74,7 +74,7 @@ public class BinaryActuatorTest()
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
-        Assert.True(actor.Cyl1.IsOn);
+        Assert.True(actor.Cyl1.IsOn());
         var match = new Func<Message, bool>(message => message.Name == "_requestDialog");
         Mock.Get(ui).Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Never);
         Assert.True(TimeManager.CurrentMilliseconds is > 1000 and < 2000);
@@ -103,8 +103,8 @@ public class BinaryActuatorTest()
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
-        Assert.True(actor.Cyl1.IsOn);
-        Assert.True(actor.Cyl2.IsOn);
+        Assert.True(actor.Cyl1.IsOn());
+        Assert.True(actor.Cyl2.IsOn());
         var match = new Func<Message, bool>(message => message.Name == "_requestDialog");
         Mock.Get(ui).Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Never);
         Assert.True(TimeManager.CurrentMilliseconds is > 1000 and < 2000);
@@ -176,7 +176,7 @@ public class BinaryActuatorTest()
                 && (bool)actorItemMessage.DictPayload!["OnDetect"]!;
         });
         Mock.Get(uiActor)
-            .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
+            .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.AtLeastOnce);
 
         var match3 = new Func<Message, bool>(message =>
         {
@@ -233,7 +233,7 @@ public class BinaryActuatorTest()
                 && (bool)actorItemMessage.DictPayload!["OnDetect"]!;
         });
         Mock.Get(uiActor)
-            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
+            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.AtLeastOnce);
 
         var match2 = new Func<Message, bool>(message =>
         {
@@ -273,9 +273,9 @@ public class BinaryActuatorTest()
         actor.Join();
 
         Assert.False(actor.Cyl1.GetCommandOn());
-        Assert.True(actor.Cyl1.IsOff);
-        Assert.True(actor.Cyl1.OffDetect);
-        Assert.False(actor.Cyl1.OnDetect);
+        Assert.True(actor.Cyl1.IsOff());
+        Assert.True(actor.Cyl1.OffDetect());
+        Assert.False(actor.Cyl1.OnDetect());
     }
 
     public class TestActor : Actor

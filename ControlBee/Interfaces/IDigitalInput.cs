@@ -2,11 +2,9 @@
 
 public interface IDigitalInput : IDigitalIO
 {
-    bool IsOn { get; }
-    bool IsOff { get; }
+    bool IsOn();
+    bool IsOff();
 
     void WaitOn();
     void WaitOff();
-    void WaitOn(int millisecondsTimeout);
-    void WaitOff(int millisecondsTimeout);
 }

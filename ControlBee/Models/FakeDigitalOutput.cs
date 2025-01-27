@@ -1,9 +1,11 @@
 ﻿using System.Reflection;
+using ControlBee.Interfaces;
 using log4net;
 
 namespace ControlBee.Models;
 
-public class FakeDigitalOutput() : DigitalOutput(EmptyDeviceManager.Instance)
+public class FakeDigitalOutput(IDeviceManager deviceManager, ITimeManager timeManager)
+    : DigitalOutput(deviceManager, timeManager)
 {
     private static readonly ILog Logger = LogManager.GetLogger(
         MethodBase.GetCurrentMethod()!.DeclaringType!

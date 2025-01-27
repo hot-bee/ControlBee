@@ -57,31 +57,38 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         SetOn(true);
     }
 
-    public bool? IsOn
+    public bool? IsOn()
     {
-        get
+        // ReSharper disable InvertIf
+        if (_task is { IsCompleted: true })
         {
-            // ReSharper disable InvertIf
-            if (_task is { IsCompleted: true })
+            var success = _task.Result;
+            _task = null;
+            if (!success)
             {
-                var success = _task.Result;
-                _task = null;
-                if (!success)
-                {
-                    TimeoutError.Trigger();
-                    throw new TimeoutError();
-                }
+                TimeoutError.Trigger();
+                throw new TimeoutError();
             }
-
-            return _isOn;
-            // ReSharper restore InvertIf
         }
+
+        return _isOn;
+        // ReSharper restore InvertIf
     }
 
-    public bool? IsOff => !IsOn;
+    public bool? IsOff()
+    {
+        return !IsOn();
+    }
 
-    public bool OnDetect => _inputOn?.IsOn ?? _inputOff?.IsOff ?? false;
-    public bool OffDetect => _inputOff?.IsOn ?? _inputOn?.IsOff ?? false;
+    public bool OnDetect()
+    {
+        return _inputOn?.IsOn() ?? _inputOff?.IsOff() ?? false;
+    }
+
+    public bool OffDetect()
+    {
+        return _inputOff?.IsOn() ?? _inputOn?.IsOff() ?? false;
+    }
 
     public void OnAndWait()
     {
@@ -132,7 +139,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         if (_task == null)
             return;
         _task.Wait();
-        _ = IsOn;
+        _ = IsOn();
     }
 
     private void SetOn(bool value)
@@ -140,41 +147,37 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         Wait();
         _isOn = null;
         _on = value;
-        _outputOn.On = _on;
+        _outputOn.SetOn(_on);
 
         if (_outputOff != null)
-            _outputOff.On = !_on;
+            _outputOff.SetOn(!_on);
         if (_systemConfigurations.SkipWaitSensor)
         {
             if (_inputOn != null)
                 ((FakeDigitalInput)_inputOn).On = value;
             if (_inputOff != null)
                 ((FakeDigitalInput)_inputOff).On = !value;
-            _isOn = _on;
         }
-        else
+        _task = TimeManager.RunTask(() =>
         {
-            _task = TimeManager.RunTask(() =>
+            var watch = _timeManager.CreateWatch();
+            while (true)
             {
-                var watch = _timeManager.CreateWatch();
-                while (true)
-                {
-                    if (_on && OnDetect)
-                        break;
-                    if (!_on && OffDetect)
-                        break;
-                    if (watch.ElapsedMilliseconds > _millisecondsTimeout)
-                        return false;
+                if (_on && OnDetect())
+                    break;
+                if (!_on && OffDetect())
+                    break;
+                if (watch.ElapsedMilliseconds > _millisecondsTimeout)
+                    return false;
 
-                    _timeManager.Sleep(1);
-                    _scenarioFlowTester.OnCheckpoint();
-                }
+                _timeManager.Sleep(1);
+                _scenarioFlowTester.OnCheckpoint();
+            }
 
-                _isOn = _on;
-                SendDataToUi(Guid.Empty);
-                return true;
-            });
-        }
+            _isOn = _on;
+            SendDataToUi(Guid.Empty);
+            return true;
+        });
 
         SendDataToUi(Guid.Empty);
     }
@@ -206,8 +209,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         {
             [nameof(On)] = _on,
             [nameof(IsOn)] = _isOn, // Do not call IsOn, or it will cause a recursive call issue.
-            [nameof(OffDetect)] = OffDetect,
-            [nameof(OnDetect)] = OnDetect,
+            [nameof(OffDetect)] = OffDetect(),
+            [nameof(OnDetect)] = OnDetect(),
         };
         Actor.Ui?.Send(
             new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)

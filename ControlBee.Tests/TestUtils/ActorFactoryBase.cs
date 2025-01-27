@@ -54,7 +54,7 @@ public abstract class ActorFactoryBase : IDisposable
             ?? new DigitalInputFactory(SystemConfigurations, DeviceManager, ScenarioFlowTester);
         DigitalOutputFactory =
             config.DigitalOutputFactory
-            ?? new DigitalOutputFactory(SystemConfigurations, DeviceManager);
+            ?? new DigitalOutputFactory(SystemConfigurations, DeviceManager, TimeManager);
         InitializeSequenceFactory =
             config.InitializeSequenceFactory ?? new InitializeSequenceFactory(SystemConfigurations);
         ActorItemInjectionDataSource =

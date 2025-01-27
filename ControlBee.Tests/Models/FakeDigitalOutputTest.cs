@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Services;
 using ControlBee.Tests.TestUtils;
-using ControlBee.Variables;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -17,25 +15,35 @@ public class FakeDigitalOutputTest : ActorFactoryBase
     [Fact]
     public void OnOffTest()
     {
-        var fakeDigitalOutput = new FakeDigitalOutput();
-        Assert.False(fakeDigitalOutput.On);
-        Assert.True(fakeDigitalOutput.Off);
+        var fakeDigitalOutput = new FakeDigitalOutput(DeviceManager, TimeManager);
+        Assert.Null(fakeDigitalOutput.IsOn());
+        Assert.Null(fakeDigitalOutput.IsOff());
 
-        fakeDigitalOutput.On = true;
-        Assert.True(fakeDigitalOutput.On);
-        Assert.False(fakeDigitalOutput.Off);
+        fakeDigitalOutput.On();
+        Assert.True(fakeDigitalOutput.IsCommandOn());
+        Assert.True(fakeDigitalOutput.IsCommandOff() == false);
+        Assert.True(fakeDigitalOutput.IsOn() is null);
+        Assert.True(fakeDigitalOutput.IsOff() is null);
 
-        fakeDigitalOutput.On = false;
-        Assert.False(fakeDigitalOutput.On);
-        Assert.True(fakeDigitalOutput.Off);
+        fakeDigitalOutput.Off();
+        Assert.True(fakeDigitalOutput.IsCommandOn() == false);
+        Assert.True(fakeDigitalOutput.IsCommandOff());
+        Assert.True(fakeDigitalOutput.IsOn() is null);
+        Assert.True(fakeDigitalOutput.IsOff() is null);
+    }
 
-        fakeDigitalOutput.Off = true;
-        Assert.False(fakeDigitalOutput.On);
-        Assert.True(fakeDigitalOutput.Off);
+    [Fact]
+    public void OnAndWaitTest()
+    {
+        var actor = ActorFactory.Create<TestActor>("MyActor");
 
-        fakeDigitalOutput.Off = false;
-        Assert.True(fakeDigitalOutput.On);
-        Assert.False(fakeDigitalOutput.Off);
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "OnAndWait"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        Assert.True(TimeManager.CurrentMilliseconds is > 100 and < 1000);
+        Assert.True(actor.Vacuum.IsOn() is true);
     }
 
     [Fact]
@@ -48,7 +56,7 @@ public class FakeDigitalOutputTest : ActorFactoryBase
 
         actor.Start();
         actor.Send(new ActorItemMessage(uiActor, "/Vacuum", "_itemDataRead"));
-        actor.Send(new Message(EmptyActor.Instance, "Go"));
+        actor.Send(new Message(EmptyActor.Instance, "OnAndWait"));
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
@@ -69,10 +77,23 @@ public class FakeDigitalOutputTest : ActorFactoryBase
             var payload = (Dictionary<string, object?>)actorItemMessage.Payload!;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Vacuum" }
-                && (bool)payload["On"]!;
+                && (bool)payload["On"]!
+                && payload["IsOn"] == null;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
+
+        var match3 = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = (ActorItemMessage)message;
+            var payload = (Dictionary<string, object?>)actorItemMessage.Payload!;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Vacuum" }
+                && (bool)payload["On"]!
+                && payload["IsOn"] is true;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match3(message))), Times.Once);
     }
 
     [Fact]
@@ -129,13 +150,18 @@ public class FakeDigitalOutputTest : ActorFactoryBase
 
         protected override void ProcessMessage(Message message)
         {
-            if (message.Name == "Go")
+            switch (message.Name)
             {
-                Vacuum.On = true;
-                return;
+                case "On":
+                    Vacuum.On();
+                    return;
+                case "OnAndWait":
+                    Vacuum.OnAndWait();
+                    return;
+                default:
+                    base.ProcessMessage(message);
+                    break;
             }
-
-            base.ProcessMessage(message);
         }
     }
 }

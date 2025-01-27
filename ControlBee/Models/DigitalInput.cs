@@ -5,7 +5,12 @@ namespace ControlBee.Models;
 
 public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManager), IDigitalInput
 {
+    private const int MillisecondsTimeout = 5000;
     private bool _isOn;
+
+    public Alert IsOffTimeout = new();
+    public Alert IsOnTimeout = new();
+
     protected bool InternalIsOn
     {
         get => _isOn;
@@ -16,30 +21,41 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         }
     }
 
-    public Alert IsOffTimeout = new();
-    public Alert IsOnTimeout = new();
-
     public override void UpdateSubItem() { }
 
-    public bool IsOn
+    public bool IsOn()
     {
-        get
-        {
-            ReadFromDevice();
-            return InternalIsOn;
-        }
+        ReadFromDevice();
+        return InternalIsOn;
     }
 
-    public bool IsOff => !IsOn;
+    public bool IsOff()
+    {
+        return !IsOn();
+    }
 
     public void WaitOn()
     {
-        WaitOn(0);
+        WaitOn(MillisecondsTimeout);
     }
 
     public void WaitOff()
     {
-        WaitOff(0);
+        WaitOff(MillisecondsTimeout);
+    }
+
+    public override bool ProcessMessage(ActorItemMessage message)
+    {
+        switch (message.Name)
+        {
+            case "_itemDataRead":
+                SendDataToUi(message.Id);
+                return true;
+            case "_itemDataWrite":
+                throw new ValueError();
+        }
+
+        return base.ProcessMessage(message);
     }
 
     public virtual void WaitOn(int millisecondsTimeout)
@@ -73,7 +89,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         var watch = TimeManager.CreateWatch();
         while (true)
         {
-            if (IsOn == isOn)
+            if (IsOn() == isOn)
                 return;
             if (millisecondsTimeout > 0 && watch.ElapsedMilliseconds > millisecondsTimeout)
                 throw new TimeoutError();
@@ -87,23 +103,9 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         // Empty
     }
 
-    public override bool ProcessMessage(ActorItemMessage message)
-    {
-        switch (message.Name)
-        {
-            case "_itemDataRead":
-                SendDataToUi(message.Id);
-                return true;
-            case "_itemDataWrite":
-                throw new ValueError();
-        }
-
-        return base.ProcessMessage(message);
-    }
-
     private void SendDataToUi(Guid requestId)
     {
-        var payload = new Dictionary<string, object?> { [nameof(IsOn)] = IsOn };
+        var payload = new Dictionary<string, object?> { [nameof(IsOn)] = IsOn() };
         Actor.Ui?.Send(
             new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)
         );

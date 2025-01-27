@@ -54,7 +54,11 @@ public class InitializeSequenceFactoryTest : ActorFactoryBase
             DeviceManager,
             ScenarioFlowTester
         );
-        DigitalOutputFactory = new DigitalOutputFactory(SystemConfigurations, DeviceManager);
+        DigitalOutputFactory = new DigitalOutputFactory(
+            SystemConfigurations,
+            DeviceManager,
+            TimeManager
+        );
         InitializeSequenceFactory = new InitializeSequenceFactory(SystemConfigurations);
         ActorItemInjectionDataSource = new ActorItemInjectionDataSource();
         ActorFactory = new ActorFactory(

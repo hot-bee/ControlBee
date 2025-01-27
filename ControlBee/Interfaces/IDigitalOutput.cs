@@ -2,6 +2,14 @@
 
 public interface IDigitalOutput : IDigitalIO
 {
-    bool On { get; set; }
-    bool Off { get; set; }
+    void SetOn(bool on);
+    void On();
+    void Off();
+    bool? IsOn();
+    bool? IsOff();
+    bool IsCommandOn();
+    bool IsCommandOff();
+    void Wait();
+    void OnAndWait();
+    void OffAndWait();
 }

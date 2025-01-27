@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Services;
 using ControlBee.Tests.TestUtils;
-using ControlBee.Variables;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -38,9 +36,9 @@ public class FakeDigitalInputTest : ActorFactoryBase
         };
         var input = new FakeDigitalInput(systemConfigurations, EmptyScenarioFlowTester.Instance);
         input.WaitOn();
-        Assert.True(input.IsOn);
+        Assert.True(input.IsOn());
         input.WaitOff();
-        Assert.False(input.IsOn);
+        Assert.False(input.IsOn());
     }
 
     [Fact]
@@ -154,7 +152,7 @@ MyActor:
                 case "go":
                     try
                     {
-                        MySensor.WaitOn(5000);
+                        MySensor.WaitOn();
                     }
                     catch (TimeoutError)
                     {

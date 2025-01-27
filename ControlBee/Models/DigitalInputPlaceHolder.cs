@@ -29,8 +29,15 @@ public class DigitalInputPlaceholder : IPlaceholder, IDigitalInput
         throw new UnimplementedByDesignError();
     }
 
-    public bool IsOn { get; } = false;
-    public bool IsOff { get; } = false;
+    public bool IsOn()
+    {
+        throw new UnimplementedByDesignError();
+    }
+
+    public bool IsOff()
+    {
+        throw new UnimplementedByDesignError();
+    }
 
     public void WaitOn()
     {
