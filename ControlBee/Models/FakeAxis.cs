@@ -15,18 +15,18 @@ public class FakeAxis : Axis, IDisposable
     private bool _isMoving;
     private bool _negativeLimitSensor;
     private bool _positiveLimitSensor;
-    private readonly bool _skipWaitSensor;
+    private readonly bool _skipWait;
     private double _targetPosition;
 
     public FakeAxis(ITimeManager timeManager, IScenarioFlowTester flowTester)
         : this(timeManager, flowTester, false) { }
 
-    public FakeAxis(ITimeManager timeManager, IScenarioFlowTester flowTester, bool skipWaitSensor)
+    public FakeAxis(ITimeManager timeManager, IScenarioFlowTester flowTester, bool skipWait)
         : base(EmptyDeviceManager.Instance, timeManager)
     {
         _timeManager = timeManager;
         _flowTester = flowTester;
-        _skipWaitSensor = skipWaitSensor;
+        _skipWait = skipWait;
         _timeManager.CurrentTimeChanged += TimeManagerOnCurrentTimeChanged;
     }
 
@@ -69,6 +69,12 @@ public class FakeAxis : Axis, IDisposable
 
     public override void Wait()
     {
+        if (_skipWait)
+        {
+            SetPosition(GetPosition(PositionType.Target));
+            _isMoving = false;
+            return;
+        }
         while (_isMoving)
             _timeManager.Sleep(1);
     }
@@ -164,7 +170,7 @@ public class FakeAxis : Axis, IDisposable
 
     public override void WaitSensor(AxisSensorType type, bool waitingValue, int millisecondsTimeout)
     {
-        if (_skipWaitSensor)
+        if (_skipWait)
             return;
         base.WaitSensor(type, waitingValue, millisecondsTimeout);
     }

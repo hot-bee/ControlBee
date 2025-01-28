@@ -205,4 +205,25 @@ public class FakeAxisTest
 
         scenarioFlowTesterMock.Verify(m => m.OnCheckpoint(), Times.Once);
     }
+
+    [Fact]
+    public void SkipWaitTest()
+    {
+        using var timeManager = Mock.Of<ITimeManager>();
+        var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+
+        var fakeAxis = new FakeAxis(timeManager, scenarioFlowTester, true);
+        fakeAxis.SetSpeed(new SpeedProfile { Velocity = 1.0 });
+        fakeAxis.Move(10.0);
+        fakeAxis.IsMoving.Should().BeTrue();
+        fakeAxis.GetPosition(PositionType.Command).Should().Be(0.0);
+        fakeAxis.GetPosition(PositionType.Actual).Should().Be(0.0);
+        fakeAxis.GetPosition(PositionType.Target).Should().Be(10.0);
+
+        fakeAxis.Wait();
+        fakeAxis.IsMoving.Should().BeFalse();
+        fakeAxis.GetPosition(PositionType.Command).Should().Be(10.0);
+        fakeAxis.GetPosition(PositionType.Actual).Should().Be(10.0);
+        fakeAxis.GetPosition(PositionType.Target).Should().Be(10.0);
+    }
 }
