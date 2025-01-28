@@ -9,4 +9,5 @@ public interface IActor
     Guid Send(Message message);
     (string itemPath, Type type)[] GetItems();
     IActorItem? GetItem(string itemPath);
+    string[] GetFunctions();
 }

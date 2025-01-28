@@ -2,8 +2,6 @@
 using System.Reflection;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
-using ControlBee.Services;
-using ControlBee.Variables;
 using log4net;
 
 namespace ControlBee.Models;
@@ -12,14 +10,13 @@ public class Actor : IActorInternal, IDisposable
 {
     private static readonly ILog Logger = LogManager.GetLogger(typeof(Actor));
 
-    private readonly ActorBuiltinMessageHandler _ActorBuiltinMessageHandler;
+    private readonly ActorBuiltinMessageHandler _actorBuiltinMessageHandler;
     private readonly IActorItemInjectionDataSource _actorItemInjectionDataSource;
 
     private readonly Dictionary<string, IActorItem> _actorItems = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly BlockingCollection<Message> _mailbox = new();
 
-    private readonly Func<IActor, IState, Message, IState>? _messageHandler;
     private readonly PlaceholderManager _placeholderManager = new();
     private readonly Thread _thread;
 
@@ -46,7 +43,7 @@ public class Actor : IActorInternal, IDisposable
         State = new EmptyState(this);
         _initialState = State;
 
-        _ActorBuiltinMessageHandler = new ActorBuiltinMessageHandler(this);
+        _actorBuiltinMessageHandler = new ActorBuiltinMessageHandler(this);
     }
 
     public string Name { get; }
@@ -95,6 +92,11 @@ public class Actor : IActorInternal, IDisposable
         if (!itemPath.StartsWith("/"))
             itemPath = "/" + itemPath;
         return _actorItems.GetValueOrDefault(itemPath);
+    }
+
+    public virtual string[] GetFunctions()
+    {
+        return [];
     }
 
     public void Dispose()
@@ -239,11 +241,8 @@ public class Actor : IActorInternal, IDisposable
             while (true)
             {
                 var oldState = State;
-                _ActorBuiltinMessageHandler.ProcessMessage(message);
-                State =
-                    _messageHandler != null
-                        ? _messageHandler.Invoke(this, State, message)
-                        : State.ProcessMessage(message);
+                _actorBuiltinMessageHandler.ProcessMessage(message);
+                State = State.ProcessMessage(message);
                 OnMessageProcessed((message, oldState, State));
                 if (State == oldState)
                     break;
