@@ -42,6 +42,24 @@ public class FakeDigitalInputTest : ActorFactoryBase
     }
 
     [Fact]
+    public void IsOnOrSetTest()
+    {
+        var systemConfigurations = new SystemConfigurations
+        {
+            FakeMode = true,
+            SkipWaitSensor = true,
+        };
+        var input = new FakeDigitalInput(systemConfigurations, EmptyScenarioFlowTester.Instance);
+        Assert.True(input.IsOnOrSet());
+        Assert.True(input.IsOn());
+        Assert.True(input.IsOff() is false);
+
+        Assert.True(input.IsOffOrSet());
+        Assert.True(input.IsOff());
+        Assert.True(input.IsOn() is false);
+    }
+
+    [Fact]
     public void TimeoutTest()
     {
         var ui = Mock.Of<IUiActor>();

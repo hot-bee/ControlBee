@@ -34,6 +34,21 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         return !IsOn();
     }
 
+    public bool IsOnOrSet()
+    {
+        return IsOnOffOrSet(true);
+    }
+
+    public bool IsOffOrSet()
+    {
+        return IsOnOffOrSet(false);
+    }
+
+    protected virtual bool IsOnOffOrSet(bool on)
+    {
+        return IsOn();
+    }
+
     public void WaitOn()
     {
         WaitOn(MillisecondsTimeout);
@@ -58,7 +73,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         return base.ProcessMessage(message);
     }
 
-    public virtual void WaitOn(int millisecondsTimeout)
+    public void WaitOn(int millisecondsTimeout)
     {
         try
         {

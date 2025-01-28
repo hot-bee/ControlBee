@@ -39,6 +39,16 @@ public class DigitalInputPlaceholder : IPlaceholder, IDigitalInput
         throw new UnimplementedByDesignError();
     }
 
+    public bool IsOnOrSet()
+    {
+        throw new UnimplementedByDesignError();
+    }
+
+    public bool IsOffOrSet()
+    {
+        throw new UnimplementedByDesignError();
+    }
+
     public void WaitOn()
     {
         throw new UnimplementedByDesignError();
