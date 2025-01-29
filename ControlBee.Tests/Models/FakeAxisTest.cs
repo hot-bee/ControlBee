@@ -25,7 +25,7 @@ public class FakeAxisTest
         var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 1.0 });
         fakeAxis.Move(10.0);
-        fakeAxis.IsMoving.Should().BeTrue();
+        fakeAxis.IsMoving().Should().BeTrue();
         fakeAxis.GetPosition(PositionType.Command).Should().Be(0.0);
         fakeAxis.GetPosition(PositionType.Actual).Should().Be(0.0);
         fakeAxis.GetPosition(PositionType.Target).Should().Be(10.0);
@@ -33,7 +33,7 @@ public class FakeAxisTest
 
         Mock.Get(scenarioFlowTester).Invocations.Clear();
         fakeAxis.Wait();
-        fakeAxis.IsMoving.Should().BeFalse();
+        fakeAxis.IsMoving().Should().BeFalse();
         fakeAxis.GetPosition(PositionType.Command).Should().Be(10.0);
         fakeAxis.GetPosition(PositionType.Actual).Should().Be(10.0);
         fakeAxis.GetPosition(PositionType.Target).Should().Be(10.0);
@@ -55,7 +55,7 @@ public class FakeAxisTest
         var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 1.0 });
         fakeAxis.VelocityMove(direction);
-        fakeAxis.IsMoving.Should().BeTrue();
+        fakeAxis.IsMoving().Should().BeTrue();
         fakeAxis.GetPosition(PositionType.Command).Should().Be(0.0);
         fakeAxis.GetPosition(PositionType.Actual).Should().Be(0.0);
         switch (direction)
@@ -117,7 +117,7 @@ public class FakeAxisTest
         fakeAxis.Move(10.0);
         scenarioFlowTesterMock.Invocations.Clear();
         fakeAxis.Wait();
-        fakeAxis.IsMoving.Should().BeFalse();
+        fakeAxis.IsMoving().Should().BeFalse();
         fakeAxis.GetPosition(PositionType.Command).Should().Be(10.0);
         fakeAxis.GetPosition(PositionType.Actual).Should().Be(10.0);
         fakeAxis.GetPosition(PositionType.Target).Should().Be(10.0);
@@ -171,7 +171,7 @@ public class FakeAxisTest
 
         scenarioFlowTesterMock.Invocations.Clear();
         fakeAxis.Stop();
-        fakeAxis.IsMoving.Should().BeFalse();
+        fakeAxis.IsMoving().Should().BeFalse();
         fakeAxis.GetPosition(PositionType.Command).Should().Be(0.1);
         fakeAxis.GetPosition(PositionType.Actual).Should().Be(0.1);
         fakeAxis.GetPosition(PositionType.Target).Should().Be(0.1);
@@ -193,13 +193,13 @@ public class FakeAxisTest
         switch (sensorType)
         {
             case AxisSensorType.Home:
-                fakeAxis.HomeSensor.Should().BeTrue();
+                fakeAxis.GetSensorValue(AxisSensorType.Home).Should().BeTrue();
                 break;
             case AxisSensorType.PositiveLimit:
-                fakeAxis.PositiveLimitSensor.Should().BeTrue();
+                fakeAxis.GetSensorValue(AxisSensorType.PositiveLimit).Should().BeTrue();
                 break;
             case AxisSensorType.NegativeLimit:
-                fakeAxis.NegativeLimitSensor.Should().BeTrue();
+                fakeAxis.GetSensorValue(AxisSensorType.NegativeLimit).Should().BeTrue();
                 break;
         }
 
@@ -215,13 +215,13 @@ public class FakeAxisTest
         var fakeAxis = new FakeAxis(timeManager, scenarioFlowTester, true);
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 1.0 });
         fakeAxis.Move(10.0);
-        fakeAxis.IsMoving.Should().BeTrue();
+        fakeAxis.IsMoving().Should().BeTrue();
         fakeAxis.GetPosition(PositionType.Command).Should().Be(0.0);
         fakeAxis.GetPosition(PositionType.Actual).Should().Be(0.0);
         fakeAxis.GetPosition(PositionType.Target).Should().Be(10.0);
 
         fakeAxis.Wait();
-        fakeAxis.IsMoving.Should().BeFalse();
+        fakeAxis.IsMoving().Should().BeFalse();
         fakeAxis.GetPosition(PositionType.Command).Should().Be(10.0);
         fakeAxis.GetPosition(PositionType.Actual).Should().Be(10.0);
         fakeAxis.GetPosition(PositionType.Target).Should().Be(10.0);

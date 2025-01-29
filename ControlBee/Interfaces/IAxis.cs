@@ -6,10 +6,7 @@ namespace ControlBee.Interfaces;
 
 public interface IAxis : IDeviceChannel
 {
-    bool HomeSensor { get; }
-    bool PositiveLimitSensor { get; }
-    bool NegativeLimitSensor { get; }
-    bool IsMoving { get; }
+    bool IsMoving();
     void Move(double position);
     void MoveAndWait(double position);
     void SetSpeed(IVariable speedProfileVariable);

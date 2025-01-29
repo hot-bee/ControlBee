@@ -12,10 +12,10 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
     private Action? _initializeAction;
     protected SpeedProfile? SpeedProfile;
 
-    public virtual bool HomeSensor { get; } = false;
-    public virtual bool PositiveLimitSensor { get; } = false;
-    public virtual bool NegativeLimitSensor { get; } = false;
-    public virtual bool IsMoving { get; } = false;
+    public virtual bool IsMoving()
+    {
+        return false;
+    }
 
     public virtual void Move(double position)
     {
@@ -67,19 +67,15 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         throw new NotImplementedException();
     }
 
-    public bool GetSensorValue(AxisSensorType type)
+    public virtual bool GetSensorValue(AxisSensorType type)
     {
-        switch (type)
+        return type switch
         {
-            case AxisSensorType.Home:
-                return HomeSensor;
-            case AxisSensorType.PositiveLimit:
-                return PositiveLimitSensor;
-            case AxisSensorType.NegativeLimit:
-                return NegativeLimitSensor;
-            default:
-                throw new ValueError();
-        }
+            AxisSensorType.Home => false,
+            AxisSensorType.PositiveLimit => false,
+            AxisSensorType.NegativeLimit => false,
+            _ => throw new ValueError(),
+        };
     }
 
     public virtual void WaitSensor(AxisSensorType type, bool waitingValue, int millisecondsTimeout)

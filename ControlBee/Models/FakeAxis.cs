@@ -30,10 +30,21 @@ public class FakeAxis : Axis, IDisposable
         _timeManager.CurrentTimeChanged += TimeManagerOnCurrentTimeChanged;
     }
 
-    public override bool HomeSensor => _homeSensor;
-    public override bool PositiveLimitSensor => _positiveLimitSensor;
-    public override bool NegativeLimitSensor => _negativeLimitSensor;
-    public override bool IsMoving => _isMoving;
+    public override bool IsMoving()
+    {
+        return _isMoving;
+    }
+
+    public override bool GetSensorValue(AxisSensorType type)
+    {
+        return type switch
+        {
+            AxisSensorType.Home => _homeSensor,
+            AxisSensorType.PositiveLimit => _positiveLimitSensor,
+            AxisSensorType.NegativeLimit => _negativeLimitSensor,
+            _ => throw new ValueError(),
+        };
+    }
 
     public void Dispose()
     {
