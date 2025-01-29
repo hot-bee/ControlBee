@@ -86,8 +86,7 @@ public class FakeAxis : Axis, IDisposable
             _isMoving = false;
             return;
         }
-        while (_isMoving)
-            _timeManager.Sleep(1);
+        base.Wait();
     }
 
     public override void Stop()

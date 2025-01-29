@@ -226,4 +226,31 @@ public class FakeAxisTest
         fakeAxis.GetPosition(PositionType.Actual).Should().Be(10.0);
         fakeAxis.GetPosition(PositionType.Target).Should().Be(10.0);
     }
+
+    [Fact]
+    public void IsNearTest()
+    {
+        using var timeManager = Mock.Of<ITimeManager>();
+        var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+        var fakeAxis = new FakeAxis(timeManager, scenarioFlowTester);
+        fakeAxis.SetPosition(9.0);
+        Assert.True(fakeAxis.IsNear(10.0, 1.0));
+        Assert.False(fakeAxis.IsNear(11.0, 1.0));
+    }
+
+    [Fact]
+    public void WaitForPositionTest()
+    {
+        using var frozenTimeManager = new FrozenTimeManager();
+        var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+
+        frozenTimeManager.Register();
+        var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
+        fakeAxis.SetSpeed(new SpeedProfile { Velocity = 1.0 });
+        fakeAxis.Move(10.0);
+        fakeAxis.WaitForPositionMatch(PositionComparisonType.Greater, 5);
+        Assert.True(fakeAxis.GetPosition(PositionType.Command) is > 5 and < 6);
+        fakeAxis.Wait();
+        Assert.Equal(10, fakeAxis.GetPosition(PositionType.Command));
+    }
 }

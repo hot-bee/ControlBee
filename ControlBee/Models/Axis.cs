@@ -12,6 +12,55 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
     private Action? _initializeAction;
     protected SpeedProfile? SpeedProfile;
 
+    public void Enable()
+    {
+        // TODO
+    }
+
+    public void Disable()
+    {
+        // TODO
+    }
+
+    public bool IsAlarm()
+    {
+        return false;
+    }
+
+    public bool IsNear(double position, double range)
+    {
+        return Math.Abs(GetPosition(PositionType.Command) - position) <= range;
+    }
+
+    public bool IsPosition(PositionComparisonType type, double position)
+    {
+        switch (type)
+        {
+            case PositionComparisonType.Greater:
+                return GetPosition(PositionType.Command) > position;
+            case PositionComparisonType.GreaterOrEqual:
+                return GetPosition(PositionType.Command) >= position;
+            case PositionComparisonType.Less:
+                return GetPosition(PositionType.Command) < position;
+            case PositionComparisonType.LessOrEqual:
+                return GetPosition(PositionType.Command) <= position;
+            default:
+                throw new ValueError();
+        }
+    }
+
+    public void WaitForPositionMatch(PositionComparisonType type, double position)
+    {
+        while (IsMoving())
+        {
+            if (IsPosition(type, position))
+                return;
+            timeManager.Sleep(1);
+        }
+
+        throw new TimeoutError();
+    }
+
     public virtual bool IsMoving()
     {
         return false;
@@ -59,7 +108,8 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
 
     public virtual void Wait()
     {
-        throw new NotImplementedException();
+        while (IsMoving())
+            timeManager.Sleep(1);
     }
 
     public virtual double GetPosition(PositionType type)
