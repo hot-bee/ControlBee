@@ -11,7 +11,7 @@ public interface IAxis : IDeviceChannel
     bool IsAlarm();
     bool IsNear(double position, double range);
     bool IsPosition(PositionComparisonType type, double position);
-    void WaitForPositionMatch(PositionComparisonType type, double position);
+    void WaitForPosition(PositionComparisonType type, double position);
     bool IsMoving();
     void Move(double position);
     void MoveAndWait(double position);

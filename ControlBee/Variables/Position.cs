@@ -115,7 +115,7 @@ public abstract class Position : IValueChanged, IActorItemSub
     public void WaitForPosition(PositionComparisonType type)
     {
         foreach (var (axis, position) in Axes.Zip(_vector.Values))
-            axis.WaitForPositionMatch(type, position);
+            axis.WaitForPosition(type, position);
     }
 
     public bool IsNear(double range)

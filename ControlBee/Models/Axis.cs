@@ -49,16 +49,16 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         }
     }
 
-    public void WaitForPositionMatch(PositionComparisonType type, double position)
+    public void WaitForPosition(PositionComparisonType type, double position)
     {
-        while (IsMoving())
+        while (true)
         {
             if (IsPosition(type, position))
                 return;
+            if (!IsMoving())
+                throw new PlatformException("Couldn't meet the condition.");
             timeManager.Sleep(1);
         }
-
-        throw new TimeoutError();
     }
 
     public virtual bool IsMoving()

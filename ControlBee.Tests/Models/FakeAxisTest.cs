@@ -248,9 +248,39 @@ public class FakeAxisTest
         var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 1.0 });
         fakeAxis.Move(10.0);
-        fakeAxis.WaitForPositionMatch(PositionComparisonType.Greater, 5);
+        fakeAxis.WaitForPosition(PositionComparisonType.Greater, 5);
         Assert.True(fakeAxis.GetPosition(PositionType.Command) is > 5 and < 6);
         fakeAxis.Wait();
         Assert.Equal(10, fakeAxis.GetPosition(PositionType.Command));
+    }
+
+    [Fact]
+    public void WaitForPositionWithHighVelocityTest()
+    {
+        using var frozenTimeManager = new FrozenTimeManager();
+        var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+
+        frozenTimeManager.Register();
+        var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
+        fakeAxis.SetSpeed(new SpeedProfile { Velocity = 100.0 });
+        fakeAxis.Move(10.0);
+        fakeAxis.WaitForPosition(PositionComparisonType.Greater, 5);
+        Assert.False(fakeAxis.IsMoving());
+        Assert.Equal(10, fakeAxis.GetPosition(PositionType.Command));
+    }
+
+    [Fact]
+    public void WaitForPositionErrorTest()
+    {
+        using var frozenTimeManager = new FrozenTimeManager();
+        var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+
+        frozenTimeManager.Register();
+        var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
+        fakeAxis.SetSpeed(new SpeedProfile { Velocity = 10.0 });
+        fakeAxis.Move(10.0);
+        Assert.Throws<PlatformException>(
+            () => fakeAxis.WaitForPosition(PositionComparisonType.Greater, 20)
+        );
     }
 }
