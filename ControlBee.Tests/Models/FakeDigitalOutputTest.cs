@@ -122,7 +122,7 @@ public class FakeDigitalOutputTest : ActorFactoryBase
             var actorItemMessage = (ActorItemMessage)message;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Vacuum" }
-                && (bool)actorItemMessage.DictPayload!["On"]! == false;
+                && actorItemMessage.DictPayload!["On"] is false;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
@@ -132,10 +132,22 @@ public class FakeDigitalOutputTest : ActorFactoryBase
             var actorItemMessage = (ActorItemMessage)message;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Vacuum" }
-                && (bool)actorItemMessage.DictPayload!["On"]!;
+                && actorItemMessage.DictPayload!["On"] is true
+                && actorItemMessage.DictPayload!["IsOn"] is null;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
+
+        var match3 = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = (ActorItemMessage)message;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Vacuum" }
+                && actorItemMessage.DictPayload!["On"] is true
+                && actorItemMessage.DictPayload!["IsOn"] is true;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match3(message))), Times.Once);
     }
 
     public class TestActor : Actor

@@ -91,6 +91,8 @@ public class FakeAxis : Axis, IDisposable
 
     public override void Stop()
     {
+        if (!_isMoving)
+            return;
         _targetPosition = _commandPosition;
         _isMoving = false;
         _flowTester.OnCheckpoint();

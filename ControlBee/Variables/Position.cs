@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using ControlBee.Constants;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
@@ -10,9 +11,6 @@ public abstract class Position : IValueChanged, IActorItemSub
 {
     private DenseVector _duplicatedVector = new(0);
     private DenseVector _vector = new(0);
-    protected abstract int Rank { get; }
-
-    private IAxis[] Axes => Actor.PositionAxesMap.Get(ItemPath);
 
     protected Position() { }
 
@@ -24,6 +22,10 @@ public abstract class Position : IValueChanged, IActorItemSub
             throw new PlatformException();
         InternalVector = DenseVector.OfVector(vector);
     }
+
+    protected abstract int Rank { get; }
+
+    private IAxis[] Axes => Actor.PositionAxesMap.Get(ItemPath);
 
     protected DenseVector InternalVector
     {
@@ -91,6 +93,12 @@ public abstract class Position : IValueChanged, IActorItemSub
         Move(Axes);
     }
 
+    public void Stop()
+    {
+        foreach (var axis in Axes)
+            axis.Stop();
+    }
+
     public void Wait()
     {
         if (Axes == null)
@@ -102,6 +110,20 @@ public abstract class Position : IValueChanged, IActorItemSub
     {
         Move();
         Wait();
+    }
+
+    public void WaitForPosition(PositionComparisonType type, double[] positions)
+    {
+        foreach (var (axis, position) in Axes.Zip(positions))
+            axis.WaitForPositionMatch(type, position);
+    }
+
+    public bool IsNear(double[] positions, double range)
+    {
+        foreach (var (axis, position) in Axes.Zip(positions))
+            if (!axis.IsNear(position, range))
+                return false;
+        return true;
     }
 
     public void Move(IAxis[] axes)
