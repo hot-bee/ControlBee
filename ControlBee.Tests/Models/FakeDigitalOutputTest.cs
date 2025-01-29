@@ -114,6 +114,7 @@ public class FakeDigitalOutputTest : ActorFactoryBase
                 new Dictionary<string, object?> { ["On"] = true }
             )
         );
+        actor.Send(new Message(uiActor, "Wait"));
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
@@ -164,8 +165,8 @@ public class FakeDigitalOutputTest : ActorFactoryBase
         {
             switch (message.Name)
             {
-                case "On":
-                    Vacuum.On();
+                case "Wait":
+                    Vacuum.Wait();
                     return;
                 case "OnAndWait":
                     Vacuum.OnAndWait();

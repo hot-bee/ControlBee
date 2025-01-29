@@ -112,15 +112,15 @@ public abstract class Position : IValueChanged, IActorItemSub
         Wait();
     }
 
-    public void WaitForPosition(PositionComparisonType type, double[] positions)
+    public void WaitForPosition(PositionComparisonType type)
     {
-        foreach (var (axis, position) in Axes.Zip(positions))
+        foreach (var (axis, position) in Axes.Zip(_vector.Values))
             axis.WaitForPositionMatch(type, position);
     }
 
-    public bool IsNear(double[] positions, double range)
+    public bool IsNear(double range)
     {
-        foreach (var (axis, position) in Axes.Zip(positions))
+        foreach (var (axis, position) in Axes.Zip(_vector.Values))
             if (!axis.IsNear(position, range))
                 return false;
         return true;

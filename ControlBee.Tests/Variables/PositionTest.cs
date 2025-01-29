@@ -16,14 +16,15 @@ public class PositionTest : ActorFactoryBase
     public void IsNearTest()
     {
         var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        Assert.False(actor.MyPosition.Value.IsNear(1));
+
         actor.Start();
         actor.Send(new Message(actor, "Go"));
         actor.Send(new TerminateMessage());
         actor.Join();
 
-        Assert.True(actor.MyPosition.Value.IsNear([10, 20], 1));
-        Assert.False(actor.MyPosition.Value.IsNear([10, 0], 1));
-        Assert.False(actor.MyPosition.Value.IsNear([0, 0], 1));
+        Assert.True(actor.MyPosition.Value.IsNear(1));
     }
 
     [Fact]
@@ -35,8 +36,8 @@ public class PositionTest : ActorFactoryBase
         actor.Send(new TerminateMessage());
         actor.Join();
 
-        Assert.True(actor.X.GetPosition() is > 1 and < 5);
-        Assert.True(actor.Y.GetPosition() is > 1 and < 5);
+        Assert.True(actor.X.GetPosition() is > 10 and < 30);
+        Assert.True(actor.Y.GetPosition() is > 10 and < 30);
     }
 
     public class TestActor : Actor
@@ -75,8 +76,9 @@ public class PositionTest : ActorFactoryBase
                 case "GoAndStop":
                     X.SetSpeed(Speed);
                     Y.SetSpeed(Speed);
-                    MyPosition.Value.Move();
-                    MyPosition.Value.WaitForPosition(PositionComparisonType.Greater, [2, 2]);
+                    X.Move(100);
+                    Y.Move(100);
+                    MyPosition.Value.WaitForPosition(PositionComparisonType.Greater);
                     MyPosition.Value.Stop();
                     break;
             }
