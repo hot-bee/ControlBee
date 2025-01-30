@@ -237,7 +237,7 @@ public class Actor : IActorInternal, IDisposable
                 var item = GetItem(actorItemMessage.ItemPath);
                 var result = item?.ProcessMessage(actorItemMessage) ?? false;
                 if (!result)
-                    actorItemMessage.Sender.Send(new Message(message.Id, this, "_droppedMessage"));
+                    actorItemMessage.Sender.Send(new DroppedMessage(message.Id, this));
                 return;
             }
 
@@ -252,8 +252,9 @@ public class Actor : IActorInternal, IDisposable
                     message = Message.Empty;
                     continue;
                 }
-                if (message != Message.Empty)
-                    message.Sender.Send(new Message(message.Id, this, "_droppedMessage"));
+
+                if (message != Message.Empty && message.GetType() != typeof(DroppedMessage))
+                    message.Sender.Send(new DroppedMessage(message.Id, this));
                 break;
             }
         }

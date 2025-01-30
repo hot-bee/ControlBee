@@ -90,26 +90,31 @@ public class ActorTest : ActorFactoryBase
 
         if (messageName == "foo")
         {
-            Mock.Get(sender)
-                .Verify(
-                    m => m.Send(It.Is<Message>(message => message.Name == "_droppedMessage")),
-                    Times.Never
-                );
+            Mock.Get(sender).Verify(m => m.Send(It.IsAny<DroppedMessage>()), Times.Never);
         }
         else
         {
             Mock.Get(sender)
                 .Verify(
                     m =>
-                        m.Send(
-                            It.Is<Message>(message =>
-                                message.Name == "_droppedMessage"
-                                && message.RequestId == myMessage.Id
-                            )
-                        ),
+                        m.Send(It.Is<DroppedMessage>(message => message.RequestId == myMessage.Id)),
                     Times.Once
                 );
         }
+    }
+
+    [Fact]
+    public void NoInfiniteDroppedMessageTest()
+    {
+        var actor = ActorFactory.Create<TestActorB>("MyActor");
+        var sender = Mock.Of<IActor>();
+
+        actor.Start();
+        actor.Send(new DroppedMessage(Guid.Empty, sender));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        Mock.Get(sender).Verify(m => m.Send(It.IsAny<DroppedMessage>()), Times.Never);
     }
 
     [Fact]
