@@ -65,9 +65,9 @@ public class ActorBuiltinMessageHandlerTest : ActorFactoryBase
 
     public class IdleState(TestActor actor) : State<TestActor>(actor)
     {
-        public override IState ProcessMessage(Message message)
+        public override bool ProcessMessage(Message message)
         {
-            return this;
+            return false;
         }
     }
 }

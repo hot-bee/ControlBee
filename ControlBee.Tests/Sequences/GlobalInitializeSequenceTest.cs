@@ -104,7 +104,10 @@ public class GlobalInitializeSequenceTest : ActorFactoryBase
                 Times.Never
             );
         Mock.Get(turret)
-            .Verify(m => m.Send(It.Is<Message>(message => message.Name == "_resetState")), Times.Once);
+            .Verify(
+                m => m.Send(It.Is<Message>(message => message.Name == "_resetState")),
+                Times.Once
+            );
         Mock.Get(turret)
             .Verify(
                 m => m.Send(It.Is<Message>(message => message.Name == "_initialize")),
@@ -120,7 +123,11 @@ public class GlobalInitializeSequenceTest : ActorFactoryBase
         var mandrel0 = Mock.Of<IActor>();
         var mandrel1 = Mock.Of<IActor>();
         var mandrel2 = Mock.Of<IActor>();
-        var globalInitializationSequence = new GlobalInitializeSequence(syncerActor, _ => { }, [mandrel0]);
+        var globalInitializationSequence = new GlobalInitializeSequence(
+            syncerActor,
+            _ => { },
+            [mandrel0]
+        );
         globalInitializationSequence.SetInitializationState(mandrel1, InitializationStatus.Skipped);
         globalInitializationSequence.SetInitializationState(mandrel2, InitializationStatus.Error);
         globalInitializationSequence.SetInitializationState(
@@ -160,11 +167,13 @@ public class GlobalInitializeSequenceTest : ActorFactoryBase
         var mandrel0 = Mock.Of<IActor>();
         Mock.Get(turret).Setup(m => m.Name).Returns("turret");
         Mock.Get(mandrel0).Setup(m => m.Name).Returns("mandrel0");
-        var globalInitializationSequence = new GlobalInitializeSequence(syncerActor, _ => { },
-            []);
+        var globalInitializationSequence = new GlobalInitializeSequence(syncerActor, _ => { }, []);
 
         var changedCalls = new List<(string actorName, InitializationStatus status)>();
-        globalInitializationSequence.StateChanged += (sender, tuple) => { changedCalls.Add(tuple); };
+        globalInitializationSequence.StateChanged += (sender, tuple) =>
+        {
+            changedCalls.Add(tuple);
+        };
         globalInitializationSequence.SetInitializationState(
             turret,
             InitializationStatus.Uninitialized
@@ -217,13 +226,16 @@ public class GlobalInitializeSequenceTest : ActorFactoryBase
         var subActor = ActorFactory.Create<SubActor>("SubActor");
         var syncerActor = ActorFactory.Create<SyncerActor>("Syncer", subActor);
 
-        subActor.State = new IdleState();
+        subActor.State = new IdleState(subActor);
 
         var transited = false;
         subActor.MessageProcessed += (_, tuple) =>
         {
-            var (_, oldState, newState) = tuple;
-            if (oldState.GetType() == typeof(IdleState) && newState.GetType() == typeof(InactiveState))
+            var (_, oldState, newState, result) = tuple;
+            if (
+                oldState.GetType() == typeof(IdleState)
+                && newState.GetType() == typeof(InactiveState)
+            )
                 transited = true;
         };
 
@@ -241,10 +253,10 @@ public class GlobalInitializeSequenceTest : ActorFactoryBase
         Assert.True(transited);
     }
 
-
     public class SubActor : Actor
     {
-        public SubActor(ActorConfig config) : base(config)
+        public SubActor(ActorConfig config)
+            : base(config)
         {
             State = new InactiveState(this);
         }
@@ -252,23 +264,23 @@ public class GlobalInitializeSequenceTest : ActorFactoryBase
 
     public class InactiveState(SubActor actor) : State<SubActor>(actor)
     {
-        public override IState ProcessMessage(Message message)
+        public override bool ProcessMessage(Message message)
         {
             if (message.Name == "_initialize")
             {
                 Actor.Send(new Message(Actor, "_terminate"));
-                return new IdleState();
+                Actor.State = new IdleState(Actor);
+                return true;
             }
-
-            return this;
+            return false;
         }
     }
 
-    public class IdleState : IState
+    public class IdleState(SubActor actor) : State<SubActor>(actor)
     {
-        public IState ProcessMessage(Message message)
+        public override bool ProcessMessage(Message message)
         {
-            return this;
+            return false;
         }
     }
 
@@ -280,8 +292,14 @@ public class GlobalInitializeSequenceTest : ActorFactoryBase
             if (message.Name == "_initialize")
             {
                 var initializingActors = (IEnumerable<IActor>)message.Payload!;
-                var globalInitializationSequence = new GlobalInitializeSequence(this,
-                    seq => { seq.InitializeIfPossible(subActor); }, initializingActors);
+                var globalInitializationSequence = new GlobalInitializeSequence(
+                    this,
+                    seq =>
+                    {
+                        seq.InitializeIfPossible(subActor);
+                    },
+                    initializingActors
+                );
                 globalInitializationSequence.Run();
             }
         }

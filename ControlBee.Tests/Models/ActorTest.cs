@@ -55,12 +55,14 @@ public class ActorTest : ActorFactoryBase
             if (
                 tuple.oldState.GetType() == typeof(StateA)
                 && tuple.newState.GetType() == typeof(StateB)
+                && tuple.result
             )
                 stateTransitMatched = true;
             if (
                 tuple.oldState.GetType() == typeof(StateB)
                 && tuple.message == Message.Empty
                 && tuple.newState.GetType() == typeof(StateB)
+                && !tuple.result
             )
                 retryWithEmptyMessageMatched = true;
         };
@@ -70,6 +72,44 @@ public class ActorTest : ActorFactoryBase
         actor.Join();
         stateTransitMatched.Should().BeTrue();
         retryWithEmptyMessageMatched.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("foo")]
+    [InlineData("bar")]
+    public void DroppedMessageTest(string messageName)
+    {
+        var actor = ActorFactory.Create<TestActorB>("MyActor");
+        var sender = Mock.Of<IActor>();
+
+        actor.Start();
+        var myMessage = new Message(sender, messageName);
+        actor.Send(myMessage);
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        if (messageName == "foo")
+        {
+            Mock.Get(sender)
+                .Verify(
+                    m => m.Send(It.Is<Message>(message => message.Name == "_droppedMessage")),
+                    Times.Never
+                );
+        }
+        else
+        {
+            Mock.Get(sender)
+                .Verify(
+                    m =>
+                        m.Send(
+                            It.Is<Message>(message =>
+                                message.Name == "_droppedMessage"
+                                && message.RequestId == myMessage.Id
+                            )
+                        ),
+                    Times.Once
+                );
+        }
     }
 
     [Fact]
@@ -155,25 +195,28 @@ public class ActorTest : ActorFactoryBase
         public TestActorB(ActorConfig config)
             : base(config)
         {
-            State = new StateA();
+            State = new StateA(this);
         }
     }
 
-    public class StateA : IState
+    public class StateA(TestActorB actor) : State<TestActorB>(actor)
     {
-        public IState ProcessMessage(Message message)
+        public override bool ProcessMessage(Message message)
         {
             if (message.Name == "foo")
-                return new StateB();
-            return this;
+            {
+                Actor.State = new StateB(Actor);
+                return true;
+            }
+            return false;
         }
     }
 
-    public class StateB : IState
+    public class StateB(TestActorB actor) : State<TestActorB>(actor)
     {
-        public IState ProcessMessage(Message message)
+        public override bool ProcessMessage(Message message)
         {
-            return this;
+            return false;
         }
     }
 

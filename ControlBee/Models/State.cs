@@ -8,5 +8,5 @@ public abstract class State<T>(T actor) : IState
     protected T Actor = actor;
     protected ITimeManager TimeManager => Actor.TimeManager;
 
-    public abstract IState ProcessMessage(Message message);
+    public abstract bool ProcessMessage(Message message);
 }

@@ -119,7 +119,8 @@ public class Actor : IActorInternal, IDisposable
     public event EventHandler<(
         Message message,
         IState oldState,
-        IState newState
+        IState newState,
+        bool result
     )>? MessageProcessed;
 
     public void SetTitle(string title)
@@ -234,7 +235,9 @@ public class Actor : IActorInternal, IDisposable
             if (message is ActorItemMessage actorItemMessage)
             {
                 var item = GetItem(actorItemMessage.ItemPath);
-                item?.ProcessMessage(actorItemMessage);
+                var result = item?.ProcessMessage(actorItemMessage) ?? false;
+                if (!result)
+                    actorItemMessage.Sender.Send(new Message(message.Id, this, "_droppedMessage"));
                 return;
             }
 
@@ -242,11 +245,16 @@ public class Actor : IActorInternal, IDisposable
             {
                 var oldState = State;
                 _actorBuiltinMessageHandler.ProcessMessage(message);
-                State = State.ProcessMessage(message);
-                OnMessageProcessed((message, oldState, State));
-                if (State == oldState)
-                    break;
-                message = Message.Empty;
+                var result = State.ProcessMessage(message);
+                OnMessageProcessed((message, oldState, State, result));
+                if (result)
+                {
+                    message = Message.Empty;
+                    continue;
+                }
+                if (message != Message.Empty)
+                    message.Sender.Send(new Message(message.Id, this, "_droppedMessage"));
+                break;
             }
         }
         catch (FatalSequenceError)
@@ -260,7 +268,9 @@ public class Actor : IActorInternal, IDisposable
         _thread.Join();
     }
 
-    private void OnMessageProcessed((Message message, IState oldState, IState newState) e)
+    private void OnMessageProcessed(
+        (Message message, IState oldState, IState newState, bool result) e
+    )
     {
         MessageProcessed?.Invoke(this, e);
     }

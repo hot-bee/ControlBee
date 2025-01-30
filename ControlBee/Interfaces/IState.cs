@@ -4,5 +4,5 @@ namespace ControlBee.Interfaces;
 
 public interface IState
 {
-    IState ProcessMessage(Message message);
+    bool ProcessMessage(Message message);
 }

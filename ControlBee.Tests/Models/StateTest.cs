@@ -1,6 +1,4 @@
-﻿using ControlBee.Interfaces;
-using ControlBee.Models;
-using ControlBee.Services;
+﻿using ControlBee.Models;
 using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using FluentAssertions;
@@ -37,20 +35,25 @@ public class StateTest : ActorFactoryBase
 
     public class IdleState(TestPickerActor actor) : State<TestPickerActor>(actor)
     {
-        public override IState ProcessMessage(Message message)
+        public override bool ProcessMessage(Message message)
         {
             if (message.Name == "Pickup")
-                return new PickupState(Actor);
-            return this;
+            {
+                Actor.State = new PickupState(Actor);
+                return true;
+            }
+
+            return false;
         }
     }
 
     public class PickupState(TestPickerActor actor) : State<TestPickerActor>(actor)
     {
-        public override IState ProcessMessage(Message message)
+        public override bool ProcessMessage(Message message)
         {
             Actor.PickupCount.Value++;
-            return this;
+            Actor.State = new IdleState(Actor);
+            return true;
         }
     }
 }
