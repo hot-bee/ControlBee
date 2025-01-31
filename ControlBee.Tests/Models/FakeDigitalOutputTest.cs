@@ -161,7 +161,7 @@ public class FakeDigitalOutputTest : ActorFactoryBase
             Vacuum = config.DigitalOutputFactory.Create();
         }
 
-        protected override void ProcessMessage(Message message)
+        protected override void MessageHandler(Message message)
         {
             switch (message.Name)
             {
@@ -172,7 +172,7 @@ public class FakeDigitalOutputTest : ActorFactoryBase
                     Vacuum.OnAndWait();
                     return;
                 default:
-                    base.ProcessMessage(message);
+                    base.MessageHandler(message);
                     break;
             }
         }

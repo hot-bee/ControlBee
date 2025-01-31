@@ -299,7 +299,7 @@ public class BinaryActuatorTest()
             Cyl2 = config.BinaryActuatorFactory.Create(CylFwd2, CylBwd2, CylFwdDet2, CylBwdDet2);
         }
 
-        protected override void ProcessMessage(Message message)
+        protected override void MessageHandler(Message message)
         {
             switch (message.Name)
             {
@@ -335,7 +335,7 @@ public class BinaryActuatorTest()
                     break;
             }
 
-            base.ProcessMessage(message);
+            base.MessageHandler(message);
         }
     }
 }

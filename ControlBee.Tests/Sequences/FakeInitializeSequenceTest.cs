@@ -53,9 +53,9 @@ public class FakeInitializeSequenceTest : ActorFactoryBase
             );
         }
 
-        protected override void ProcessMessage(Message message)
+        protected override void MessageHandler(Message message)
         {
-            base.ProcessMessage(message);
+            base.MessageHandler(message);
             if (message.Name == "Go")
             {
                 InitializeSequenceX.Run();

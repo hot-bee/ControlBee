@@ -63,9 +63,9 @@ public class PositionTest : ActorFactoryBase
             PositionAxesMap.Add(MyPosition, [X, Y]);
         }
 
-        protected override void ProcessMessage(Message message)
+        protected override void MessageHandler(Message message)
         {
-            base.ProcessMessage(message);
+            base.MessageHandler(message);
             switch (message.Name)
             {
                 case "Go":

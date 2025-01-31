@@ -227,7 +227,7 @@ public class Actor : IActorInternal, IDisposable
 
                 if (message.Name == "_terminate")
                     break;
-                ProcessMessage(message);
+                MessageHandler(message);
             }
         }
         catch (OperationCanceledException e)
@@ -245,7 +245,12 @@ public class Actor : IActorInternal, IDisposable
         }
     }
 
-    protected virtual void ProcessMessage(Message message)
+    protected virtual bool ProcessMessage(Message message)
+    {
+        return false;
+    }
+
+    protected virtual void MessageHandler(Message message)
     {
         try
         {
@@ -262,6 +267,8 @@ public class Actor : IActorInternal, IDisposable
             {
                 var oldState = State;
                 var result = State.ProcessMessage(message);
+                if (!result)
+                    result = ProcessMessage(message);
                 if (!result)
                     result = _actorBuiltinMessageHandler.ProcessMessage(message);
                 OnMessageProcessed((message, oldState, State, result));

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Services;
 using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using FluentAssertions;
@@ -85,6 +84,33 @@ public class ActorTest : ActorFactoryBase
     }
 
     [Fact]
+    public void StateChangeTest()
+    {
+        var actor = ActorFactory.Create<TestActorB>("MyActor");
+
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "foo"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        Assert.IsType<StateB>(actor.State);
+    }
+
+    [Fact]
+    public void OverrideProcessMessageTest()
+    {
+        var actor = ActorFactory.Create<TestActorB>("MyActor");
+
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "foo"));
+        actor.Send(new Message(EmptyActor.Instance, "reverseFoo"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        Assert.IsType<StateA>(actor.State);
+    }
+
+    [Fact]
     public void WrongProcessMessageReturnTest()
     {
         var actor = ActorFactory.Create<TestActorB>("MyActor");
@@ -110,18 +136,14 @@ public class ActorTest : ActorFactoryBase
         actor.Join();
 
         if (messageName == "foo")
-        {
             Mock.Get(sender).Verify(m => m.Send(It.IsAny<DroppedMessage>()), Times.Never);
-        }
         else
-        {
             Mock.Get(sender)
                 .Verify(
                     m =>
                         m.Send(It.Is<DroppedMessage>(message => message.RequestId == myMessage.Id)),
                     Times.Once
                 );
-        }
     }
 
     [Fact]
@@ -139,6 +161,7 @@ public class ActorTest : ActorFactoryBase
                 break;
             Thread.Sleep(1);
         }
+
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
@@ -171,7 +194,7 @@ public class ActorTest : ActorFactoryBase
     public void ActorLifeTest()
     {
         var timeManager = Mock.Of<ITimeManager>();
-        Recreate(new ActorFactoryBaseConfig() { TimeManager = timeManager });
+        Recreate(new ActorFactoryBaseConfig { TimeManager = timeManager });
 
         var actor = ActorFactory.Create<Actor>("MyActor");
         actor.Start();
@@ -229,7 +252,7 @@ public class ActorTest : ActorFactoryBase
         ConcurrentQueue<string> listener
     ) : Actor(config)
     {
-        protected override void ProcessMessage(Message message)
+        protected override void MessageHandler(Message message)
         {
             listener.Enqueue(message.Name);
             message.Sender.Send(new Message(this, messageName));
@@ -245,6 +268,18 @@ public class ActorTest : ActorFactoryBase
         {
             State = new StateA(this);
         }
+
+        protected override bool ProcessMessage(Message message)
+        {
+            switch (message.Name)
+            {
+                case "reverseFoo":
+                    State = new StateA(this);
+                    return true;
+            }
+
+            return false;
+        }
     }
 
     public class StateA(TestActorB actor) : State<TestActorB>(actor)
@@ -256,11 +291,13 @@ public class ActorTest : ActorFactoryBase
                 Actor.State = new StateB(Actor);
                 return true;
             }
+
             if (message.Name == "qoo")
             {
                 Actor.State = new StateB(Actor);
                 return false;
             }
+
             return false;
         }
     }
@@ -274,6 +311,7 @@ public class ActorTest : ActorFactoryBase
                 case OnStateEntryMessage.MessageName:
                     return true;
             }
+
             return false;
         }
     }

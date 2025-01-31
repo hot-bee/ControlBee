@@ -93,7 +93,7 @@ public class FrozenTimeManagerTest : ActorFactoryBase
             InitializeSequenceX = new InitializeSequence(X, HomingSpeedX, HomePositionX);
         }
 
-        protected override void ProcessMessage(Message message)
+        protected override void MessageHandler(Message message)
         {
             if (message.Name == "_initialize")
                 TimeManager

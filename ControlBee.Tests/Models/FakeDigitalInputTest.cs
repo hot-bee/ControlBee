@@ -163,7 +163,7 @@ MyActor:
         public TestActor(ActorConfig config)
             : base(config) { }
 
-        protected override void ProcessMessage(Message message)
+        protected override void MessageHandler(Message message)
         {
             switch (message.Name)
             {
@@ -183,7 +183,7 @@ MyActor:
                     break;
             }
 
-            base.ProcessMessage(message);
+            base.MessageHandler(message);
         }
     }
 }

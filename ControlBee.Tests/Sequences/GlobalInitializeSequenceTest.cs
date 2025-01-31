@@ -286,9 +286,9 @@ public class GlobalInitializeSequenceTest : ActorFactoryBase
 
     public class SyncerActor(ActorConfig config, IActor subActor) : Actor(config)
     {
-        protected override void ProcessMessage(Message message)
+        protected override void MessageHandler(Message message)
         {
-            base.ProcessMessage(message);
+            base.MessageHandler(message);
             if (message.Name == "_initialize")
             {
                 var initializingActors = (IEnumerable<IActor>)message.Payload!;

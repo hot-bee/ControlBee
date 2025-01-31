@@ -125,7 +125,7 @@ public class InitializeSequenceTest : ActorFactoryBase
             InitializeSequenceZ = new InitializeSequence(Z, HomingSpeedZ, HomePositionZ);
         }
 
-        protected override void ProcessMessage(Message message)
+        protected override void MessageHandler(Message message)
         {
             if (message.Name == "_initialize")
             {
