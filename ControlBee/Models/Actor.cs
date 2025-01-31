@@ -18,7 +18,6 @@ public class Actor : IActorInternal, IDisposable
     private readonly BlockingCollection<Message> _mailbox = new();
 
     private readonly PlaceholderManager _placeholderManager = new();
-    private readonly List<Message> _reservedMailbox = new();
     private readonly Thread _thread;
 
     private bool _init;
@@ -47,9 +46,6 @@ public class Actor : IActorInternal, IDisposable
 
         _actorBuiltinMessageHandler = new ActorBuiltinMessageHandler(this);
     }
-
-    public int MailboxCount => _mailbox.Count;
-    public int ReservedMailboxCount => _reservedMailbox.Count;
 
     public string Name { get; }
 
@@ -217,14 +213,7 @@ public class Actor : IActorInternal, IDisposable
         {
             while (true)
             {
-                var empty = _mailbox.Count == 0;
                 var message = _mailbox.Take(_cancellationTokenSource.Token);
-                if (empty)
-                {
-                    _reservedMailbox.ForEach(msg => _mailbox.Add(msg));
-                    _reservedMailbox.Clear();
-                }
-
                 if (message.Name == "_terminate")
                     break;
                 MessageHandler(message);
@@ -259,7 +248,7 @@ public class Actor : IActorInternal, IDisposable
                 var item = GetItem(actorItemMessage.ItemPath);
                 var result = item?.ProcessMessage(actorItemMessage) ?? false;
                 if (!result)
-                    _reservedMailbox.Add(message);
+                    actorItemMessage.Sender.Send(new DroppedMessage(message.Id, this));
                 return;
             }
 
@@ -283,12 +272,8 @@ public class Actor : IActorInternal, IDisposable
                         "State has changed but ProcessMessage() returns false."
                     );
 
-                if (
-                    message != Message.Empty
-                    && message.GetType() != typeof(DroppedMessage)
-                    && message.GetType() != typeof(OnStateEntryMessage)
-                )
-                    _reservedMailbox.Add(message);
+                if (message != Message.Empty && message.GetType() != typeof(DroppedMessage))
+                    message.Sender.Send(new DroppedMessage(message.Id, this));
                 break;
             }
         }

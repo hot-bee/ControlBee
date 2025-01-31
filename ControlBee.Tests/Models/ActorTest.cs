@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
-using System.Threading;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Tests.TestUtils;
@@ -123,7 +122,7 @@ public class ActorTest : ActorFactoryBase
 
     [Theory]
     [InlineData("foo")]
-    //[InlineData("bar")]
+    [InlineData("bar")]
     public void DroppedMessageTest(string messageName)
     {
         var actor = ActorFactory.Create<TestActorB>("MyActor");
@@ -144,29 +143,6 @@ public class ActorTest : ActorFactoryBase
                         m.Send(It.Is<DroppedMessage>(message => message.RequestId == myMessage.Id)),
                     Times.Once
                 );
-    }
-
-    [Fact]
-    public void ReservedMailboxTest()
-    {
-        var actor = ActorFactory.Create<TestActorB>("MyActor");
-        var sender = Mock.Of<IActor>();
-
-        actor.Start();
-        var myMessage = new Message(sender, "bar");
-        actor.Send(myMessage);
-        while (true)
-        {
-            if (actor is { MailboxCount: 0, ReservedMailboxCount: > 0 })
-                break;
-            Thread.Sleep(1);
-        }
-
-        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
-        actor.Join();
-
-        Mock.Get(sender).Verify(m => m.Send(It.IsAny<DroppedMessage>()), Times.Never);
-        Assert.Equal(1, actor.MailboxCount);
     }
 
     [Fact]
