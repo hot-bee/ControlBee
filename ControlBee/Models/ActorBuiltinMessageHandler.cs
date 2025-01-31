@@ -4,7 +4,7 @@ namespace ControlBee.Models;
 
 public class ActorBuiltinMessageHandler(Actor actor)
 {
-    public void ProcessMessage(Message message)
+    public bool ProcessMessage(Message message)
     {
         switch (message.Name)
         {
@@ -13,13 +13,15 @@ public class ActorBuiltinMessageHandler(Actor actor)
                 var itemPath = (string)message.Payload!;
                 var axis = (IAxis)actor.GetItem(itemPath)!;
                 axis.Initialize();
-                break;
+                return true;
             }
             case "_resetState":
             {
                 actor.ResetState();
-                break;
+                return true;
             }
         }
+
+        return false;
     }
 }

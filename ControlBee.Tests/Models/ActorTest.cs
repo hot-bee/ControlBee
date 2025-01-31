@@ -49,6 +49,7 @@ public class ActorTest : ActorFactoryBase
     {
         var actor = ActorFactory.Create<TestActorB>("MyActor");
         var stateTransitMatched = false;
+        var stateEntryMessage = false;
         var retryWithEmptyMessageMatched = false;
         actor.MessageProcessed += (_, tuple) =>
         {
@@ -58,6 +59,13 @@ public class ActorTest : ActorFactoryBase
                 && tuple.result
             )
                 stateTransitMatched = true;
+            if (
+                tuple.oldState.GetType() == typeof(StateB)
+                && tuple.message.GetType() == typeof(OnStateEntryMessage)
+                && tuple.newState.GetType() == typeof(StateB)
+                && tuple.result
+            )
+                stateEntryMessage = true;
             if (
                 tuple.oldState.GetType() == typeof(StateB)
                 && tuple.message == Message.Empty
@@ -71,7 +79,19 @@ public class ActorTest : ActorFactoryBase
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
         stateTransitMatched.Should().BeTrue();
+        Assert.True(stateEntryMessage);
         retryWithEmptyMessageMatched.Should().BeTrue();
+    }
+
+    [Fact]
+    public void WrongProcessMessageReturnTest()
+    {
+        var actor = ActorFactory.Create<TestActorB>("MyActor");
+
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "qoo"));
+        actor.Join();
+        Assert.NotNull(actor.ExitError);
     }
 
     [Theory]
@@ -213,6 +233,11 @@ public class ActorTest : ActorFactoryBase
                 Actor.State = new StateB(Actor);
                 return true;
             }
+            if (message.Name == "qoo")
+            {
+                Actor.State = new StateB(Actor);
+                return false;
+            }
             return false;
         }
     }
@@ -221,6 +246,11 @@ public class ActorTest : ActorFactoryBase
     {
         public override bool ProcessMessage(Message message)
         {
+            switch (message.Name)
+            {
+                case OnStateEntryMessage.MessageName:
+                    return true;
+            }
             return false;
         }
     }

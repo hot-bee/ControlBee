@@ -25,6 +25,7 @@ public class Actor : IActorInternal, IDisposable
     private IState _initialState;
 
     private string _title = string.Empty;
+    public PlatformException? ExitError;
 
     public IState State;
 
@@ -222,6 +223,11 @@ public class Actor : IActorInternal, IDisposable
         {
             Logger.Info(e);
         }
+        catch (PlatformException e)
+        {
+            Logger.Error(e);
+            ExitError = e;
+        }
         finally
         {
             TimeManager.Unregister();
@@ -244,14 +250,20 @@ public class Actor : IActorInternal, IDisposable
             while (true)
             {
                 var oldState = State;
-                _actorBuiltinMessageHandler.ProcessMessage(message);
                 var result = State.ProcessMessage(message);
+                if (!result)
+                    result = _actorBuiltinMessageHandler.ProcessMessage(message);
                 OnMessageProcessed((message, oldState, State, result));
                 if (result)
                 {
-                    message = Message.Empty;
+                    message = oldState != State ? new OnStateEntryMessage(this) : Message.Empty;
                     continue;
                 }
+
+                if (oldState != State)
+                    throw new PlatformException(
+                        "State has changed but ProcessMessage() returns false."
+                    );
 
                 if (message != Message.Empty && message.GetType() != typeof(DroppedMessage))
                     message.Sender.Send(new DroppedMessage(message.Id, this));
