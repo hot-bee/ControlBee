@@ -45,6 +45,7 @@ public class Actor : IActorInternal, IDisposable
         _initialState = State;
 
         _actorBuiltinMessageHandler = new ActorBuiltinMessageHandler(this);
+        _mailbox.Add(new OnStateEntryMessage(this));
     }
 
     public string Name { get; }
@@ -272,7 +273,11 @@ public class Actor : IActorInternal, IDisposable
                         "State has changed but ProcessMessage() returns false."
                     );
 
-                if (message != Message.Empty && message.GetType() != typeof(DroppedMessage))
+                if (
+                    message != Message.Empty
+                    && message.GetType() != typeof(DroppedMessage)
+                    && message.GetType() != typeof(OnStateEntryMessage)
+                )
                     message.Sender.Send(new DroppedMessage(message.Id, this));
                 break;
             }

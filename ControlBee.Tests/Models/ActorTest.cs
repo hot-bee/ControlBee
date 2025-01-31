@@ -228,12 +228,17 @@ public class ActorTest : ActorFactoryBase
         ConcurrentQueue<string> listener
     ) : Actor(config)
     {
-        protected override void MessageHandler(Message message)
+        protected override bool ProcessMessage(Message message)
         {
+            if (message == Message.Empty)
+                return false;
+            if (message.Name == OnStateEntryMessage.MessageName)
+                return false;
             listener.Enqueue(message.Name);
             message.Sender.Send(new Message(this, messageName));
             if (listener.Count > 10)
                 throw new OperationCanceledException();
+            return true;
         }
     }
 
@@ -260,21 +265,24 @@ public class ActorTest : ActorFactoryBase
 
     public class StateA(TestActorB actor) : State<TestActorB>(actor)
     {
+        public bool Started;
+
         public override bool ProcessMessage(Message message)
         {
-            if (message.Name == "foo")
+            switch (message.Name)
             {
-                Actor.State = new StateB(Actor);
-                return true;
+                case OnStateEntryMessage.MessageName:
+                    Started = true;
+                    return true;
+                case "foo":
+                    Actor.State = new StateB(Actor);
+                    return true;
+                case "qoo":
+                    Actor.State = new StateB(Actor);
+                    return false; // Intended
+                default:
+                    return false;
             }
-
-            if (message.Name == "qoo")
-            {
-                Actor.State = new StateB(Actor);
-                return false;
-            }
-
-            return false;
         }
     }
 
@@ -301,5 +309,19 @@ public class ActorTest : ActorFactoryBase
         {
             X = config.AxisFactory.Create();
         }
+    }
+
+    [Fact]
+    public void StateEntryMessageWhenStartTest()
+    {
+        var actor = ActorFactory.Create<TestActorB>("MyActor");
+        var state = new StateA(actor);
+        actor.State = state;
+        Assert.False(state.Started);
+
+        actor.Start();
+        actor.Send(new TerminateMessage());
+        actor.Join();
+        Assert.True(state.Started);
     }
 }
