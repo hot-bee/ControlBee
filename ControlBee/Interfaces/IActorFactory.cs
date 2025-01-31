@@ -3,5 +3,5 @@
 public interface IActorFactory
 {
     T Create<T>(string actorName, params object?[]? args)
-        where T : IActorInternal;
+        where T : class, IActorInternal;
 }

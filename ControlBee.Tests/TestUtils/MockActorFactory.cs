@@ -1,9 +1,12 @@
-﻿using ControlBee.Interfaces;
+﻿using System;
+using System.Collections.Generic;
+using ControlBee.Interfaces;
 using ControlBee.Models;
+using Moq;
 
-namespace ControlBee.Services;
+namespace ControlBee.Tests.TestUtils;
 
-public class ActorFactory(
+public class MockActorFactory(
     SystemConfigurations systemConfigurations,
     IAxisFactory axisFactory,
     IDigitalInputFactory digitalInputFactory,
@@ -39,11 +42,8 @@ public class ActorFactory(
             actorItemInjectionDataSource,
             uiActor
         );
-        var actorArgs = new List<object?> { actorConfig };
-        if (args != null)
-            actorArgs.AddRange(args);
-
-        var actor = (T)Activator.CreateInstance(typeof(T), actorArgs.ToArray())!;
+        var actor = Mock.Of<T>();
+        Mock.Get(actor).CallBase = true;
         actor.Init(actorConfig);
         actorRegistry?.Add(actor);
         return actor;
