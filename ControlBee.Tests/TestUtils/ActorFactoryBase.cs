@@ -9,7 +9,6 @@ namespace ControlBee.Tests.TestUtils;
 public abstract class ActorFactoryBase : IDisposable
 {
     protected SystemConfigurations SystemConfigurations;
-    protected IActorFactory MockActorFactory;
     protected IActorFactory ActorFactory;
     protected IActorRegistry ActorRegistry;
     protected IActorItemInjectionDataSource ActorItemInjectionDataSource;
@@ -81,19 +80,6 @@ public abstract class ActorFactoryBase : IDisposable
                 ActorItemInjectionDataSource,
                 ActorRegistry
             );
-        MockActorFactory = new MockActorFactory(
-            SystemConfigurations,
-            AxisFactory,
-            DigitalInputFactory,
-            DigitalOutputFactory,
-            InitializeSequenceFactory,
-            BinaryActuatorFactory,
-            VariableManager,
-            TimeManager,
-            ScenarioFlowTester,
-            ActorItemInjectionDataSource,
-            ActorRegistry
-        );
     }
 
     public void Dispose()

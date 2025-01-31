@@ -18,7 +18,7 @@ public class ActorFactory(
 ) : IActorFactory
 {
     public T Create<T>(string actorName, params object?[]? args)
-        where T : class, IActorInternal
+        where T : IActorInternal
     {
         if (!typeof(IActor).IsAssignableFrom(typeof(T)))
             throw new ApplicationException(

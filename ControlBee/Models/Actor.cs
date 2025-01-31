@@ -2,8 +2,6 @@
 using System.Reflection;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
-using ControlBee.Services;
-using ControlBee.Variables;
 using log4net;
 
 namespace ControlBee.Models;
@@ -31,33 +29,22 @@ public class Actor : IActorInternal, IDisposable
 
     public IState State;
 
-    public Actor()
-    {
-        _thread = new Thread(RunThread);
-        PositionAxesMap = new PositionAxesMap();
-
-        State = new EmptyState(this);
-        _initialState = State;
-
-        VariableManager = EmptyVariableManager.Instance;
-        TimeManager = EmptyTimeManager.Instance;
-        _actorItemInjectionDataSource = EmptyActorItemInjectionDataSource.Instance;
-        Name = "_mock";
-
-        _actorBuiltinMessageHandler = new ActorBuiltinMessageHandler(this);
-    }
-
     public Actor(ActorConfig config)
-        : this()
     {
         Logger.Info($"Creating an instance of Actor. ({config.ActorName})");
+        _thread = new Thread(RunThread);
 
         VariableManager = config.VariableManager;
         TimeManager = config.TimeManager;
         _actorItemInjectionDataSource = config.ActorItemInjectionDataSource;
-
+        PositionAxesMap = new PositionAxesMap();
         Name = config.ActorName;
         Ui = config.UiActor;
+
+        State = new EmptyState(this);
+        _initialState = State;
+
+        _actorBuiltinMessageHandler = new ActorBuiltinMessageHandler(this);
     }
 
     public string Name { get; }
