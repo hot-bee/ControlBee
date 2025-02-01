@@ -79,7 +79,7 @@ public class ActorTest : ActorFactoryBase
         actor.Join();
         stateTransitMatched.Should().BeTrue();
         Assert.True(stateEntryMessage);
-        retryWithEmptyMessageMatched.Should().BeTrue();
+        Assert.False(retryWithEmptyMessageMatched);
     }
 
     [Fact]

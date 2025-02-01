@@ -273,21 +273,16 @@ public class Actor : IActorInternal, IDisposable
                 OnMessageProcessed((message, oldState, State, result));
                 if (oldState != State)
                 {
+                    if (!result)
+                        throw new PlatformException(
+                            "State has changed but ProcessMessage() returns false."
+                        );
                     oldState.Dispose();
-                }
-                if (result)
-                {
-                    message = oldState != State ? new OnStateEntryMessage(this) : Message.Empty;
+                    message = new OnStateEntryMessage(this);
                     continue;
                 }
-
-                if (oldState != State)
-                    throw new PlatformException(
-                        "State has changed but ProcessMessage() returns false."
-                    );
-
                 if (
-                    message != Message.Empty
+                    !result
                     && message.GetType() != typeof(DroppedMessage)
                     && message.GetType() != typeof(OnStateEntryMessage)
                 )
