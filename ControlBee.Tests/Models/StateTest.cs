@@ -20,6 +20,7 @@ public class StateTest : ActorFactoryBase
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
         actor.PickupCount.Value.Should().Be(1);
+        Assert.True(actor.DisposeCount > 0);
     }
 
     public class TestPickerActor : Actor
@@ -31,19 +32,26 @@ public class StateTest : ActorFactoryBase
         {
             State = new IdleState(this);
         }
+
+        public int DisposeCount;
     }
 
     public class IdleState(TestPickerActor actor) : State<TestPickerActor>(actor)
     {
         public override bool ProcessMessage(Message message)
         {
-            if (message.Name == "Pickup")
+            switch (message.Name)
             {
-                Actor.State = new PickupState(Actor);
-                return true;
+                case "Pickup":
+                    Actor.State = new PickupState(Actor);
+                    return true;
             }
-
             return false;
+        }
+
+        public override void Dispose()
+        {
+            Actor.DisposeCount++;
         }
     }
 

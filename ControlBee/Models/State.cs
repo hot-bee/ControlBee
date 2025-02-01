@@ -9,4 +9,9 @@ public abstract class State<T>(T actor) : IState
     protected ITimeManager TimeManager => Actor.TimeManager;
 
     public abstract bool ProcessMessage(Message message);
+
+    public virtual void Dispose()
+    {
+        // Empty
+    }
 }

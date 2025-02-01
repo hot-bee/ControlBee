@@ -271,6 +271,10 @@ public class Actor : IActorInternal, IDisposable
                 var oldState = State;
                 var result = ProcessMessage(message);
                 OnMessageProcessed((message, oldState, State, result));
+                if (oldState != State)
+                {
+                    oldState.Dispose();
+                }
                 if (result)
                 {
                     message = oldState != State ? new OnStateEntryMessage(this) : Message.Empty;

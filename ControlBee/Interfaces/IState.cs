@@ -2,7 +2,7 @@
 
 namespace ControlBee.Interfaces;
 
-public interface IState
+public interface IState : IDisposable
 {
     bool ProcessMessage(Message message);
 }
