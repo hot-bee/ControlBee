@@ -31,6 +31,7 @@ public class Actor : IActorInternal, IDisposable
     public Dictionary<IActor, Dictionary<string, object?>> PeerStatus = new();
 
     public IState State;
+    public Dictionary<string, object?> Status = new();
 
     public Actor(ActorConfig config)
     {
@@ -114,6 +115,12 @@ public class Actor : IActorInternal, IDisposable
         }
 
         Logger.Info("Actor instance successfully disposed.");
+    }
+
+    public void PublishStatus()
+    {
+        foreach (var peer in PeerDict.Values)
+            peer.Send(new Message(this, "_status", Status));
     }
 
     public void ResetState()
