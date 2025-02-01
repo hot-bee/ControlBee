@@ -20,8 +20,10 @@ public class ActorBuiltinMessageHandler(Actor actor)
                 actor.ResetState();
                 return true;
             }
+            case "_status":
+                actor.PeerStatus[message.Sender] = message.DictPayload!;
+                return true;
         }
-
         return false;
     }
 }

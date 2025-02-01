@@ -9,8 +9,6 @@ namespace ControlBee.Models;
 public class Actor : IActorInternal, IDisposable
 {
     private static readonly ILog Logger = LogManager.GetLogger(typeof(Actor));
-
-    private readonly ActorBuiltinMessageHandler _actorBuiltinMessageHandler;
     private readonly IActorItemInjectionDataSource _actorItemInjectionDataSource;
 
     private readonly Dictionary<string, IActorItem> _actorItems = new();
@@ -20,12 +18,17 @@ public class Actor : IActorInternal, IDisposable
     private readonly PlaceholderManager _placeholderManager = new();
     private readonly Thread _thread;
 
+    protected readonly ActorBuiltinMessageHandler ActorBuiltinMessageHandler;
+
     private bool _init;
 
     private IState _initialState;
 
     private string _title = string.Empty;
     public PlatformException? ExitError;
+
+    public Dictionary<string, IActor> PeerDict = [];
+    public Dictionary<IActor, Dictionary<string, object?>> PeerStatus = new();
 
     public IState State;
 
@@ -44,7 +47,7 @@ public class Actor : IActorInternal, IDisposable
         State = new EmptyState(this);
         _initialState = State;
 
-        _actorBuiltinMessageHandler = new ActorBuiltinMessageHandler(this);
+        ActorBuiltinMessageHandler = new ActorBuiltinMessageHandler(this);
         _mailbox.Add(new OnStateEntryMessage(this));
     }
 
@@ -204,6 +207,7 @@ public class Actor : IActorInternal, IDisposable
     public virtual void Start()
     {
         Logger.Info($"Starting Actor instance. ({Name})");
+        _thread.Name = $"Actor_{Name}";
         _thread.Start();
     }
 
@@ -237,7 +241,9 @@ public class Actor : IActorInternal, IDisposable
 
     protected virtual bool ProcessMessage(Message message)
     {
-        return false;
+        var result = ActorBuiltinMessageHandler.ProcessMessage(message);
+        result |= State.ProcessMessage(message);
+        return result;
     }
 
     protected virtual void MessageHandler(Message message)
@@ -256,11 +262,7 @@ public class Actor : IActorInternal, IDisposable
             while (true)
             {
                 var oldState = State;
-                var result = State.ProcessMessage(message);
-                if (!result)
-                    result = ProcessMessage(message);
-                if (!result)
-                    result = _actorBuiltinMessageHandler.ProcessMessage(message);
+                var result = ProcessMessage(message);
                 OnMessageProcessed((message, oldState, State, result));
                 if (result)
                 {
@@ -291,6 +293,16 @@ public class Actor : IActorInternal, IDisposable
     public void Join()
     {
         _thread.Join();
+    }
+
+    public void InitPeers(IActor[] peerList)
+    {
+        foreach (var peer in peerList)
+        {
+            if (!PeerDict.TryAdd(peer.Name, peer))
+                throw new ValueError("Duplicate name.");
+            PeerStatus[peer] = new Dictionary<string, object?>();
+        }
     }
 
     private void OnMessageProcessed(

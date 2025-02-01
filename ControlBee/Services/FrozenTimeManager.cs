@@ -70,6 +70,7 @@ public class FrozenTimeManager : ITimeManager
                     WaitHandle.WaitAll(resumedEvents);
                 }
             });
+            _tickingThread.Name = "FrozenTimeManager_TickingThread";
             _tickingThread.Start();
         }
     }

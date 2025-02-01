@@ -258,8 +258,7 @@ public class ActorTest : ActorFactoryBase
                     State = new StateA(this);
                     return true;
             }
-
-            return false;
+            return base.ProcessMessage(message);
         }
     }
 
