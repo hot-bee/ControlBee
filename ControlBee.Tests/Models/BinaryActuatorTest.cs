@@ -219,6 +219,7 @@ public class BinaryActuatorTest()
                 new Dictionary<string, object?> { ["On"] = true }
             )
         );
+        actor.Send(new Message(EmptyActor.Instance, "Wait"));
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
@@ -299,7 +300,7 @@ public class BinaryActuatorTest()
             Cyl2 = config.BinaryActuatorFactory.Create(CylFwd2, CylBwd2, CylFwdDet2, CylBwdDet2);
         }
 
-        protected override void MessageHandler(Message message)
+        protected override bool ProcessMessage(Message message)
         {
             switch (message.Name)
             {
@@ -313,11 +314,11 @@ public class BinaryActuatorTest()
                         // Alert trigger will be checked.
                     }
 
-                    break;
+                    return true;
                 case "OnAndOff":
                     Cyl1.OnAndWait();
                     Cyl1.OffAndWait();
-                    break;
+                    return true;
 
                 case "OnBoth":
                     try
@@ -332,10 +333,13 @@ public class BinaryActuatorTest()
                         // Empty
                     }
 
-                    break;
+                    return true;
+                case "Wait":
+                    Cyl1.Wait();
+                    Cyl2.Wait();
+                    return true;
             }
-
-            base.MessageHandler(message);
+            return false;
         }
     }
 }
