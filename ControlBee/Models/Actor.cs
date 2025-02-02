@@ -119,8 +119,25 @@ public class Actor : IActorInternal, IDisposable
 
     public void PublishStatus()
     {
+        var clonedStatus = Status.ToDictionary();
         foreach (var peer in PeerDict.Values)
-            peer.Send(new Message(this, "_status", Status));
+            peer.Send(new Message(this, "_status", clonedStatus));
+    }
+
+    public void SetStatus(string name, object? value)
+    {
+        Status[name] = value;
+        PublishStatus();
+    }
+
+    public object? GetPeerStatus(IActor actor, string keyName)
+    {
+        return PeerStatus[actor].GetValueOrDefault(keyName);
+    }
+
+    public object? GetPeerStatus(string actorName, string keyName)
+    {
+        return GetPeerStatus(PeerDict[actorName], keyName);
     }
 
     public void ResetState()

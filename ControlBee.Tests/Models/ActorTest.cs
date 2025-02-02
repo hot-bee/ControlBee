@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net.PeerToPeer.Collaboration;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Tests.TestUtils;
@@ -322,5 +324,75 @@ public class ActorTest : ActorFactoryBase
         actor.Send(new TerminateMessage());
         actor.Join();
         Assert.True(state.Started);
+    }
+
+    [Fact]
+    public void StatusTest()
+    {
+        var peer = MockActorFactory.Create("peer");
+        var actor = ActorFactory.Create<TestActorB>("MyActor");
+        actor.InitPeers([peer]);
+        actor.State = new StateC(actor);
+        actor.Start();
+        actor.Send(
+            new Message(peer, "_status", new Dictionary<string, object> { ["Name"] = "Biden" })
+        );
+        actor.Send(new TerminateMessage());
+        actor.Join();
+
+        Mock.Get(peer)
+            .Verify(
+                m =>
+                    m.Send(
+                        It.Is<Message>(message =>
+                            message.Name == "_status"
+                            && message.DictPayload!["Name"] as string == "Leo"
+                        )
+                    ),
+                Times.Once
+            );
+        Mock.Get(peer)
+            .Verify(
+                m =>
+                    m.Send(
+                        It.Is<Message>(message =>
+                            message.Name == "_status"
+                            && message.DictPayload!["Name"] as string == "Trump"
+                        )
+                    ),
+                Times.Once
+            );
+        Mock.Get(peer)
+            .Verify(
+                m =>
+                    m.Send(
+                        It.Is<Message>(message =>
+                            message.Name == "GotYourName" && message.Payload as string == "Biden"
+                        )
+                    ),
+                Times.Once
+            );
+    }
+
+    public class StateC(TestActorB actor) : State<TestActorB>(actor)
+    {
+        public override bool ProcessMessage(Message message)
+        {
+            switch (message.Name)
+            {
+                case OnStateEntryMessage.MessageName:
+                    Actor.SetStatus("Name", "Leo");
+                    Actor.SetStatus("Name", "Trump");
+                    return true;
+                case "_status":
+                {
+                    var peerName = Actor.GetPeerStatus("peer", "Name");
+                    Actor.PeerDict["peer"].Send(new Message(Actor, "GotYourName", peerName));
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }
