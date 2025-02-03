@@ -340,6 +340,8 @@ public class ActorTest : ActorFactoryBase
     [Fact]
     public void StatusTest()
     {
+        var ui = MockActorFactory.Create("ui");
+        ActorRegistry.Add(ui);
         var peer = MockActorFactory.Create("peer");
         var actor = ActorFactory.Create<TestActorB>("MyActor");
         actor.InitPeers([peer]);
@@ -363,6 +365,17 @@ public class ActorTest : ActorFactoryBase
                 Times.Once
             );
         Mock.Get(peer)
+            .Verify(
+                m =>
+                    m.Send(
+                        It.Is<Message>(message =>
+                            message.Name == "_status"
+                            && message.DictPayload!["Name"] as string == "Trump"
+                        )
+                    ),
+                Times.Once
+            );
+        Mock.Get(ui)
             .Verify(
                 m =>
                     m.Send(

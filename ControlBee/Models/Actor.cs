@@ -321,6 +321,8 @@ public class Actor : IActorInternal, IDisposable
 
     public void InitPeers(IActor[] peerList)
     {
+        if (Ui != null && !peerList.Contains(Ui))
+            peerList = peerList.Concat([Ui]).ToArray();
         foreach (var peer in peerList)
         {
             if (!PeerDict.TryAdd(peer.Name, peer))
