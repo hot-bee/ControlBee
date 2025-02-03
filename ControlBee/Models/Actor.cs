@@ -2,6 +2,7 @@
 using System.Reflection;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
+using ControlBee.Utils;
 using log4net;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
@@ -29,10 +30,10 @@ public class Actor : IActorInternal, IDisposable
     public PlatformException? ExitError;
 
     public Dictionary<string, IActor> PeerDict = [];
-    public Dictionary<IActor, Dictionary<string, object?>> PeerStatus = new();
+    public Dictionary<IActor, Dict> PeerStatus = new();
 
     public IState State;
-    public Dictionary<string, object?> Status = new();
+    public Dict Status = new();
 
     public Actor(ActorConfig config)
     {
@@ -120,7 +121,7 @@ public class Actor : IActorInternal, IDisposable
 
     public void PublishStatus()
     {
-        var clonedStatus = Status.ToDictionary();
+        var clonedStatus = DictCopy.Copy(Status);
         foreach (var peer in PeerDict.Values)
             peer.Send(new Message(this, "_status", clonedStatus));
     }
@@ -323,6 +324,7 @@ public class Actor : IActorInternal, IDisposable
                     Ui?.Send(new Message(this, "_stateChanged", State.GetType().Name));
                     continue;
                 }
+
                 if (
                     !result
                     && message.GetType() != typeof(DroppedMessage)
