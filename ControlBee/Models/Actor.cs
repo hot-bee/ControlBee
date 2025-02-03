@@ -3,6 +3,7 @@ using System.Reflection;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using log4net;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
@@ -130,6 +131,19 @@ public class Actor : IActorInternal, IDisposable
         PublishStatus();
     }
 
+    public void SetStatusByActor(string actorName, string keyName, object? value)
+    {
+        var statusByActor = Status.GetValueOrDefault(actorName) as Dict ?? new Dict();
+        statusByActor[keyName] = value;
+        Status[actorName] = statusByActor;
+        PublishStatus();
+    }
+
+    public void SetStatusByActor(IActor actor, string keyName, object? value)
+    {
+        SetStatusByActor(actor.Name, keyName, value);
+    }
+
     public object? GetPeerStatus(IActor actor, string keyName)
     {
         return PeerStatus[actor].GetValueOrDefault(keyName);
@@ -138,6 +152,16 @@ public class Actor : IActorInternal, IDisposable
     public object? GetPeerStatus(string actorName, string keyName)
     {
         return GetPeerStatus(PeerDict[actorName], keyName);
+    }
+
+    public object? GetPeerStatusByActor(IActor actor, string keyName)
+    {
+        return (GetPeerStatus(actor, Name) as Dict)?.GetValueOrDefault(keyName);
+    }
+
+    public object? GetPeerStatusByActor(string actorName, string keyName)
+    {
+        return GetPeerStatusByActor(PeerDict[actorName], keyName);
     }
 
     public void ResetState()

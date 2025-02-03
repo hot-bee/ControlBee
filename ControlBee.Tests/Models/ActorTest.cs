@@ -7,6 +7,7 @@ using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
 using ControlBee.Tests.TestUtils;
+using ControlBee.Utils;
 using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
@@ -342,35 +343,33 @@ public class ActorTest : ActorFactoryBase
     {
         var ui = MockActorFactory.Create("ui");
         ActorRegistry.Add(ui);
-        var peer = MockActorFactory.Create("peer");
+        //var peer = MockActorFactory.Create("Peer");
+        var peer = ActorFactory.Create<TestActorB>("Peer");
         var actor = ActorFactory.Create<TestActorB>("MyActor");
+
+        peer.InitPeers([actor]);
         actor.InitPeers([peer]);
+
+        peer.State = new StateD(peer);
         actor.State = new StateC(actor);
+
+        peer.Start();
         actor.Start();
         actor.Send(
             new Message(peer, "_status", new Dictionary<string, object> { ["Name"] = "Biden" })
         );
         actor.Send(new TerminateMessage());
+
+        peer.Join();
         actor.Join();
 
-        Mock.Get(peer)
+        Mock.Get(ui)
             .Verify(
                 m =>
                     m.Send(
                         It.Is<Message>(message =>
                             message.Name == "_status"
                             && message.DictPayload!["Name"] as string == "Leo"
-                        )
-                    ),
-                Times.Once
-            );
-        Mock.Get(peer)
-            .Verify(
-                m =>
-                    m.Send(
-                        It.Is<Message>(message =>
-                            message.Name == "_status"
-                            && message.DictPayload!["Name"] as string == "Trump"
                         )
                     ),
                 Times.Once
@@ -384,14 +383,36 @@ public class ActorTest : ActorFactoryBase
                             && message.DictPayload!["Name"] as string == "Trump"
                         )
                     ),
-                Times.Once
+                Times.AtLeastOnce
             );
-        Mock.Get(peer)
+        Mock.Get(ui)
+            .Verify(
+                m =>
+                    m.Send(
+                        It.Is<Message>(message =>
+                            message.Name == "_status"
+                            && DictPath.Start(message.DictPayload)["Peer"]["WifiId"].Value as string
+                                == "KTWorld"
+                        )
+                    ),
+                Times.AtLeastOnce
+            );
+        Mock.Get(ui)
             .Verify(
                 m =>
                     m.Send(
                         It.Is<Message>(message =>
                             message.Name == "GotYourName" && message.Payload as string == "Biden"
+                        )
+                    ),
+                Times.Once
+            );
+        Mock.Get(ui)
+            .Verify(
+                m =>
+                    m.Send(
+                        It.Is<Message>(message =>
+                            message.Name == "GotWifiId" && message.Payload as string == "KTWorld"
                         )
                     ),
                 Times.Once
@@ -407,11 +428,37 @@ public class ActorTest : ActorFactoryBase
                 case OnStateEntryMessage.MessageName:
                     Actor.SetStatus("Name", "Leo");
                     Actor.SetStatus("Name", "Trump");
+                    Actor.SetStatusByActor("Peer", "WifiId", "KTWorld");
                     return true;
                 case "_status":
                 {
-                    var peerName = Actor.GetPeerStatus("peer", "Name");
-                    Actor.PeerDict["peer"].Send(new Message(Actor, "GotYourName", peerName));
+                    var peerName = Actor.GetPeerStatus("Peer", "Name");
+                    if (peerName != null)
+                    {
+                        Actor.PeerDict["ui"].Send(new Message(Actor, "GotYourName", peerName));
+                    }
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    public class StateD(TestActorB actor) : State<TestActorB>(actor)
+    {
+        public override bool ProcessMessage(Message message)
+        {
+            switch (message.Name)
+            {
+                case "_status":
+                {
+                    var wifiId = Actor.GetPeerStatusByActor("MyActor", "WifiId");
+                    if (wifiId != null)
+                    {
+                        Actor.PeerDict["ui"].Send(new Message(Actor, "GotWifiId", wifiId));
+                        Actor.Send(new TerminateMessage());
+                    }
                     return true;
                 }
             }
