@@ -296,6 +296,7 @@ public class Actor : IActorInternal, IDisposable
                         );
                     oldState.Dispose();
                     message = new OnStateEntryMessage(this);
+                    Ui?.Send(new Message(this, "_stateChanged", State.GetType().Name));
                     continue;
                 }
                 if (

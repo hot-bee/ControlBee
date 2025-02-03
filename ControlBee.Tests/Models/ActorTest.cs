@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.PeerToPeer.Collaboration;
 using ControlBee.Interfaces;
 using ControlBee.Models;
+using ControlBee.Services;
 using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using FluentAssertions;
@@ -87,6 +88,8 @@ public class ActorTest : ActorFactoryBase
     [Fact]
     public void StateChangeTest()
     {
+        var uiActor = MockActorFactory.Create("ui");
+        ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<TestActorB>("MyActor");
 
         actor.Start();
@@ -95,6 +98,14 @@ public class ActorTest : ActorFactoryBase
         actor.Join();
 
         Assert.IsType<StateB>(actor.State);
+        Mock.Get(uiActor)
+            .Verify(m =>
+                m.Send(
+                    It.Is<Message>(message =>
+                        message.Name == "_stateChanged" && message.Payload as string == "StateB"
+                    )
+                )
+            );
     }
 
     [Fact]
