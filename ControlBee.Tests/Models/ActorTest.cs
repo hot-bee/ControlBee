@@ -466,4 +466,23 @@ public class ActorTest : ActorFactoryBase
             return false;
         }
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void SkipWaitSensorTest(bool skipWaitSensor)
+    {
+        Recreate(
+            new ActorFactoryBaseConfig()
+            {
+                SystemConfigurations = new SystemConfigurations()
+                {
+                    FakeMode = true,
+                    SkipWaitSensor = skipWaitSensor,
+                },
+            }
+        );
+        var actor = ActorFactory.Create<TestActorB>("MyActor");
+        Assert.Equal(skipWaitSensor, actor.SkipWaitSensor);
+    }
 }

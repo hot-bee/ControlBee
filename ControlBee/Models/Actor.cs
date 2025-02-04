@@ -40,6 +40,7 @@ public class Actor : IActorInternal, IDisposable
         Logger.Info($"Creating an instance of Actor. ({config.ActorName})");
         _thread = new Thread(RunThread);
 
+        SkipWaitSensor = config.SystemConfigurations.SkipWaitSensor;
         VariableManager = config.VariableManager;
         TimeManager = config.TimeManager;
         _actorItemInjectionDataSource = config.ActorItemInjectionDataSource;
@@ -53,6 +54,8 @@ public class Actor : IActorInternal, IDisposable
         ActorBuiltinMessageHandler = new ActorBuiltinMessageHandler(this);
         _mailbox.Add(new OnStateEntryMessage(this));
     }
+
+    public bool SkipWaitSensor { get; }
 
     public string Name { get; }
 
