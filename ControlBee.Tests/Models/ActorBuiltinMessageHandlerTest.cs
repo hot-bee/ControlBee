@@ -115,4 +115,55 @@ public class ActorBuiltinMessageHandlerTest : ActorFactoryBase
             return false;
         }
     }
+
+    [Fact]
+    public void PropertyRead()
+    {
+        ActorItemInjectionDataSource.ReadFromString(
+            @"
+MyActor:
+  Status:
+    CenterDancer:
+      Name: Start Centering Dancer
+      Desc: Control dancer to be centered.
+"
+        );
+        var client = MockActorFactory.Create("Client");
+        var myActor = ActorFactory.Create<TestActor>("MyActor");
+
+        myActor.Start();
+        myActor.Send(new Message(client, "_propertyRead", "/Status/CenterDancer/Name"));
+        myActor.Send(new Message(client, "_propertyRead", "Status/CenterDancer/Name"));
+        myActor.Send(new Message(client, "_propertyRead", "Status/CenterDancer/Name/"));
+        myActor.Send(new Message(client, "_propertyRead", "/Status/CenterDancer/Not-exist"));
+        myActor.Send(new TerminateMessage());
+        myActor.Join();
+
+        Assert.Equal("Start Centering Dancer", myActor.GetProperty("/Status/CenterDancer/Name"));
+        Assert.Equal("Start Centering Dancer", myActor.GetProperty("Status/CenterDancer/Name"));
+        Assert.Equal("Start Centering Dancer", myActor.GetProperty("Status/CenterDancer/Name/"));
+        Assert.Null(myActor.GetProperty("/Status/CenterDancer/Not-exist"));
+
+        Mock.Get(client)
+            .Verify(
+                m =>
+                    m.Send(
+                        It.Is<Message>(message =>
+                            message.Name == "_property"
+                            && message.Payload as string == "Start Centering Dancer"
+                        )
+                    ),
+                Times.Exactly(3)
+            );
+        Mock.Get(client)
+            .Verify(
+                m =>
+                    m.Send(
+                        It.Is<Message>(message =>
+                            message.Name == "_property" && message.Payload == null
+                        )
+                    ),
+                Times.Once
+            );
+    }
 }

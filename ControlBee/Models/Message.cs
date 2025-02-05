@@ -18,6 +18,12 @@ public class Message(IActor sender, string name, object? payload)
     public Message(Guid requestId, IActor sender, string name)
         : this(requestId, sender, name, null) { }
 
+    public Message(Message requestMessage, IActor sender, string name, object? payload)
+        : this(requestMessage.Id, sender, name, payload) { }
+
+    public Message(Message requestMessage, IActor sender, string name)
+        : this(requestMessage, sender, name, null) { }
+
     public string ActorName => Sender.Name;
 
     public Guid Id { get; } = Guid.NewGuid();

@@ -23,6 +23,13 @@ public class ActorBuiltinMessageHandler(Actor actor)
             case "_status":
                 actor.PeerStatus[message.Sender] = message.DictPayload!;
                 return true;
+            case "_propertyRead":
+            {
+                var propertyPath = (string)message.Payload!;
+                var value = actor.GetProperty(propertyPath);
+                message.Sender.Send(new Message(message, actor, "_property", value));
+                return true;
+            }
         }
         return false;
     }

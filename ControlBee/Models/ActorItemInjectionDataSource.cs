@@ -11,11 +11,17 @@ public class ActorItemInjectionDataSource : IActorItemInjectionDataSource
 
     public object? GetValue(string actorName, string itemPath, string propertyName)
     {
-        var propPath = string.Join("/", actorName, itemPath.TrimStart('/'), propertyName);
+        var propertyPath = string.Join('/', itemPath.Trim('/'), propertyName.Trim('/'));
+        return GetValue(actorName, propertyPath);
+    }
+
+    public object? GetValue(string actorName, string propertyPath)
+    {
         var access = new NestedDictionaryAccess(_data);
         try
         {
-            foreach (var propName in propPath.Split("/"))
+            var globalPropertyPath = string.Join('/', actorName.Trim('/'), propertyPath.Trim('/'));
+            foreach (var propName in globalPropertyPath.Split("/"))
                 access = access[propName];
 
             return access.Value;

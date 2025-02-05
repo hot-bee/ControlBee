@@ -232,6 +232,11 @@ public class Actor : IActorInternal, IDisposable
         return actorItem;
     }
 
+    public object? GetProperty(string propertyPath)
+    {
+        return _actorItemInjectionDataSource.GetValue(Name, propertyPath);
+    }
+
     private IActorItem ReplacePlaceholder(
         object actorItemHolder,
         IActorItem actorItem,

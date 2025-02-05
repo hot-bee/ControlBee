@@ -13,6 +13,11 @@ public class EmptyActorItemInjectionDataSource : IActorItemInjectionDataSource
         return null;
     }
 
+    public object? GetValue(string actorName, string propertyPath)
+    {
+        return null;
+    }
+
     public void ReadFromFile()
     {
         // Empty
