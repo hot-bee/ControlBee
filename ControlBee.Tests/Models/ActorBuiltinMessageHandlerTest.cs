@@ -8,6 +8,7 @@ using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
 using Moq;
 using Xunit;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Tests.Models;
 
@@ -143,6 +144,14 @@ MyActor:
         Assert.Equal("Start Centering Dancer", myActor.GetProperty("Status/CenterDancer/Name"));
         Assert.Equal("Start Centering Dancer", myActor.GetProperty("Status/CenterDancer/Name/"));
         Assert.Null(myActor.GetProperty("/Status/CenterDancer/Not-exist"));
+        Assert.Equal(
+            "Control dancer to be centered.",
+            myActor.GetProperty("/Status/CenterDancer/Desc")
+        );
+        Assert.Equal(
+            "Start Centering Dancer",
+            ((myActor.GetProperty("/Status/CenterDancer") as Dict)!)["Name"]
+        );
 
         Mock.Get(client)
             .Verify(

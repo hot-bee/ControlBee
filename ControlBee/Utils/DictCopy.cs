@@ -13,4 +13,15 @@ public class DictCopy
 
         return copied;
     }
+
+    public static Dict Copy(Dictionary<object, object> source)
+    {
+        var copied = new Dict();
+        foreach (var (key, value) in source)
+            if (value is Dictionary<object, object> dictValue)
+                copied[(string)key] = Copy(dictValue);
+            else
+                copied[(string)key] = value;
+        return copied;
+    }
 }

@@ -2,12 +2,13 @@
 using ControlBee.Interfaces;
 using ControlBee.Utils;
 using YamlDotNet.Serialization;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
 public class ActorItemInjectionDataSource : IActorItemInjectionDataSource
 {
-    private object? _data = new Dictionary<object, object>();
+    private Dict? _data;
 
     public object? GetValue(string actorName, string itemPath, string propertyName)
     {
@@ -17,7 +18,7 @@ public class ActorItemInjectionDataSource : IActorItemInjectionDataSource
 
     public object? GetValue(string actorName, string propertyPath)
     {
-        var access = new NestedDictionaryAccess(_data);
+        var access = DictPath.Start(_data);
         try
         {
             var globalPropertyPath = string.Join('/', actorName.Trim('/'), propertyPath.Trim('/'));
@@ -36,10 +37,11 @@ public class ActorItemInjectionDataSource : IActorItemInjectionDataSource
         }
     }
 
-    private object ParseYaml(string content)
+    private Dict ParseYaml(string content)
     {
         var deserializer = new DeserializerBuilder().Build();
-        return deserializer.Deserialize(content)!;
+        var objData = (Dictionary<object, object>)deserializer.Deserialize(content)!;
+        return DictCopy.Copy(objData);
     }
 
     public void ReadFromFile()
