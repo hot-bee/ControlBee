@@ -86,7 +86,7 @@ public class Actor : IActorInternal, IDisposable
     public IPositionAxesMap PositionAxesMap { get; }
     public IVariableManager VariableManager { get; }
 
-    public void Init(ActorConfig config)
+    public virtual void Init(ActorConfig config)
     {
         if (_init)
             throw new ApplicationException();
@@ -96,6 +96,15 @@ public class Actor : IActorInternal, IDisposable
         IterateItems(string.Empty, this, InitItem, config);
         IterateItems(string.Empty, this, ReplacePlaceholder, config);
         PositionAxesMap.UpdateMap();
+
+        UpdateTitle();
+    }
+
+    private void UpdateTitle()
+    {
+        var title = GetProperty("/Name") as string;
+        if (!string.IsNullOrEmpty(title))
+            SetTitle(title);
     }
 
     public IActorItem? GetItem(string itemPath)
