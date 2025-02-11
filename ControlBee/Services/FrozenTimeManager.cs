@@ -150,8 +150,14 @@ public class FrozenTimeManager : ITimeManager
         var task = Task.Run(() =>
         {
             Register();
-            action();
-            Unregister();
+            try
+            {
+                action();
+            }
+            finally
+            {
+                Unregister();
+            }
         });
         return task;
     }

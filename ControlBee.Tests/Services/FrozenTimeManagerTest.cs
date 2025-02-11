@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 using ControlBee.Constants;
 using ControlBee.Interfaces;
@@ -65,6 +66,38 @@ public class FrozenTimeManagerTest : ActorFactoryBase
         testActor.Send(new Message(EmptyActor.Instance, "_terminate"));
         testActor.Join();
         ScenarioFlowTester.Complete.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task CancelTaskTest()
+    {
+        using var frozenTimeManager = new FrozenTimeManager();
+        var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+        var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
+
+        var cancellationTokenSource = new CancellationTokenSource();
+        var task = frozenTimeManager.RunTask(() =>
+        {
+            while (true)
+            {
+                cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                Thread.Sleep(1);
+            }
+            // ReSharper disable once FunctionNeverReturns
+        });
+        await cancellationTokenSource.CancelAsync();
+        try
+        {
+            await task;
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+        finally
+        {
+            Assert.Equal(0, frozenTimeManager.RegisteredThreadsCount);
+        }
     }
 
     // ReSharper disable once ClassNeverInstantiated.Local
