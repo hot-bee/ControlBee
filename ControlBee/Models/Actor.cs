@@ -57,6 +57,8 @@ public class Actor : IActorInternal, IDisposable
 
     public bool SkipWaitSensor { get; }
 
+    public int MessageFetchTimeout { get; set; } = -1;
+
     public string Name { get; }
 
     public string Title
@@ -100,13 +102,6 @@ public class Actor : IActorInternal, IDisposable
         UpdateTitle();
     }
 
-    private void UpdateTitle()
-    {
-        var title = GetProperty("/Name") as string;
-        if (!string.IsNullOrEmpty(title))
-            SetTitle(title);
-    }
-
     public IActorItem? GetItem(string itemPath)
     {
         if (!itemPath.StartsWith("/"))
@@ -129,6 +124,13 @@ public class Actor : IActorInternal, IDisposable
         }
 
         Logger.Info("Actor instance successfully disposed.");
+    }
+
+    private void UpdateTitle()
+    {
+        var title = GetProperty("/Name") as string;
+        if (!string.IsNullOrEmpty(title))
+            SetTitle(title);
     }
 
     public void PublishStatus()
@@ -283,12 +285,22 @@ public class Actor : IActorInternal, IDisposable
         try
         {
             while (true)
-            {
-                var message = _mailbox.Take(_cancellationTokenSource.Token);
-                if (message.Name == "_terminate")
-                    break;
-                MessageHandler(message);
-            }
+                if (
+                    _mailbox.TryTake(
+                        out var message,
+                        MessageFetchTimeout,
+                        _cancellationTokenSource.Token
+                    )
+                )
+                {
+                    if (message.Name == "_terminate")
+                        break;
+                    MessageHandler(message);
+                }
+                else
+                {
+                    MessageHandler(new TimeoutMessage(this));
+                }
         }
         catch (OperationCanceledException e)
         {
