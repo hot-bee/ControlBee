@@ -25,8 +25,11 @@ public class FrozenTimeManagerTest : ActorFactoryBase
     [Fact]
     public async Task RunTaskTest()
     {
-        using var frozenTimeManager = new FrozenTimeManager();
         var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+        using var frozenTimeManager = new FrozenTimeManager(
+            SystemConfigurations,
+            scenarioFlowTester
+        );
         var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
 
         var task = frozenTimeManager.RunTask(() =>
@@ -71,8 +74,11 @@ public class FrozenTimeManagerTest : ActorFactoryBase
     [Fact]
     public async Task CancelTaskTest()
     {
-        using var frozenTimeManager = new FrozenTimeManager();
         var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+        using var frozenTimeManager = new FrozenTimeManager(
+            SystemConfigurations,
+            scenarioFlowTester
+        );
         var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
 
         var cancellationTokenSource = new CancellationTokenSource();
@@ -98,6 +104,27 @@ public class FrozenTimeManagerTest : ActorFactoryBase
         {
             Assert.Equal(0, frozenTimeManager.RegisteredThreadsCount);
         }
+    }
+
+    [Fact]
+    public void SleepTest()
+    {
+        var testActor = ActorFactory.Create<TestActor>("testActor");
+
+        ScenarioFlowTester.Setup(
+            [
+                [
+                    new ConditionStep(() => TimeManager.CurrentMilliseconds > 1000),
+                    new BehaviorStep(
+                        () => testActor.Send(new Message(EmptyActor.Instance, "_terminate"))
+                    ),
+                ],
+            ]
+        );
+
+        testActor.Start();
+        testActor.Send(new Message(EmptyActor.Instance, "Sleep"));
+        testActor.Join();
     }
 
     // ReSharper disable once ClassNeverInstantiated.Local
@@ -126,16 +153,25 @@ public class FrozenTimeManagerTest : ActorFactoryBase
             InitializeSequenceX = new InitializeSequence(X, HomingSpeedX, HomePositionX);
         }
 
-        protected override void MessageHandler(Message message)
+        protected override bool ProcessMessage(Message message)
         {
-            if (message.Name == "_initialize")
-                TimeManager
-                    .RunTask(() =>
-                    {
-                        InitializeSequenceX.Run();
-                        return 0;
-                    })
-                    .Wait();
+            switch (message.Name)
+            {
+                case "_initialize":
+                    TimeManager
+                        .RunTask(() =>
+                        {
+                            InitializeSequenceX.Run();
+                            return 0;
+                        })
+                        .Wait();
+                    return true;
+                case "Sleep":
+                    TimeManager.Sleep(100);
+                    Send(new Message(this, "Sleep"));
+                    return true;
+            }
+            return false;
         }
     }
 }

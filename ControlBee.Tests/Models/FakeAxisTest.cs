@@ -4,6 +4,7 @@ using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
+using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
@@ -13,13 +14,16 @@ using Xunit;
 namespace ControlBee.Tests.Models;
 
 [TestSubject(typeof(FakeAxis))]
-public class FakeAxisTest
+public class FakeAxisTest : ActorFactoryBase
 {
     [Fact]
     public void MoveTest()
     {
-        using var frozenTimeManager = new FrozenTimeManager();
         var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+        using var frozenTimeManager = new FrozenTimeManager(
+            SystemConfigurations,
+            scenarioFlowTester
+        );
 
         frozenTimeManager.Register();
         var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
@@ -45,12 +49,12 @@ public class FakeAxisTest
     [InlineData(AxisDirection.Negative)]
     public void VelocityMoveTest(AxisDirection direction)
     {
-        using var frozenTimeManager = new FrozenTimeManager(
-            new FrozenTimeManagerConfig { ManualMode = true }
-        );
-
         var scenarioFlowTesterMock = new Mock<IScenarioFlowTester>();
         var scenarioFlowTester = scenarioFlowTesterMock.Object;
+        using var frozenTimeManager = new FrozenTimeManager(
+            new FrozenTimeManagerConfig { ManualMode = true },
+            scenarioFlowTester
+        );
 
         var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 1.0 });
@@ -106,10 +110,12 @@ public class FakeAxisTest
     [Fact]
     public void WaitTest()
     {
-        using var frozenTimeManager = new FrozenTimeManager();
-
         var scenarioFlowTesterMock = new Mock<IScenarioFlowTester>();
         var scenarioFlowTester = scenarioFlowTesterMock.Object;
+        using var frozenTimeManager = new FrozenTimeManager(
+            SystemConfigurations,
+            scenarioFlowTester
+        );
 
         frozenTimeManager.Register();
         var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
@@ -156,11 +162,12 @@ public class FakeAxisTest
     [Fact]
     public void StopTest()
     {
-        using var frozenTimeManager = new FrozenTimeManager(
-            new FrozenTimeManagerConfig { ManualMode = true }
-        );
         var scenarioFlowTesterMock = new Mock<IScenarioFlowTester>();
         var scenarioFlowTester = scenarioFlowTesterMock.Object;
+        using var frozenTimeManager = new FrozenTimeManager(
+            new FrozenTimeManagerConfig { ManualMode = true },
+            scenarioFlowTester
+        );
 
         var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 1.0 });
@@ -241,8 +248,11 @@ public class FakeAxisTest
     [Fact]
     public void WaitForPositionTest()
     {
-        using var frozenTimeManager = new FrozenTimeManager();
         var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+        using var frozenTimeManager = new FrozenTimeManager(
+            SystemConfigurations,
+            scenarioFlowTester
+        );
 
         frozenTimeManager.Register();
         var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
@@ -257,8 +267,11 @@ public class FakeAxisTest
     [Fact]
     public void WaitForPositionWithHighVelocityTest()
     {
-        using var frozenTimeManager = new FrozenTimeManager();
         var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+        using var frozenTimeManager = new FrozenTimeManager(
+            SystemConfigurations,
+            scenarioFlowTester
+        );
 
         frozenTimeManager.Register();
         var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
@@ -272,8 +285,11 @@ public class FakeAxisTest
     [Fact]
     public void WaitForPositionErrorTest()
     {
-        using var frozenTimeManager = new FrozenTimeManager();
         var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+        using var frozenTimeManager = new FrozenTimeManager(
+            SystemConfigurations,
+            scenarioFlowTester
+        );
 
         frozenTimeManager.Register();
         var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);

@@ -7,6 +7,7 @@ namespace ControlBee.Services;
 
 public class FrozenTimeManager : ITimeManager
 {
+    private readonly IScenarioFlowTester _scenarioFlowTester;
     private readonly FrozenTimeManagerConfig _config;
 
     private readonly Dictionary<Thread, FrozenTimeManagerEvent> _threadEvents = new();
@@ -14,17 +15,19 @@ public class FrozenTimeManager : ITimeManager
 
     private bool _disposing;
 
-    public FrozenTimeManager(SystemConfigurations systemConfigurations)
+    public FrozenTimeManager(
+        SystemConfigurations systemConfigurations,
+        IScenarioFlowTester scenarioFlowTester
+    )
         : this(
-            new FrozenTimeManagerConfig { EmulationMode = systemConfigurations.TimeEmulationMode }
+            new FrozenTimeManagerConfig { EmulationMode = systemConfigurations.TimeEmulationMode },
+            scenarioFlowTester
         ) { }
 
-    public FrozenTimeManager()
-        : this(new FrozenTimeManagerConfig()) { }
-
-    public FrozenTimeManager(FrozenTimeManagerConfig config)
+    public FrozenTimeManager(FrozenTimeManagerConfig config, IScenarioFlowTester scenarioFlowTester)
     {
         _config = config;
+        _scenarioFlowTester = scenarioFlowTester;
         if (!config.ManualMode)
         {
             _tickingThread = new Thread(() =>
@@ -69,8 +72,10 @@ public class FrozenTimeManager : ITimeManager
                         .ToArray<WaitHandle>();
                     WaitHandle.WaitAll(resumedEvents);
                 }
-            });
-            _tickingThread.Name = "FrozenTimeManager_TickingThread";
+            })
+            {
+                Name = "FrozenTimeManager_TickingThread",
+            };
             _tickingThread.Start();
         }
     }
@@ -113,6 +118,7 @@ public class FrozenTimeManager : ITimeManager
             threadEvent.ResumeEvent.WaitOne();
             threadEvent.ResumedEvent.Set();
         }
+        _scenarioFlowTester.OnCheckpoint();
     }
 
     public IStopwatch CreateWatch()

@@ -38,12 +38,13 @@ public abstract class ActorFactoryBase : IDisposable
     public void Recreate(ActorFactoryBaseConfig config)
     {
         Dispose();
-        TimeManager = config.TimeManager ?? new FrozenTimeManager();
-        Database = config.Database ?? Mock.Of<IDatabase>();
         SystemConfigurations =
             config.SystemConfigurations ?? new SystemConfigurations() { FakeMode = true };
-        DeviceManager = config.DeviceManager ?? new DeviceManager();
         ScenarioFlowTester = config.ScenarioFlowTester ?? new ScenarioFlowTester();
+        TimeManager =
+            config.TimeManager ?? new FrozenTimeManager(SystemConfigurations, ScenarioFlowTester);
+        Database = config.Database ?? Mock.Of<IDatabase>();
+        DeviceManager = config.DeviceManager ?? new DeviceManager();
         AxisFactory =
             config.AxisFactory
             ?? new AxisFactory(

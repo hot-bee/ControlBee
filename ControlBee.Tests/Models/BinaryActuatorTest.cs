@@ -93,6 +93,7 @@ public class BinaryActuatorTest()
                     // ReSharper disable once AccessToDisposedClosure
                     new ConditionStep(() => TimeManager.CurrentMilliseconds > 1000),
                     new BehaviorStep(() => ((FakeDigitalInput)actor.CylFwdDet1).On = true),
+                    new ConditionStep(() => TimeManager.CurrentMilliseconds > 2000),
                     new BehaviorStep(() => ((FakeDigitalInput)actor.CylFwdDet2).On = true),
                 ],
             ]
@@ -107,7 +108,7 @@ public class BinaryActuatorTest()
         Assert.True(actor.Cyl2.IsOn());
         var match = new Func<Message, bool>(message => message.Name == "_requestDialog");
         Mock.Get(ui).Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Never);
-        Assert.True(TimeManager.CurrentMilliseconds is > 1000 and < 2000);
+        Assert.True(TimeManager.CurrentMilliseconds is > 2000 and < 3000);
     }
 
     [Fact]
