@@ -1,6 +1,13 @@
-﻿namespace ControlBee.Models;
+﻿using ControlBee.Constants;
+using ControlBee.Interfaces;
 
-public class DialogContext
+namespace ControlBee.Models;
+
+public class DialogContext : IDialogContext
 {
-    public string Title { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Desc { get; set; } = string.Empty;
+    public int? Code { get; set; }
+    public DialogSeverity Severity { get; set; } = DialogSeverity.Error;
+    public string[] ActionButtons { get; set; } = [];
 }

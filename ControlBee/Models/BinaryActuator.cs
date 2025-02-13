@@ -20,7 +20,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
     private IDigitalOutput _outputOn;
 
     private Task<bool>? _task;
-    public Alert TimeoutError = new();
+    public IDialog TimeoutError = new DialogPlaceholder();
 
     public BinaryActuator(
         SystemConfigurations systemConfigurations,
@@ -66,7 +66,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
             _task = null;
             if (!success)
             {
-                TimeoutError.Trigger();
+                TimeoutError.Show();
                 throw new TimeoutError();
             }
         }
@@ -101,8 +101,6 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         SetOn(false);
         Wait();
     }
-
-    public override void UpdateSubItem() { }
 
     public override bool ProcessMessage(ActorItemMessage message)
     {

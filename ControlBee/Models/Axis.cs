@@ -151,8 +151,6 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         _initializeAction();
     }
 
-    public override void UpdateSubItem() { }
-
     public override void InjectProperties(IActorItemInjectionDataSource dataSource)
     {
         // TODO

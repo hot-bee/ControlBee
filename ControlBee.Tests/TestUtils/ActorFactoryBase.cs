@@ -17,6 +17,7 @@ public abstract class ActorFactoryBase : IDisposable
     protected IDigitalInputFactory DigitalInputFactory;
     protected IAnalogOutputFactory AnalogOutputFactory;
     protected IAnalogInputFactory AnalogInputFactory;
+    protected IDialogFactory DialogFactory;
     protected IBinaryActuatorFactory BinaryActuatorFactory;
     protected IVariableManager VariableManager;
     protected IAxisFactory AxisFactory;
@@ -67,6 +68,7 @@ public abstract class ActorFactoryBase : IDisposable
         AnalogOutputFactory =
             config.AnalogOutputFactory
             ?? new AnalogOutputFactory(SystemConfigurations, DeviceManager);
+        DialogFactory = config.DialogFactory ?? new DialogFactory(new DialogContextFactory(), null);
         InitializeSequenceFactory =
             config.InitializeSequenceFactory ?? new InitializeSequenceFactory(SystemConfigurations);
         BinaryActuatorFactory =
@@ -83,6 +85,7 @@ public abstract class ActorFactoryBase : IDisposable
                 DigitalOutputFactory,
                 AnalogInputFactory,
                 AnalogOutputFactory,
+                DialogFactory,
                 InitializeSequenceFactory,
                 BinaryActuatorFactory,
                 VariableManager,

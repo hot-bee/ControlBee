@@ -10,9 +10,9 @@ public class InitializeSequence(IAxis axis, SpeedProfile homingSpeed, Position1D
     : ActorItem,
         IInitializeSequence
 {
-    public Alert SensorEntryTimeout = new();
-    public Alert SensorExitTimeout = new();
-    public Alert SensorReentryTimeout = new();
+    public IDialog SensorEntryTimeout = new DialogPlaceholder();
+    public IDialog SensorExitTimeout = new DialogPlaceholder();
+    public IDialog SensorReentryTimeout = new DialogPlaceholder();
 
     public InitializeSequence(
         IAxis axis,
@@ -31,7 +31,7 @@ public class InitializeSequence(IAxis axis, SpeedProfile homingSpeed, Position1D
         }
         catch (TimeoutError)
         {
-            SensorEntryTimeout.Trigger();
+            SensorEntryTimeout.Show();
             throw new SequenceError();
         }
         finally
@@ -49,7 +49,7 @@ public class InitializeSequence(IAxis axis, SpeedProfile homingSpeed, Position1D
         }
         catch (TimeoutError)
         {
-            SensorExitTimeout.Trigger();
+            SensorExitTimeout.Show();
             throw new SequenceError();
         }
         finally
@@ -64,7 +64,7 @@ public class InitializeSequence(IAxis axis, SpeedProfile homingSpeed, Position1D
         }
         catch (TimeoutError)
         {
-            SensorReentryTimeout.Trigger();
+            SensorReentryTimeout.Show();
             throw new SequenceError();
         }
         finally
@@ -76,8 +76,6 @@ public class InitializeSequence(IAxis axis, SpeedProfile homingSpeed, Position1D
         axis.SetSpeed(homingSpeed);
         homePosition.MoveAndWait();
     }
-
-    public override void UpdateSubItem() { }
 
     public override void InjectProperties(IActorItemInjectionDataSource dataSource)
     {

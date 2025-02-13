@@ -10,6 +10,7 @@ public class ActorConfig(
     IDigitalOutputFactory digitalOutputFactory,
     IAnalogInputFactory analogInputFactory,
     IAnalogOutputFactory analogOutputFactory,
+    IDialogFactory dialogFactory,
     IInitializeSequenceFactory initializeSequenceFactory,
     IBinaryActuatorFactory binaryActuatorFactory,
     IVariableManager variableManager,
@@ -30,6 +31,7 @@ public class ActorConfig(
     public IDigitalOutputFactory DigitalOutputFactory => digitalOutputFactory;
     public IAnalogInputFactory AnalogInputFactory { get; } = analogInputFactory;
     public IAnalogOutputFactory AnalogOutputFactory { get; } = analogOutputFactory;
+    public IDialogFactory DialogFactory { get; } = dialogFactory;
     public IInitializeSequenceFactory InitializeSequenceFactory => initializeSequenceFactory;
 
     public IActorItemInjectionDataSource ActorItemInjectionDataSource =>

@@ -29,7 +29,7 @@ public class BinaryActuatorTest()
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
-        var match = new Func<Message, bool>(message => message.Name == "_requestDialog");
+        var match = new Func<Message, bool>(message => message.Name == "_displayDialog");
         Mock.Get(ui).Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);
         Assert.True(TimeManager.CurrentMilliseconds > 5000);
     }
@@ -47,7 +47,7 @@ public class BinaryActuatorTest()
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
-        var match = new Func<Message, bool>(message => message.Name == "_requestDialog");
+        var match = new Func<Message, bool>(message => message.Name == "_displayDialog");
         Mock.Get(ui).Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);
         Assert.True(TimeManager.CurrentMilliseconds is > 5000 and < 6000);
     }
@@ -75,7 +75,7 @@ public class BinaryActuatorTest()
         actor.Join();
 
         Assert.True(actor.Cyl1.IsOn());
-        var match = new Func<Message, bool>(message => message.Name == "_requestDialog");
+        var match = new Func<Message, bool>(message => message.Name == "_displayDialog");
         Mock.Get(ui).Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Never);
         Assert.True(TimeManager.CurrentMilliseconds is > 1000 and < 2000);
     }
@@ -106,7 +106,7 @@ public class BinaryActuatorTest()
 
         Assert.True(actor.Cyl1.IsOn());
         Assert.True(actor.Cyl2.IsOn());
-        var match = new Func<Message, bool>(message => message.Name == "_requestDialog");
+        var match = new Func<Message, bool>(message => message.Name == "_displayDialog");
         Mock.Get(ui).Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Never);
         Assert.True(TimeManager.CurrentMilliseconds is > 2000 and < 3000);
     }
@@ -124,7 +124,7 @@ public class BinaryActuatorTest()
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
-        var match = new Func<Message, bool>(message => message.Name == "_requestDialog");
+        var match = new Func<Message, bool>(message => message.Name == "_displayDialog");
         Mock.Get(ui).Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);
         Assert.True(TimeManager.CurrentMilliseconds >= 5000);
     }

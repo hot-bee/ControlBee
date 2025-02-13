@@ -37,7 +37,7 @@ public abstract class ActorItem : IActorItem
         return false;
     }
 
-    public abstract void UpdateSubItem();
+    public virtual void UpdateSubItem() { }
 
     public virtual void InjectProperties(IActorItemInjectionDataSource dataSource)
     {

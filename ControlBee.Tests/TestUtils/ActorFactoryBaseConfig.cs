@@ -22,4 +22,5 @@ public class ActorFactoryBaseConfig
     public IDatabase? Database;
     public IAnalogInputFactory? AnalogInputFactory;
     public IAnalogOutputFactory? AnalogOutputFactory;
+    public IDialogFactory? DialogFactory;
 }

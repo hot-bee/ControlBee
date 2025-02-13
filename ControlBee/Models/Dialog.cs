@@ -1,0 +1,54 @@
+﻿using System.Reflection;
+using ControlBee.Constants;
+using ControlBee.Interfaces;
+using ControlBee.Services;
+using log4net;
+
+namespace ControlBee.Models;
+
+public class Dialog(DialogContextFactory dialogContextFactory) : ActorItem, IDialog
+{
+    private static readonly ILog Logger = LogManager.GetLogger(
+        MethodBase.GetCurrentMethod()!.DeclaringType!
+    );
+
+    protected IDialogContext Context = dialogContextFactory.Create();
+
+    public Guid Show()
+    {
+        return Show([]);
+    }
+
+    public Guid Show(string[] actionButtons)
+    {
+        Context.ActionButtons = actionButtons;
+        return Actor.Ui?.Send(new Message(Actor, "_displayDialog", Context)) ?? Guid.Empty;
+    }
+
+    public override void InjectProperties(IActorItemInjectionDataSource dataSource)
+    {
+        base.InjectProperties(dataSource);
+        Context.Name = Name;
+        Context.Desc = Desc;
+        if (
+            dataSource.GetValue(ActorName, ItemPath, nameof(DialogContext.Code)) is string codeValue
+        )
+        {
+            if (int.TryParse(codeValue, out var code))
+                Context.Code = code;
+            else
+                Logger.Error($"Failed to parse Code ({codeValue})");
+        }
+
+        if (
+            dataSource.GetValue(ActorName, ItemPath, nameof(DialogContext.Severity))
+            is string severityValue
+        )
+        {
+            if (Enum.TryParse<DialogSeverity>(severityValue, out var severity))
+                Context.Severity = severity;
+            else
+                Logger.Error($"Failed to parse DialogSeverity ({severityValue})");
+        }
+    }
+}

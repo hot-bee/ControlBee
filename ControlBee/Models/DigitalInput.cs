@@ -9,8 +9,8 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     private const int MillisecondsTimeout = 5000;
     private bool _isOn;
 
-    public Alert IsOffTimeout = new();
-    public Alert IsOnTimeout = new();
+    public IDialog IsOffTimeout = new DialogPlaceholder();
+    public IDialog IsOnTimeout = new DialogPlaceholder();
 
     protected bool InternalIsOn
     {
@@ -21,8 +21,6 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
                 SendDataToUi(Guid.Empty);
         }
     }
-
-    public override void UpdateSubItem() { }
 
     public bool IsOn()
     {
@@ -82,7 +80,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         }
         catch (TimeoutError)
         {
-            IsOnTimeout.Trigger();
+            IsOnTimeout.Show();
             throw;
         }
     }
@@ -95,7 +93,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         }
         catch (TimeoutError)
         {
-            IsOffTimeout.Trigger();
+            IsOffTimeout.Show();
             throw;
         }
     }

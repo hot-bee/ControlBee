@@ -29,8 +29,6 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
         // TODO
     }
 
-    public override void UpdateSubItem() { }
-
     private void SendDataToUi(Guid requestId)
     {
         var payload = new Dict { ["Data"] = InternalData };

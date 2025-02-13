@@ -72,7 +72,7 @@ public class FakeDigitalInputTest : ActorFactoryBase
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
-        var match = new Func<Message, bool>(message => message.Name == "_requestDialog");
+        var match = new Func<Message, bool>(message => message.Name == "_displayDialog");
         Mock.Get(ui).Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);
     }
 
@@ -98,7 +98,7 @@ public class FakeDigitalInputTest : ActorFactoryBase
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
-        var match = new Func<Message, bool>(message => message.Name == "_requestDialog");
+        var match = new Func<Message, bool>(message => message.Name == "_displayDialog");
         Mock.Get(ui).Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Never);
     }
 

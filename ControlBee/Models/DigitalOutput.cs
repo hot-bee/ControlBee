@@ -12,8 +12,6 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
     protected bool InternalOn;
     private Task? _task;
 
-    public override void UpdateSubItem() { }
-
     public override bool ProcessMessage(ActorItemMessage message)
     {
         switch (message.Name)
