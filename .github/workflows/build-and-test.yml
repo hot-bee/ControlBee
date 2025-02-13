@@ -27,6 +27,9 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
+    - name: Nuget Add Source
+      run: nuget sources Add -Name github -Source https://nuget.pkg.github.com/hot-bee/index.json -UserName USER -Password ${{ secrets.NUGET_TOKEN }}
+
     - name: Install dependencies
       run: dotnet restore
       
