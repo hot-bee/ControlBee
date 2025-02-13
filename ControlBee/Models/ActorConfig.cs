@@ -8,6 +8,8 @@ public class ActorConfig(
     IAxisFactory axisFactory,
     IDigitalInputFactory digitalInputFactory,
     IDigitalOutputFactory digitalOutputFactory,
+    IAnalogInputFactory analogInputFactory,
+    IAnalogOutputFactory analogOutputFactory,
     IInitializeSequenceFactory initializeSequenceFactory,
     IBinaryActuatorFactory binaryActuatorFactory,
     IVariableManager variableManager,
@@ -26,6 +28,8 @@ public class ActorConfig(
     public IAxisFactory AxisFactory => axisFactory;
     public IDigitalInputFactory DigitalInputFactory => digitalInputFactory;
     public IDigitalOutputFactory DigitalOutputFactory => digitalOutputFactory;
+    public IAnalogInputFactory AnalogInputFactory { get; } = analogInputFactory;
+    public IAnalogOutputFactory AnalogOutputFactory { get; } = analogOutputFactory;
     public IInitializeSequenceFactory InitializeSequenceFactory => initializeSequenceFactory;
 
     public IActorItemInjectionDataSource ActorItemInjectionDataSource =>

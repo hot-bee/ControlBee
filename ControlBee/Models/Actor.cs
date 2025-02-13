@@ -231,6 +231,10 @@ public class Actor : IActorInternal, IDisposable
                 newItem = config.DigitalInputFactory.Create();
             else if (fieldInfo.FieldType.IsAssignableTo(typeof(IDigitalOutput)))
                 newItem = config.DigitalOutputFactory.Create();
+            else if (fieldInfo.FieldType.IsAssignableTo(typeof(IAnalogInput)))
+                newItem = config.AnalogInputFactory.Create();
+            else if (fieldInfo.FieldType.IsAssignableTo(typeof(IAnalogOutput)))
+                newItem = config.AnalogOutputFactory.Create();
             else
                 throw new ValueError();
             _placeholderManager.Add(placeHolder, newItem);

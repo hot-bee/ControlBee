@@ -1,4 +1,5 @@
 ﻿using ControlBee.Interfaces;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
@@ -108,7 +109,7 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
 
     private void SendDataToUi(Guid requestId)
     {
-        var payload = new Dictionary<string, object?> { ["On"] = InternalOn, ["IsOn"] = IsOn() };
+        var payload = new Dict { ["On"] = InternalOn, ["IsOn"] = IsOn() };
         Actor.Ui?.Send(
             new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)
         );

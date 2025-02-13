@@ -12,6 +12,8 @@ public class EmptyActor
             EmptyAxisFactory.Instance,
             EmptyDigitalInputFactory.Instance,
             EmptyDigitalOutputFactory.Instance,
+            null!,
+            null!,
             EmptyInitializeSequenceFactory.Instance,
             EmptyBinaryActuatorFactory.Instance,
             EmptyVariableManager.Instance,

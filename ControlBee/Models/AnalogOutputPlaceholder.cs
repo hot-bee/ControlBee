@@ -4,10 +4,9 @@ using ControlBee.Interfaces;
 
 namespace ControlBee.Models;
 
-public class DigitalInputPlaceholder : IPlaceholder, IDigitalInput
+public class AnalogOutputPlaceholder : IPlaceholder, IAnalogOutput
 {
     public event PropertyChangedEventHandler? PropertyChanged;
-
     public IActorInternal Actor { get; set; } = EmptyActor.Instance;
     public string ItemPath { get; set; } = string.Empty;
     public string Name { get; } = string.Empty;
@@ -28,42 +27,12 @@ public class DigitalInputPlaceholder : IPlaceholder, IDigitalInput
         throw new UnimplementedByDesignError();
     }
 
-    public bool IsOn()
+    public void Write(long data)
     {
         throw new UnimplementedByDesignError();
     }
 
-    public bool IsOff()
-    {
-        throw new UnimplementedByDesignError();
-    }
-
-    public bool IsOnOrSet()
-    {
-        throw new UnimplementedByDesignError();
-    }
-
-    public bool IsOffOrSet()
-    {
-        throw new UnimplementedByDesignError();
-    }
-
-    public void WaitOn()
-    {
-        throw new UnimplementedByDesignError();
-    }
-
-    public void WaitOff()
-    {
-        throw new UnimplementedByDesignError();
-    }
-
-    public void WaitOn(int millisecondsTimeout)
-    {
-        throw new UnimplementedByDesignError();
-    }
-
-    public void WaitOff(int millisecondsTimeout)
+    public long Read()
     {
         throw new UnimplementedByDesignError();
     }

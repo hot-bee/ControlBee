@@ -52,8 +52,9 @@ public class FakeDigitalInput(
         flowTester.OnCheckpoint();
     }
 
-    public override void ReadFromDevice()
+    protected override void ReadFromDevice()
     {
-        Logger.Debug($"Digital Input: {ItemPath}={InternalIsOn}");
+        // Too verbose
+        //Logger.Debug($"Digital Input: {ItemPath}={InternalIsOn}");
     }
 }

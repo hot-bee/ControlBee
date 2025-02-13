@@ -6,6 +6,7 @@ using ControlBee.Tests.TestUtils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Tests.Models;
 
@@ -63,7 +64,7 @@ public class FakeDigitalOutputTest : ActorFactoryBase
         var match1 = new Func<Message, bool>(message =>
         {
             var actorItemMessage = (ActorItemMessage)message;
-            var payload = (Dictionary<string, object?>)actorItemMessage.Payload!;
+            var payload = (Dict)actorItemMessage.Payload!;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Vacuum" }
                 && (bool)payload["On"]! == false;
@@ -74,7 +75,7 @@ public class FakeDigitalOutputTest : ActorFactoryBase
         var match2 = new Func<Message, bool>(message =>
         {
             var actorItemMessage = (ActorItemMessage)message;
-            var payload = (Dictionary<string, object?>)actorItemMessage.Payload!;
+            var payload = (Dict)actorItemMessage.Payload!;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Vacuum" }
                 && (bool)payload["On"]!
@@ -86,7 +87,7 @@ public class FakeDigitalOutputTest : ActorFactoryBase
         var match3 = new Func<Message, bool>(message =>
         {
             var actorItemMessage = (ActorItemMessage)message;
-            var payload = (Dictionary<string, object?>)actorItemMessage.Payload!;
+            var payload = (Dict)actorItemMessage.Payload!;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Vacuum" }
                 && (bool)payload["On"]!

@@ -1,5 +1,6 @@
 ﻿using ControlBee.Exceptions;
 using ControlBee.Interfaces;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
@@ -120,13 +121,13 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
 
     private void SendDataToUi(Guid requestId)
     {
-        var payload = new Dictionary<string, object?> { [nameof(IsOn)] = IsOn() };
+        var payload = new Dict { [nameof(IsOn)] = IsOn() };
         Actor.Ui?.Send(
             new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)
         );
     }
 
-    public virtual void ReadFromDevice()
+    protected virtual void ReadFromDevice()
     {
         throw new NotImplementedException();
     }

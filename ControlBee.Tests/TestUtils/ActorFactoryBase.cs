@@ -15,6 +15,8 @@ public abstract class ActorFactoryBase : IDisposable
     protected IInitializeSequenceFactory InitializeSequenceFactory;
     protected IDigitalOutputFactory DigitalOutputFactory;
     protected IDigitalInputFactory DigitalInputFactory;
+    protected IAnalogOutputFactory AnalogOutputFactory;
+    protected IAnalogInputFactory AnalogInputFactory;
     protected IBinaryActuatorFactory BinaryActuatorFactory;
     protected IVariableManager VariableManager;
     protected IAxisFactory AxisFactory;
@@ -58,6 +60,12 @@ public abstract class ActorFactoryBase : IDisposable
         DigitalOutputFactory =
             config.DigitalOutputFactory
             ?? new DigitalOutputFactory(SystemConfigurations, DeviceManager, TimeManager);
+        AnalogInputFactory =
+            config.AnalogInputFactory
+            ?? new AnalogInputFactory(SystemConfigurations, DeviceManager);
+        AnalogOutputFactory =
+            config.AnalogOutputFactory
+            ?? new AnalogOutputFactory(SystemConfigurations, DeviceManager);
         InitializeSequenceFactory =
             config.InitializeSequenceFactory ?? new InitializeSequenceFactory(SystemConfigurations);
         BinaryActuatorFactory =
@@ -72,6 +80,8 @@ public abstract class ActorFactoryBase : IDisposable
                 AxisFactory,
                 DigitalInputFactory,
                 DigitalOutputFactory,
+                AnalogInputFactory,
+                AnalogOutputFactory,
                 InitializeSequenceFactory,
                 BinaryActuatorFactory,
                 VariableManager,
@@ -82,8 +92,9 @@ public abstract class ActorFactoryBase : IDisposable
             );
     }
 
-    public void Dispose()
+    public virtual void Dispose()
     {
+        // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
         TimeManager?.Dispose();
     }
 }
