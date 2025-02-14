@@ -18,6 +18,8 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
 
     private Action? _initializeAction;
 
+    private bool _initializing;
+
     protected SpeedProfile? SpeedProfile;
 
     public override void RefreshCache()
@@ -47,6 +49,7 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
             updated |= UpdateCache(ref _isNegativeLimitDetCache, isNegativeLimitDet);
             updated |= UpdateCache(ref _isPositiveLimitDetCache, isPositiveLimitDet);
         }
+
         if (updated)
             SendDataToUi(Guid.Empty);
     }
@@ -64,6 +67,9 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
                     SetEnable(enable);
                 return true;
             }
+            case "_initialize":
+                Initialize();
+                return true;
         }
 
         return base.ProcessMessage(message);
@@ -97,7 +103,7 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
 
     public virtual bool IsInitializing()
     {
-        throw new NotImplementedException();
+        return _initializing;
     }
 
     public bool IsNear(double position, double range)
@@ -221,8 +227,16 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
     public void Initialize()
     {
         if (_initializeAction == null)
-            throw new PlatformException("The initialize action must be set before it can be used.");
+        {
+            Logger.Error("The initialize action must be set before it can be used.");
+            return;
+        }
+        _initializing = true;
+        RefreshCache();
+
         _initializeAction();
+        _initializing = false;
+        RefreshCache();
     }
 
     private void SendDataToUi(Guid requestId)

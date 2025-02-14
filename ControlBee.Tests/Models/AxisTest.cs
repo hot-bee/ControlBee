@@ -111,12 +111,14 @@ public class AxisTest : ActorFactoryBase
     public class TestActor : Actor
     {
         public IAxis X;
+        public bool Initialized = false;
 
         public TestActor(ActorConfig config)
             : base(config)
         {
             X = config.AxisFactory.Create();
             X.SetPosition(100.0);
+            X.SetInitializeAction(() => Initialized = true);
         }
 
         protected override bool ProcessMessage(Message message)
@@ -130,5 +132,41 @@ public class AxisTest : ActorFactoryBase
 
             return base.ProcessMessage(message);
         }
+    }
+
+    [Fact]
+    public void InitializeTest()
+    {
+        var uiActor = Mock.Of<IUiActor>();
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
+        ActorRegistry.Add(uiActor);
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        actor.Start();
+        actor.Send(new ActorItemMessage(uiActor, "/X", "_initialize"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        Assert.True(actor.Initialized);
+
+        var match1 = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = (ActorItemMessage)message;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/X" }
+                && (bool)actorItemMessage.DictPayload!["IsInitializing"]!;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
+
+        var match2 = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = (ActorItemMessage)message;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/X" }
+                && (bool)actorItemMessage.DictPayload!["IsInitializing"]! == false;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
     }
 }

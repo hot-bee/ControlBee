@@ -192,9 +192,4 @@ public class FakeAxis : Axis, IDisposable
         _isEnabled = enable;
         RefreshCache();
     }
-
-    public override bool IsInitializing()
-    {
-        return false;
-    }
 }
