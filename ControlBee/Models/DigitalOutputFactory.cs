@@ -5,13 +5,16 @@ namespace ControlBee.Models;
 public class DigitalOutputFactory(
     SystemConfigurations systemConfigurations,
     IDeviceManager deviceManager,
-    ITimeManager timeManager
+    ITimeManager timeManager,
+    IDeviceMonitor deviceMonitor
 ) : IDigitalOutputFactory
 {
     public IDigitalOutput Create()
     {
-        return systemConfigurations.FakeMode
+        var output = systemConfigurations.FakeMode
             ? new FakeDigitalOutput(deviceManager, timeManager)
             : new DigitalOutput(deviceManager, timeManager);
+        deviceMonitor.Add(output);
+        return output;
     }
 }

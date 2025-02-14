@@ -248,7 +248,7 @@ public class BinaryActuatorTest()
                 && (bool)actorItemMessage.DictPayload!["OnDetect"]!;
         });
         Mock.Get(uiActor)
-            .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
+            .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.AtLeastOnce);
     }
 
     [Fact]

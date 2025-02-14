@@ -213,25 +213,52 @@ public class FakeAxisTest : ActorFactoryBase
         scenarioFlowTesterMock.Verify(m => m.OnCheckpoint(), Times.Once);
     }
 
-    [Fact]
-    public void SkipWaitTest()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void SkipWaitTest(bool skipWaitSensor)
     {
-        using var timeManager = Mock.Of<ITimeManager>();
-        var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+        Recreate(
+            new ActorFactoryBaseConfig()
+            {
+                SystemConfigurations = new SystemConfigurations()
+                {
+                    FakeMode = true,
+                    SkipWaitSensor = skipWaitSensor,
+                },
+            }
+        );
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "WaitSensor"));
+        actor.Send(new TerminateMessage());
+        actor.Join();
+        if (skipWaitSensor)
+            Assert.Null(actor.ExitError);
+        else
+            Assert.IsType<TimeoutError>(actor.ExitError);
+    }
 
-        var fakeAxis = new FakeAxis(timeManager, scenarioFlowTester, true);
-        fakeAxis.SetSpeed(new SpeedProfile { Velocity = 1.0 });
-        fakeAxis.Move(10.0);
-        fakeAxis.IsMoving().Should().BeTrue();
-        fakeAxis.GetPosition(PositionType.Command).Should().Be(0.0);
-        fakeAxis.GetPosition(PositionType.Actual).Should().Be(0.0);
-        fakeAxis.GetPosition(PositionType.Target).Should().Be(10.0);
+    public class TestActor : Actor
+    {
+        public IAxis X;
 
-        fakeAxis.Wait();
-        fakeAxis.IsMoving().Should().BeFalse();
-        fakeAxis.GetPosition(PositionType.Command).Should().Be(10.0);
-        fakeAxis.GetPosition(PositionType.Actual).Should().Be(10.0);
-        fakeAxis.GetPosition(PositionType.Target).Should().Be(10.0);
+        public TestActor(ActorConfig config)
+            : base(config)
+        {
+            X = config.AxisFactory.Create();
+        }
+
+        protected override bool ProcessMessage(Message message)
+        {
+            switch (message.Name)
+            {
+                case "WaitSensor":
+                    X.WaitSensor(AxisSensorType.Home, true, 1000);
+                    return true;
+            }
+            return base.ProcessMessage(message);
+        }
     }
 
     [Fact]

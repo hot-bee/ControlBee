@@ -23,4 +23,14 @@ public class EmptyActorRegistry : IActorRegistry
     {
         throw new UnimplementedByDesignError();
     }
+
+    public IActor[] GetActors()
+    {
+        throw new UnimplementedByDesignError();
+    }
+
+    public (string name, string Title)[] GetActorNameTitlePairs()
+    {
+        throw new UnimplementedByDesignError();
+    }
 }

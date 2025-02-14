@@ -4,13 +4,16 @@ namespace ControlBee.Models;
 
 public class AnalogOutputFactory(
     SystemConfigurations systemConfigurations,
-    IDeviceManager deviceManager
+    IDeviceManager deviceManager,
+    IDeviceMonitor deviceMonitor
 ) : IAnalogOutputFactory
 {
     public IAnalogOutput Create()
     {
-        return systemConfigurations.FakeMode
+        var output = systemConfigurations.FakeMode
             ? new FakeAnalogOutput()
             : new AnalogOutput(deviceManager);
+        deviceMonitor.Add(output);
+        return output;
     }
 }

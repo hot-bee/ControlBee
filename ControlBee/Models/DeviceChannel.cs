@@ -7,6 +7,11 @@ public abstract class DeviceChannel(IDeviceManager deviceManager) : ActorItem, I
 {
     private DeviceChannelInfo? _deviceChannelInfo;
 
+    public virtual void RefreshCache()
+    {
+        // Implement this on override functions
+    }
+
     public IDevice GetDevice()
     {
         if (_deviceChannelInfo == null)

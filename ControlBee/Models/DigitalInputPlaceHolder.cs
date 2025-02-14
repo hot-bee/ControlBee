@@ -28,6 +28,11 @@ public class DigitalInputPlaceholder : IPlaceholder, IDigitalInput
         throw new UnimplementedByDesignError();
     }
 
+    public void RefreshCache()
+    {
+        throw new UnimplementedByDesignError();
+    }
+
     public bool IsOn()
     {
         throw new UnimplementedByDesignError();

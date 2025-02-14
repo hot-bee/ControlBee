@@ -8,7 +8,9 @@ public interface IAxis : IDeviceChannel
 {
     void Enable();
     void Disable();
-    bool IsAlarm();
+    bool IsAlarmed();
+    bool IsEnabled();
+    bool IsInitializing();
     bool IsNear(double position, double range);
     bool IsPosition(PositionComparisonType type, double position);
     void WaitForPosition(PositionComparisonType type, double position);
@@ -26,4 +28,5 @@ public interface IAxis : IDeviceChannel
     void WaitSensor(AxisSensorType type, bool waitingValue, int millisecondsTimeout);
     void Initialize();
     void SetInitializeAction(Action initializeAction);
+    void SetEnable(bool status);
 }

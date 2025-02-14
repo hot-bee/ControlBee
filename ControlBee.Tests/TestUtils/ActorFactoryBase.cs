@@ -46,28 +46,40 @@ public abstract class ActorFactoryBase : IDisposable
             config.TimeManager ?? new FrozenTimeManager(SystemConfigurations, ScenarioFlowTester);
         Database = config.Database ?? Mock.Of<IDatabase>();
         DeviceManager = config.DeviceManager ?? new DeviceManager();
+        var deviceMonitor = Mock.Of<IDeviceMonitor>();
         AxisFactory =
             config.AxisFactory
             ?? new AxisFactory(
                 SystemConfigurations,
                 DeviceManager,
                 TimeManager,
-                ScenarioFlowTester
+                ScenarioFlowTester,
+                deviceMonitor
             );
         ActorRegistry = config.ActorRegistry ?? new ActorRegistry();
         VariableManager = config.VariableManager ?? new VariableManager(Database, ActorRegistry);
         DigitalInputFactory =
             config.DigitalInputFactory
-            ?? new DigitalInputFactory(SystemConfigurations, DeviceManager, ScenarioFlowTester);
+            ?? new DigitalInputFactory(
+                SystemConfigurations,
+                DeviceManager,
+                ScenarioFlowTester,
+                deviceMonitor
+            );
         DigitalOutputFactory =
             config.DigitalOutputFactory
-            ?? new DigitalOutputFactory(SystemConfigurations, DeviceManager, TimeManager);
+            ?? new DigitalOutputFactory(
+                SystemConfigurations,
+                DeviceManager,
+                TimeManager,
+                deviceMonitor
+            );
         AnalogInputFactory =
             config.AnalogInputFactory
-            ?? new AnalogInputFactory(SystemConfigurations, DeviceManager);
+            ?? new AnalogInputFactory(SystemConfigurations, DeviceManager, deviceMonitor);
         AnalogOutputFactory =
             config.AnalogOutputFactory
-            ?? new AnalogOutputFactory(SystemConfigurations, DeviceManager);
+            ?? new AnalogOutputFactory(SystemConfigurations, DeviceManager, deviceMonitor);
         DialogFactory = config.DialogFactory ?? new DialogFactory(new DialogContextFactory(), null);
         InitializeSequenceFactory =
             config.InitializeSequenceFactory ?? new InitializeSequenceFactory(SystemConfigurations);

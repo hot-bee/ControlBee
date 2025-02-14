@@ -27,6 +27,11 @@ public class AnalogInputPlaceholder : IPlaceholder, IAnalogInput
         throw new UnimplementedByDesignError();
     }
 
+    public void RefreshCache()
+    {
+        throw new UnimplementedByDesignError();
+    }
+
     public long Read()
     {
         throw new UnimplementedByDesignError();

@@ -9,24 +9,25 @@ public class FakeAxis : Axis, IDisposable
     private const double Tolerance = 1e-6;
     private readonly IScenarioFlowTester _flowTester;
     private readonly ITimeManager _timeManager;
+    private bool _isEnabled;
     private double _actualPosition;
     private double _commandPosition;
     private bool _homeSensor;
     private bool _isMoving;
     private bool _negativeLimitSensor;
     private bool _positiveLimitSensor;
-    private readonly bool _skipWait;
+    private readonly bool _skipWaitSensor;
     private double _targetPosition;
 
     public FakeAxis(ITimeManager timeManager, IScenarioFlowTester flowTester)
         : this(timeManager, flowTester, false) { }
 
-    public FakeAxis(ITimeManager timeManager, IScenarioFlowTester flowTester, bool skipWait)
+    public FakeAxis(ITimeManager timeManager, IScenarioFlowTester flowTester, bool skipWaitSensor)
         : base(EmptyDeviceManager.Instance, timeManager)
     {
         _timeManager = timeManager;
         _flowTester = flowTester;
-        _skipWait = skipWait;
+        _skipWaitSensor = skipWaitSensor;
         _timeManager.CurrentTimeChanged += TimeManagerOnCurrentTimeChanged;
     }
 
@@ -57,6 +58,7 @@ public class FakeAxis : Axis, IDisposable
         _targetPosition = position;
         _isMoving = true;
         _flowTester.OnCheckpoint();
+        RefreshCache();
     }
 
     public override void VelocityMove(AxisDirection direction)
@@ -76,17 +78,7 @@ public class FakeAxis : Axis, IDisposable
 
         _isMoving = true;
         _flowTester.OnCheckpoint();
-    }
-
-    public override void Wait()
-    {
-        if (_skipWait)
-        {
-            SetPosition(GetPosition(PositionType.Target));
-            _isMoving = false;
-            return;
-        }
-        base.Wait();
+        RefreshCache();
     }
 
     public override void Stop()
@@ -96,6 +88,7 @@ public class FakeAxis : Axis, IDisposable
         _targetPosition = _commandPosition;
         _isMoving = false;
         _flowTester.OnCheckpoint();
+        RefreshCache();
     }
 
     public override double GetPosition(PositionType type)
@@ -137,6 +130,8 @@ public class FakeAxis : Axis, IDisposable
             default:
                 throw new ValueError();
         }
+
+        RefreshCache();
     }
 
     private void TimeManagerOnCurrentTimeChanged(object? sender, int elapsedMilliSeconds)
@@ -182,8 +177,24 @@ public class FakeAxis : Axis, IDisposable
 
     public override void WaitSensor(AxisSensorType type, bool waitingValue, int millisecondsTimeout)
     {
-        if (_skipWait)
+        if (_skipWaitSensor)
             return;
         base.WaitSensor(type, waitingValue, millisecondsTimeout);
+    }
+
+    public override bool IsEnabled()
+    {
+        return _isEnabled;
+    }
+
+    public override void SetEnable(bool enable)
+    {
+        _isEnabled = enable;
+        RefreshCache();
+    }
+
+    public override bool IsInitializing()
+    {
+        return false;
     }
 }

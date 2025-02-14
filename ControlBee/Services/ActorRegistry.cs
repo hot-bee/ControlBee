@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using ControlBee.Exceptions;
+﻿using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 
 namespace ControlBee.Services;
@@ -24,5 +23,15 @@ public class ActorRegistry : IActorRegistry
     public string[] GetActorNames()
     {
         return _map.Keys.ToArray();
+    }
+
+    public IActor[] GetActors()
+    {
+        return _map.Values.ToArray();
+    }
+
+    public (string name, string Title)[] GetActorNameTitlePairs()
+    {
+        return GetActors().Select(actor => (actor.Name, actor.Title)).ToArray();
     }
 }

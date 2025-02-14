@@ -1,7 +1,10 @@
-﻿using ControlBee.Constants;
+﻿using System.Reflection;
+using ControlBee.Constants;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Variables;
+using log4net;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
@@ -9,22 +12,92 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
     : DeviceChannel(deviceManager),
         IAxis
 {
+    private static readonly ILog Logger = LogManager.GetLogger(
+        MethodBase.GetCurrentMethod()!.DeclaringType!
+    );
+
     private Action? _initializeAction;
+
     protected SpeedProfile? SpeedProfile;
+
+    public override void RefreshCache()
+    {
+        base.RefreshCache();
+
+        var commandPosition = GetPosition(PositionType.Command);
+        var actualPosition = GetPosition(PositionType.Actual);
+        var isMoving = IsMoving();
+        var isAlarmed = IsAlarmed();
+        var isEnabled = IsEnabled();
+        var isInitializing = IsInitializing();
+        var isHomeDet = GetSensorValue(AxisSensorType.Home);
+        var isNegativeLimitDet = GetSensorValue(AxisSensorType.NegativeLimit);
+        var isPositiveLimitDet = GetSensorValue(AxisSensorType.PositiveLimit);
+
+        var updated = false;
+        lock (this)
+        {
+            updated |= UpdateCache(ref _commandPositionCache, commandPosition);
+            updated |= UpdateCache(ref _actualPositionCache, actualPosition);
+            updated |= UpdateCache(ref _isMovingCache, isMoving);
+            updated |= UpdateCache(ref _isAlarmedCache, isAlarmed);
+            updated |= UpdateCache(ref _isEnabledCache, isEnabled);
+            updated |= UpdateCache(ref _isInitializingCache, isInitializing);
+            updated |= UpdateCache(ref _isHomeDetCache, isHomeDet);
+            updated |= UpdateCache(ref _isNegativeLimitDetCache, isNegativeLimitDet);
+            updated |= UpdateCache(ref _isPositiveLimitDetCache, isPositiveLimitDet);
+        }
+        if (updated)
+            SendDataToUi(Guid.Empty);
+    }
+
+    public override bool ProcessMessage(ActorItemMessage message)
+    {
+        switch (message.Name)
+        {
+            case "_itemDataRead":
+                SendDataToUi(message.Id);
+                return true;
+            case "_itemDataWrite":
+            {
+                if (message.DictPayload!.GetValueOrDefault("Enable") is bool enable)
+                    SetEnable(enable);
+                return true;
+            }
+        }
+
+        return base.ProcessMessage(message);
+    }
+
+    public virtual void SetEnable(bool enable)
+    {
+        throw new NotImplementedException();
+        RefreshCache();
+    }
 
     public void Enable()
     {
-        // TODO
+        SetEnable(true);
     }
 
     public void Disable()
     {
-        // TODO
+        SetEnable(false);
     }
 
-    public bool IsAlarm()
+    public bool IsAlarmed()
     {
         return false;
+    }
+
+    public virtual bool IsEnabled()
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual bool IsInitializing()
+    {
+        throw new NotImplementedException();
     }
 
     public bool IsNear(double position, double range)
@@ -68,6 +141,7 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
 
     public virtual void Move(double position)
     {
+        ValidateBeforeMoving();
         // TODO
     }
 
@@ -151,9 +225,36 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         _initializeAction();
     }
 
-    public override void InjectProperties(IActorItemInjectionDataSource dataSource)
+    private void SendDataToUi(Guid requestId)
     {
-        // TODO
+        Dict payload;
+        lock (this)
+        {
+            payload = new Dict
+            {
+                ["CommandPosition"] = _commandPositionCache,
+                ["ActualPosition"] = _actualPositionCache,
+                ["IsMoving"] = _isMovingCache,
+                ["IsAlarmed"] = _isAlarmedCache,
+                ["IsEnabled"] = _isEnabledCache,
+                ["IsInitializing"] = _isInitializingCache,
+                ["IsHomeDet"] = _isHomeDetCache,
+                ["IsNegativeLimitDet"] = _isNegativeLimitDetCache,
+                ["IsPositiveLimitDet"] = _isPositiveLimitDetCache,
+            };
+        }
+
+        Actor.Ui?.Send(
+            new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)
+        );
+    }
+
+    private static bool UpdateCache<T>(ref T field, T value)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value))
+            return false;
+        field = value;
+        return true;
     }
 
     protected void ValidateBeforeMoving()
@@ -162,5 +263,26 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
             throw new ValueError("You need to provide a SpeedProfile to move the axis.");
         if (SpeedProfile!.Velocity == 0)
             throw new ValueError("You must provide a speed greater than 0 to move the axis.");
+        if (IsMoving())
+        {
+            Logger.Warn(
+                $"Motion is still moving when it's trying to start move. ({ActorName}:{ItemPath})"
+            );
+            Wait();
+        }
     }
+
+    #region Cache
+
+    private double _commandPositionCache;
+    private double _actualPositionCache;
+    private bool _isAlarmedCache;
+    private bool _isEnabledCache;
+    private bool _isHomeDetCache;
+    private bool _isInitializingCache;
+    private bool _isMovingCache;
+    private bool _isNegativeLimitDetCache;
+    private bool _isPositiveLimitDetCache;
+
+    #endregion
 }

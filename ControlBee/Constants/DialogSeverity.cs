@@ -3,7 +3,7 @@
 public enum DialogSeverity
 {
     Info,
-    Warning,
+    Warn,
     Error,
-    Critical,
+    Fatal,
 }

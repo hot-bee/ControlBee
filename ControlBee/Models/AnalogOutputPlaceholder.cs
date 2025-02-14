@@ -27,6 +27,11 @@ public class AnalogOutputPlaceholder : IPlaceholder, IAnalogOutput
         throw new UnimplementedByDesignError();
     }
 
+    public void RefreshCache()
+    {
+        throw new UnimplementedByDesignError();
+    }
+
     public void Write(long data)
     {
         throw new UnimplementedByDesignError();

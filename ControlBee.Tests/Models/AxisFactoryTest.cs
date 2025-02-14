@@ -25,11 +25,13 @@ public class AxisFactoryTest
         var timeManager = Mock.Of<ITimeManager>();
         var deviceManager = Mock.Of<IDeviceManager>();
         var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+        var deviceMonitor = Mock.Of<IDeviceMonitor>();
         var axisFactory = new AxisFactory(
             systemConfiguration,
             deviceManager,
             timeManager,
-            scenarioFlowTester
+            scenarioFlowTester,
+            deviceMonitor
         );
 
         var axis = axisFactory.Create();

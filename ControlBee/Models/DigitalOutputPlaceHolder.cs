@@ -29,6 +29,11 @@ public class DigitalOutputPlaceholder : IPlaceholder, IDigitalOutput
         throw new UnimplementedByDesignError();
     }
 
+    public void RefreshCache()
+    {
+        throw new UnimplementedByDesignError();
+    }
+
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -45,51 +50,51 @@ public class DigitalOutputPlaceholder : IPlaceholder, IDigitalOutput
 
     public void SetOn(bool on)
     {
-        throw new NotImplementedException();
+        throw new UnimplementedByDesignError();
     }
 
     public void On()
     {
-        throw new NotImplementedException();
+        throw new UnimplementedByDesignError();
     }
 
     public void Off()
     {
-        throw new NotImplementedException();
+        throw new UnimplementedByDesignError();
     }
 
     public bool? IsOn()
     {
-        throw new NotImplementedException();
+        throw new UnimplementedByDesignError();
     }
 
     public bool? IsOff()
     {
-        throw new NotImplementedException();
+        throw new UnimplementedByDesignError();
     }
 
     public bool IsCommandOn()
     {
-        throw new NotImplementedException();
+        throw new UnimplementedByDesignError();
     }
 
     public bool IsCommandOff()
     {
-        throw new NotImplementedException();
+        throw new UnimplementedByDesignError();
     }
 
     public void Wait()
     {
-        throw new NotImplementedException();
+        throw new UnimplementedByDesignError();
     }
 
     public void OnAndWait()
     {
-        throw new NotImplementedException();
+        throw new UnimplementedByDesignError();
     }
 
     public void OffAndWait()
     {
-        throw new NotImplementedException();
+        throw new UnimplementedByDesignError();
     }
 }
