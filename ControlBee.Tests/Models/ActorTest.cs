@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
+using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Tests.TestUtils;
@@ -18,157 +16,12 @@ namespace ControlBee.Tests.Models;
 public class ActorTest : ActorFactoryBase
 {
     [Fact]
-    public void SendMessageTest()
-    {
-        var listener = new ConcurrentQueue<string>();
-        var actor1 = ActorFactory.Create<TestActorA>("MyActor1", "foo", listener);
-        var actor2 = ActorFactory.Create<TestActorA>("MyActor2", "bar", listener);
-
-        actor1.Start();
-        actor2.Start();
-
-        actor2.Send(new Message(actor1, "foo"));
-        actor1.Join();
-        actor2.Join();
-
-        Assert.Equal(12, listener.Count);
-        Assert.True(listener.Where((item, index) => index % 2 == 0).All(s => s == "foo"));
-        Assert.True(listener.Where((item, index) => index % 2 == 1).All(s => s == "bar"));
-    }
-
-    [Fact]
     public void TitleTest()
     {
         var actor = ActorFactory.Create<Actor>("myActor");
         actor.Title.Should().Be("myActor");
         actor.SetTitle("MyActor");
         actor.Title.Should().Be("MyActor");
-    }
-
-    [Fact]
-    public void MessageProcessedTest()
-    {
-        var actor = ActorFactory.Create<TestActorB>("MyActor");
-        var stateTransitMatched = false;
-        var stateEntryMessage = false;
-        var retryWithEmptyMessageMatched = false;
-        actor.MessageProcessed += (_, tuple) =>
-        {
-            if (
-                tuple.oldState.GetType() == typeof(StateA)
-                && tuple.newState.GetType() == typeof(StateB)
-                && tuple.result
-            )
-                stateTransitMatched = true;
-            if (
-                tuple.oldState.GetType() == typeof(StateB)
-                && tuple.message.GetType() == typeof(OnStateEntryMessage)
-                && tuple.newState.GetType() == typeof(StateB)
-                && tuple.result
-            )
-                stateEntryMessage = true;
-            if (
-                tuple.oldState.GetType() == typeof(StateB)
-                && tuple.message == Message.Empty
-                && tuple.newState.GetType() == typeof(StateB)
-                && !tuple.result
-            )
-                retryWithEmptyMessageMatched = true;
-        };
-        actor.Start();
-        actor.Send(new Message(EmptyActor.Instance, "foo"));
-        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
-        actor.Join();
-        stateTransitMatched.Should().BeTrue();
-        Assert.True(stateEntryMessage);
-        Assert.False(retryWithEmptyMessageMatched);
-    }
-
-    [Fact]
-    public void StateChangeTest()
-    {
-        var uiActor = MockActorFactory.Create("ui");
-        ActorRegistry.Add(uiActor);
-        var actor = ActorFactory.Create<TestActorB>("MyActor");
-
-        actor.Start();
-        actor.Send(new Message(EmptyActor.Instance, "foo"));
-        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
-        actor.Join();
-
-        Assert.IsType<StateB>(actor.State);
-        Mock.Get(uiActor)
-            .Verify(m =>
-                m.Send(
-                    It.Is<Message>(message =>
-                        message.Name == "_stateChanged" && message.Payload as string == "StateB"
-                    )
-                )
-            );
-    }
-
-    [Fact]
-    public void OverrideProcessMessageTest()
-    {
-        var actor = ActorFactory.Create<TestActorB>("MyActor");
-
-        actor.Start();
-        actor.Send(new Message(EmptyActor.Instance, "foo"));
-        actor.Send(new Message(EmptyActor.Instance, "reverseFoo"));
-        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
-        actor.Join();
-
-        Assert.IsType<StateA>(actor.State);
-    }
-
-    [Fact]
-    public void WrongProcessMessageReturnTest()
-    {
-        var actor = ActorFactory.Create<TestActorB>("MyActor");
-
-        actor.Start();
-        actor.Send(new Message(EmptyActor.Instance, "qoo"));
-        actor.Join();
-        Assert.NotNull(actor.ExitError);
-    }
-
-    [Theory]
-    [InlineData("foo")]
-    [InlineData("bar")]
-    public void DroppedMessageTest(string messageName)
-    {
-        var actor = ActorFactory.Create<TestActorB>("MyActor");
-        var sender = Mock.Of<IActor>();
-
-        actor.Start();
-        var myMessage = new Message(sender, messageName);
-        actor.Send(myMessage);
-        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
-        actor.Join();
-
-        if (messageName == "foo")
-            Mock.Get(sender).Verify(m => m.Send(It.IsAny<DroppedMessage>()), Times.Never);
-        else
-            Mock.Get(sender)
-                .Verify(
-                    m =>
-                        m.Send(It.Is<DroppedMessage>(message => message.RequestId == myMessage.Id)),
-                    Times.Once
-                );
-    }
-
-    [Fact]
-    public void NoInfiniteDroppedMessageTest()
-    {
-        var actor = ActorFactory.Create<TestActorB>("MyActor");
-        var sender = Mock.Of<IActor>();
-
-        actor.Start();
-        actor.Send(new DroppedMessage(Guid.Empty, sender));
-        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
-        actor.Join();
-
-        Mock.Get(sender).Verify(m => m.Send(It.IsAny<DroppedMessage>()), Times.Never);
     }
 
     [Fact]
@@ -234,18 +87,69 @@ public class ActorTest : ActorFactoryBase
         Assert.Equal(actor.X, actor.GetItem("/X"));
     }
 
-    [Fact]
-    public void StateEntryMessageWhenStartTest()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void SkipWaitSensorTest(bool skipWaitSensor)
     {
-        var actor = ActorFactory.Create<TestActorB>("MyActor");
-        var state = new StateA(actor);
-        actor.State = state;
-        Assert.False(state.Started);
+        Recreate(
+            new ActorFactoryBaseConfig
+            {
+                SystemConfigurations = new SystemConfigurations
+                {
+                    FakeMode = true,
+                    SkipWaitSensor = skipWaitSensor,
+                },
+            }
+        );
+        var actor = ActorFactory.Create<Actor>("MyActor");
+        Assert.Equal(skipWaitSensor, actor.SkipWaitSensor);
+    }
+
+    [Fact]
+    public void UpdateTitle()
+    {
+        ActorItemInjectionDataSource.ReadFromString(
+            """
+
+            MyActor:
+              Name: RealName
+
+            """
+        );
+        var myActor = ActorFactory.Create<TestActorC>("MyActor");
+
+        myActor.Start();
+        myActor.Send(new TerminateMessage());
+        myActor.Join();
+
+        Assert.Equal("RealName", myActor.Title);
+    }
+
+    [Fact]
+    public void ErrorStateTest()
+    {
+        var actor = ActorFactory.Create<TestActorC>("MyActor");
+        actor.State = new StateE(actor);
 
         actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "DoSomethingWrong"));
         actor.Send(new TerminateMessage());
         actor.Join();
-        Assert.True(state.Started);
+        Assert.IsType<ErrorState>(actor.State);
+    }
+
+    [Fact]
+    public void FatalErrorStateTest()
+    {
+        var actor = ActorFactory.Create<TestActorC>("MyActor");
+        actor.State = new StateE(actor);
+
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "DoSomethingTotallyWrong"));
+        actor.Send(new TerminateMessage());
+        actor.Join();
+        Assert.IsType<EmptyState>(actor.State);
     }
 
     [Fact]
@@ -254,8 +158,8 @@ public class ActorTest : ActorFactoryBase
         var ui = MockActorFactory.Create("ui");
         ActorRegistry.Add(ui);
         //var peer = MockActorFactory.Create("Peer");
-        var peer = ActorFactory.Create<TestActorB>("Peer");
-        var actor = ActorFactory.Create<TestActorB>("MyActor");
+        var peer = ActorFactory.Create<Actor>("Peer");
+        var actor = ActorFactory.Create<Actor>("MyActor");
 
         peer.InitPeers([actor]);
         actor.InitPeers([peer]);
@@ -329,123 +233,6 @@ public class ActorTest : ActorFactoryBase
             );
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void SkipWaitSensorTest(bool skipWaitSensor)
-    {
-        Recreate(
-            new ActorFactoryBaseConfig
-            {
-                SystemConfigurations = new SystemConfigurations
-                {
-                    FakeMode = true,
-                    SkipWaitSensor = skipWaitSensor,
-                },
-            }
-        );
-        var actor = ActorFactory.Create<TestActorB>("MyActor");
-        Assert.Equal(skipWaitSensor, actor.SkipWaitSensor);
-    }
-
-    [Fact]
-    public void UpdateTitle()
-    {
-        ActorItemInjectionDataSource.ReadFromString(
-            """
-
-            MyActor:
-              Name: RealName
-
-            """
-        );
-        var myActor = ActorFactory.Create<TestActorC>("MyActor");
-
-        myActor.Start();
-        myActor.Send(new TerminateMessage());
-        myActor.Join();
-
-        Assert.Equal("RealName", myActor.Title);
-    }
-
-    public class TestActorA(
-        ActorConfig config,
-        string messageName,
-        ConcurrentQueue<string> listener
-    ) : Actor(config)
-    {
-        protected override bool ProcessMessage(Message message)
-        {
-            if (message == Message.Empty)
-                return false;
-            if (message.Name == OnStateEntryMessage.MessageName)
-                return false;
-            listener.Enqueue(message.Name);
-            message.Sender.Send(new Message(this, messageName));
-            if (listener.Count > 10)
-                throw new OperationCanceledException();
-            return true;
-        }
-    }
-
-    public class TestActorB : Actor
-    {
-        public TestActorB(ActorConfig config)
-            : base(config)
-        {
-            State = new StateA(this);
-        }
-
-        protected override bool ProcessMessage(Message message)
-        {
-            switch (message.Name)
-            {
-                case "reverseFoo":
-                    State = new StateA(this);
-                    return true;
-            }
-
-            return base.ProcessMessage(message);
-        }
-    }
-
-    public class StateA(TestActorB actor) : State<TestActorB>(actor)
-    {
-        public bool Started;
-
-        public override bool ProcessMessage(Message message)
-        {
-            switch (message.Name)
-            {
-                case OnStateEntryMessage.MessageName:
-                    Started = true;
-                    return true;
-                case "foo":
-                    Actor.State = new StateB(Actor);
-                    return true;
-                case "qoo":
-                    Actor.State = new StateB(Actor);
-                    return false; // Intended
-                default:
-                    return false;
-            }
-        }
-    }
-
-    public class StateB(TestActorB actor) : State<TestActorB>(actor)
-    {
-        public override bool ProcessMessage(Message message)
-        {
-            switch (message.Name)
-            {
-                case OnStateEntryMessage.MessageName:
-                    return true;
-            }
-
-            return false;
-        }
-    }
-
     public class TestActorC : Actor
     {
         public IAxis X;
@@ -457,13 +244,13 @@ public class ActorTest : ActorFactoryBase
         }
     }
 
-    public class StateC(TestActorB actor) : State<TestActorB>(actor)
+    public class StateC(Actor actor) : State<Actor>(actor)
     {
         public override bool ProcessMessage(Message message)
         {
             switch (message.Name)
             {
-                case OnStateEntryMessage.MessageName:
+                case StateEntryMessage.MessageName:
                     Actor.SetStatus("Name", "Leo");
                     Actor.SetStatus("Name", "Trump");
                     Actor.SetStatusByActor("Peer", "WifiId", "KTWorld");
@@ -481,7 +268,7 @@ public class ActorTest : ActorFactoryBase
         }
     }
 
-    public class StateD(TestActorB actor) : State<TestActorB>(actor)
+    public class StateD(Actor actor) : State<Actor>(actor)
     {
         public override bool ProcessMessage(Message message)
         {
@@ -498,6 +285,22 @@ public class ActorTest : ActorFactoryBase
 
                     return true;
                 }
+            }
+
+            return false;
+        }
+    }
+
+    public class StateE(Actor actor) : State<Actor>(actor)
+    {
+        public override bool ProcessMessage(Message message)
+        {
+            switch (message.Name)
+            {
+                case "DoSomethingWrong":
+                    throw new SequenceError();
+                case "DoSomethingTotallyWrong":
+                    throw new FatalSequenceError();
             }
 
             return false;

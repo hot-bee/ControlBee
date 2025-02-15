@@ -1,6 +1,6 @@
 ﻿namespace ControlBee.Exceptions;
 
-public class InterlockError : PlatformException
+public class InterlockError : SequenceError
 {
     public InterlockError() { }
 

@@ -1,6 +1,6 @@
 ﻿namespace ControlBee.Exceptions;
 
-public class TimeoutError : PlatformException
+public class TimeoutError : SequenceError
 {
     public TimeoutError() { }
 

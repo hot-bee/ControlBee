@@ -1,8 +1,12 @@
-﻿using System.Threading;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Linq;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Tests.TestUtils;
+using FluentAssertions;
 using JetBrains.Annotations;
+using Moq;
 using Xunit;
 
 namespace ControlBee.Tests.Models;
@@ -19,6 +23,165 @@ public class ActorMessageTest : ActorFactoryBase
         actor.Join();
     }
 
+    [Fact]
+    public void SendMessageTest()
+    {
+        var listener = new ConcurrentQueue<string>();
+        var actor1 = ActorFactory.Create<TestActorA>("MyActor1", "foo", listener);
+        var actor2 = ActorFactory.Create<TestActorA>("MyActor2", "bar", listener);
+
+        actor1.Start();
+        actor2.Start();
+
+        actor2.Send(new Message(actor1, "foo"));
+        actor1.Join();
+        actor2.Join();
+
+        Assert.Equal(12, listener.Count);
+        Assert.True(listener.Where((item, index) => index % 2 == 0).All(s => s == "foo"));
+        Assert.True(listener.Where((item, index) => index % 2 == 1).All(s => s == "bar"));
+    }
+
+    [Fact]
+    public void MessageProcessedTest()
+    {
+        var actor = ActorFactory.Create<TestActorB>("MyActor");
+        var stateTransitMatched = false;
+        var stateEntryMessage = false;
+        var retryWithEmptyMessageMatched = false;
+        actor.MessageProcessed += (_, tuple) =>
+        {
+            if (
+                tuple.oldState.GetType() == typeof(StateA)
+                && tuple.newState.GetType() == typeof(StateB)
+                && tuple.result
+            )
+                stateTransitMatched = true;
+            if (
+                tuple.oldState.GetType() == typeof(StateB)
+                && tuple.message.GetType() == typeof(StateEntryMessage)
+                && tuple.newState.GetType() == typeof(StateB)
+                && tuple.result
+            )
+                stateEntryMessage = true;
+            if (
+                tuple.oldState.GetType() == typeof(StateB)
+                && tuple.message == Message.Empty
+                && tuple.newState.GetType() == typeof(StateB)
+                && !tuple.result
+            )
+                retryWithEmptyMessageMatched = true;
+        };
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "foo"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+        stateTransitMatched.Should().BeTrue();
+        Assert.True(stateEntryMessage);
+        Assert.False(retryWithEmptyMessageMatched);
+    }
+
+    [Fact]
+    public void StateChangeTest()
+    {
+        var uiActor = MockActorFactory.Create("ui");
+        ActorRegistry.Add(uiActor);
+        var actor = ActorFactory.Create<TestActorB>("MyActor");
+
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "foo"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        Assert.IsType<StateB>(actor.State);
+        Mock.Get(uiActor)
+            .Verify(m =>
+                m.Send(
+                    It.Is<Message>(message =>
+                        message.Name == "_stateChanged" && message.Payload as string == "StateB"
+                    )
+                )
+            );
+    }
+
+    [Fact]
+    public void OverrideProcessMessageTest()
+    {
+        var actor = ActorFactory.Create<TestActorB>("MyActor");
+
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "foo"));
+        actor.Send(new Message(EmptyActor.Instance, "foo2"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        Assert.IsType<StateA>(actor.State);
+    }
+
+    [Fact]
+    public void WrongProcessMessageReturnTest()
+    {
+        var actor = ActorFactory.Create<TestActorB>("MyActor");
+
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "qoo"));
+        actor.Join();
+        Assert.NotNull(actor.LastPlatformException);
+    }
+
+    [Theory]
+    [InlineData("foo")]
+    [InlineData("bar")]
+    public void DroppedMessageTest(string messageName)
+    {
+        var actor = ActorFactory.Create<TestActorB>("MyActor");
+        var sender = Mock.Of<IActor>();
+
+        actor.Start();
+        var myMessage = new Message(sender, messageName);
+        actor.Send(myMessage);
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        if (messageName == "foo")
+            Mock.Get(sender).Verify(m => m.Send(It.IsAny<DroppedMessage>()), Times.Never);
+        else
+            Mock.Get(sender)
+                .Verify(
+                    m =>
+                        m.Send(It.Is<DroppedMessage>(message => message.RequestId == myMessage.Id)),
+                    Times.Once
+                );
+    }
+
+    [Fact]
+    public void NoInfiniteDroppedMessageTest()
+    {
+        var actor = ActorFactory.Create<TestActorB>("MyActor");
+        var sender = Mock.Of<IActor>();
+
+        actor.Start();
+        actor.Send(new DroppedMessage(Guid.Empty, sender));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        Mock.Get(sender).Verify(m => m.Send(It.IsAny<DroppedMessage>()), Times.Never);
+    }
+
+    [Fact]
+    public void StateEntryMessageWhenStartTest()
+    {
+        var actor = ActorFactory.Create<TestActorB>("MyActor");
+        var state = new StateA(actor);
+        actor.State = state;
+        Assert.False(state.Started);
+
+        actor.Start();
+        actor.Send(new TerminateMessage());
+        actor.Join();
+        Assert.True(state.Started);
+    }
+
     public class TestActorA1(ActorConfig config) : Actor(config)
     {
         protected override bool ProcessMessage(Message message)
@@ -29,7 +192,77 @@ public class ActorMessageTest : ActorFactoryBase
                     Send(new TerminateMessage());
                     return true;
             }
+
             return base.ProcessMessage(message);
+        }
+    }
+
+    public class TestActorA(
+        ActorConfig config,
+        string messageName,
+        ConcurrentQueue<string> listener
+    ) : Actor(config)
+    {
+        protected override bool ProcessMessage(Message message)
+        {
+            if (message == Message.Empty)
+                return false;
+            if (message.Name == StateEntryMessage.MessageName)
+                return false;
+            listener.Enqueue(message.Name);
+            message.Sender.Send(new Message(this, messageName));
+            if (listener.Count > 10)
+                throw new OperationCanceledException();
+            return true;
+        }
+    }
+
+    public class TestActorB : Actor
+    {
+        public TestActorB(ActorConfig config)
+            : base(config)
+        {
+            State = new StateA(this);
+        }
+    }
+
+    public class StateA(TestActorB actor) : State<TestActorB>(actor)
+    {
+        public bool Started;
+
+        public override bool ProcessMessage(Message message)
+        {
+            switch (message.Name)
+            {
+                case StateEntryMessage.MessageName:
+                    Started = true;
+                    return true;
+                case "foo":
+                    Actor.State = new StateB(Actor);
+                    return true;
+                case "qoo":
+                    Actor.State = new StateB(Actor);
+                    return false; // Intended
+                default:
+                    return false;
+            }
+        }
+    }
+
+    public class StateB(TestActorB actor) : State<TestActorB>(actor)
+    {
+        public override bool ProcessMessage(Message message)
+        {
+            switch (message.Name)
+            {
+                case StateEntryMessage.MessageName:
+                    return true;
+                case "foo2":
+                    Actor.State = new StateA(Actor);
+                    return true;
+            }
+
+            return false;
         }
     }
 }

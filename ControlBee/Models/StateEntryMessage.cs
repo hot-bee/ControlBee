@@ -2,7 +2,7 @@
 
 namespace ControlBee.Models;
 
-public class OnStateEntryMessage(IActor sender) : Message(sender, MessageName)
+public class StateEntryMessage(IActor sender) : Message(sender, MessageName)
 {
     public const string MessageName = "_onStateEntry";
 }

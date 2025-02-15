@@ -27,12 +27,11 @@ public class Actor : IActorInternal, IDisposable
     private IState _initialState;
 
     private string _title = string.Empty;
-    public PlatformException? ExitError;
+    public PlatformException? LastPlatformException;
 
     public Dictionary<string, IActor> PeerDict = [];
     public Dictionary<IActor, Dict> PeerStatus = new();
-
-    public IState State;
+    public IState State = new EmptyState();
     public Dict Status = new();
 
     public Actor(ActorConfig config)
@@ -48,11 +47,10 @@ public class Actor : IActorInternal, IDisposable
         Name = config.ActorName;
         Ui = config.UiActor;
 
-        State = new EmptyState(this);
         _initialState = State;
 
         ActorBuiltinMessageHandler = new ActorBuiltinMessageHandler(this);
-        _mailbox.Add(new OnStateEntryMessage(this));
+        _mailbox.Add(new StateEntryMessage(this));
     }
 
     public bool SkipWaitSensor { get; }
@@ -91,7 +89,11 @@ public class Actor : IActorInternal, IDisposable
     public virtual void Init(ActorConfig config)
     {
         if (_init)
-            throw new ApplicationException();
+        {
+            Logger.Warn("Init is already done.");
+            return;
+        }
+
         _init = true;
 
         _initialState = State;
@@ -287,6 +289,7 @@ public class Actor : IActorInternal, IDisposable
 
     private void RunThread()
     {
+        Logger.Info($"Thread is starting. ({Name})");
         TimeManager.Register();
         try
         {
@@ -310,12 +313,12 @@ public class Actor : IActorInternal, IDisposable
         }
         catch (OperationCanceledException e)
         {
-            Logger.Info(e);
+            Logger.Info("Thread is cancelled.", e);
         }
         catch (PlatformException e)
         {
-            Logger.Error(e);
-            ExitError = e;
+            Logger.Fatal("PlatformException occured in thread.", e);
+            LastPlatformException = e;
         }
         finally
         {
@@ -355,7 +358,7 @@ public class Actor : IActorInternal, IDisposable
                             "State has changed but ProcessMessage() returns false."
                         );
                     oldState.Dispose();
-                    message = new OnStateEntryMessage(this);
+                    message = new StateEntryMessage(this);
                     Ui?.Send(new Message(this, "_stateChanged", State.GetType().Name));
                     continue;
                 }
@@ -363,16 +366,39 @@ public class Actor : IActorInternal, IDisposable
                 if (
                     !result
                     && message.GetType() != typeof(DroppedMessage)
-                    && message.GetType() != typeof(OnStateEntryMessage)
+                    && message.GetType() != typeof(StateEntryMessage)
                 )
                     message.Sender.Send(new DroppedMessage(message.Id, this));
                 break;
             }
         }
-        catch (FatalSequenceError)
+        catch (SequenceError error)
         {
-            State = _initialState;
+            if (error is FatalSequenceError fatalError)
+            {
+                Logger.Fatal("Fatal Sequence Error", fatalError);
+                State.Dispose();
+                State = CreateFatalErrorState(fatalError);
+            }
+            else
+            {
+                Logger.Error("Sequence Error", error);
+                State.Dispose();
+                State = CreateErrorState(error);
+            }
+
+            MessageHandler(new StateEntryMessage(this));
         }
+    }
+
+    protected virtual IState CreateFatalErrorState(FatalSequenceError fatalError)
+    {
+        return _initialState;
+    }
+
+    protected virtual IState CreateErrorState(SequenceError error)
+    {
+        return new ErrorState(error);
     }
 
     public void Join()

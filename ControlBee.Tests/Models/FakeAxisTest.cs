@@ -234,9 +234,12 @@ public class FakeAxisTest : ActorFactoryBase
         actor.Send(new TerminateMessage());
         actor.Join();
         if (skipWaitSensor)
-            Assert.Null(actor.ExitError);
+            Assert.IsNotType<ErrorState>(actor.State);
         else
-            Assert.IsType<TimeoutError>(actor.ExitError);
+        {
+            Assert.IsType<ErrorState>(actor.State);
+            Assert.IsType<TimeoutError>(((ErrorState)actor.State).Error);
+        }
     }
 
     public class TestActor : Actor
