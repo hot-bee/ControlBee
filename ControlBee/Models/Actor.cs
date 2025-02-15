@@ -42,6 +42,7 @@ public class Actor : IActorInternal, IDisposable
         SkipWaitSensor = config.SystemConfigurations.SkipWaitSensor;
         VariableManager = config.VariableManager;
         TimeManager = config.TimeManager;
+        ScenarioFlowTester = config.ScenarioFlowTester;
         _actorItemInjectionDataSource = config.ActorItemInjectionDataSource;
         PositionAxesMap = new PositionAxesMap();
         Name = config.ActorName;
@@ -80,6 +81,7 @@ public class Actor : IActorInternal, IDisposable
         return _actorItems.ToList().ConvertAll(x => (x.Key, x.Value.GetType())).ToArray();
     }
 
+    public IScenarioFlowTester ScenarioFlowTester { get; }
     public ITimeManager TimeManager { get; }
     public IActor? Ui { get; }
 
@@ -291,6 +293,7 @@ public class Actor : IActorInternal, IDisposable
     {
         Logger.Info($"Thread is starting. ({Name})");
         TimeManager.Register();
+        ScenarioFlowTester.OnCheckpoint();
         try
         {
             while (true)
@@ -358,6 +361,7 @@ public class Actor : IActorInternal, IDisposable
                             "State has changed but ProcessMessage() returns false."
                         );
                     oldState.Dispose();
+                    ScenarioFlowTester.OnCheckpoint();
                     message = new StateEntryMessage(this);
                     Ui?.Send(new Message(this, "_stateChanged", State.GetType().Name));
                     continue;
