@@ -25,30 +25,34 @@ public class ScenarioFlowTester : IScenarioFlowTester
     {
         if (_stepIndices == null || _stepGroups == null)
             return;
-        for (var i = 0; i < _stepIndices.Length; i++)
+        lock (this)
         {
-            var stepGroup = _stepGroups[i];
-            while (_stepIndices[i] < stepGroup.Length)
+            for (var i = 0; i < _stepIndices.Length; i++)
             {
-                var step = stepGroup[_stepIndices[i]];
-                var proceeded = true;
-                switch (step)
+                var stepGroup = _stepGroups[i];
+                while (_stepIndices[i] < stepGroup.Length)
                 {
-                    case ConditionStep conditionStep:
-                        if (conditionStep.Invoke())
+                    var step = stepGroup[_stepIndices[i]];
+                    var proceeded = true;
+                    switch (step)
+                    {
+                        case ConditionStep conditionStep:
+                            if (conditionStep.Invoke())
+                                _stepIndices[i]++;
+                            else
+                                proceeded = false;
+                            break;
+                        case BehaviorStep behaviorsStep:
                             _stepIndices[i]++;
-                        else
-                            proceeded = false;
+                            behaviorsStep.Invoke();
+                            break;
+                        default:
+                            throw new ValueError();
+                    }
+
+                    if (!proceeded)
                         break;
-                    case BehaviorStep behaviorsStep:
-                        _stepIndices[i]++;
-                        behaviorsStep.Invoke();
-                        break;
-                    default:
-                        throw new ValueError();
                 }
-                if (!proceeded)
-                    break;
             }
         }
     }
