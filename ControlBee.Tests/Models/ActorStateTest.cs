@@ -1,4 +1,5 @@
-﻿using ControlBee.Models;
+﻿using ControlBee.Exceptions;
+using ControlBee.Models;
 using ControlBee.Tests.TestUtils;
 using JetBrains.Annotations;
 using Xunit;
@@ -30,6 +31,28 @@ public class ActorStateTest : ActorFactoryBase
         Assert.True(ScenarioFlowTester.Complete);
     }
 
+    [Fact]
+    public void CheckpointWithErrorTest()
+    {
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        ScenarioFlowTester.Setup(
+            [
+                [
+                    new BehaviorStep(
+                        () => actor.Send(new Message(EmptyActor.Instance, "RaiseError"))
+                    ),
+                    new ConditionStep(() => actor.State.GetType() == typeof(ErrorState)),
+                    new BehaviorStep(() => actor.Send(new TerminateMessage())),
+                ],
+            ]
+        );
+
+        actor.Start();
+        actor.Join();
+        Assert.True(ScenarioFlowTester.Complete);
+    }
+
     public class TestActor : Actor
     {
         public TestActor(ActorConfig config)
@@ -48,6 +71,8 @@ public class ActorStateTest : ActorFactoryBase
                 case "TransitToStateB":
                     Actor.State = new StateB(Actor);
                     return true;
+                case "RaiseError":
+                    throw new SequenceError();
             }
 
             return false;

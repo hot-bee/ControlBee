@@ -390,7 +390,7 @@ public class Actor : IActorInternal, IDisposable
                 State.Dispose();
                 State = CreateErrorState(error);
             }
-
+            ScenarioFlowTester.OnCheckpoint();
             MessageHandler(new StateEntryMessage(this));
         }
     }
