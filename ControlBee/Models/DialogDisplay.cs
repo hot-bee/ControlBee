@@ -19,6 +19,6 @@ public class DialogDisplay
             return;
         var context = (DialogContext)e.Payload!;
         var dialog = _dialogViewFactory.Create();
-        dialog.ShowDialog(context, e);
+        dialog.Show(context, e);
     }
 }
