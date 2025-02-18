@@ -58,6 +58,8 @@ public class Actor : IActorInternal, IDisposable
 
     public int MessageFetchTimeout { get; set; } = -1;
 
+    public IScenarioFlowTester ScenarioFlowTester { get; }
+
     public string Name { get; }
 
     public string Title
@@ -81,7 +83,6 @@ public class Actor : IActorInternal, IDisposable
         return _actorItems.ToList().ConvertAll(x => (x.Key, x.Value.GetType())).ToArray();
     }
 
-    public IScenarioFlowTester ScenarioFlowTester { get; }
     public ITimeManager TimeManager { get; }
     public IActor? Ui { get; }
 
@@ -148,6 +149,11 @@ public class Actor : IActorInternal, IDisposable
     {
         Status[name] = value;
         PublishStatus();
+    }
+
+    public object? GetStatus(string name)
+    {
+        return Status[name];
     }
 
     public void SetStatusByActor(string actorName, string keyName, object? value)
@@ -390,6 +396,7 @@ public class Actor : IActorInternal, IDisposable
                 State.Dispose();
                 State = CreateErrorState(error);
             }
+
             ScenarioFlowTester.OnCheckpoint();
             Ui?.Send(new Message(this, "_stateChanged", State.GetType().Name));
             MessageHandler(new StateEntryMessage(this));
