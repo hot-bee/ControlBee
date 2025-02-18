@@ -2,6 +2,7 @@
 using ControlBee.Models;
 using ControlBee.Tests.TestUtils;
 using JetBrains.Annotations;
+using Moq;
 using Xunit;
 
 namespace ControlBee.Tests.Models;
@@ -34,6 +35,8 @@ public class ActorStateTest : ActorFactoryBase
     [Fact]
     public void CheckpointWithErrorTest()
     {
+        var ui = MockActorFactory.Create("ui");
+        ActorRegistry.Add(ui);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
         ScenarioFlowTester.Setup(
@@ -51,6 +54,11 @@ public class ActorStateTest : ActorFactoryBase
         actor.Start();
         actor.Join();
         Assert.True(ScenarioFlowTester.Complete);
+        Mock.Get(ui)
+            .Verify(
+                m => m.Send(It.Is<Message>(message => message.Name == "_stateChanged")),
+                Times.Once
+            );
     }
 
     public class TestActor : Actor
