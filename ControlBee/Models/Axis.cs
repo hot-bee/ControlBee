@@ -135,7 +135,12 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
             if (IsPosition(type, position))
                 return;
             if (!IsMoving())
-                throw new PlatformException("Couldn't meet the condition.");
+            {
+                if (IsPosition(type, position))
+                    return;
+                throw new SequenceError("Couldn't meet the condition.");
+            }
+
             timeManager.Sleep(1);
         }
     }
@@ -231,6 +236,7 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
             Logger.Error("The initialize action must be set before it can be used.");
             return;
         }
+
         _initializing = true;
         RefreshCache();
 
