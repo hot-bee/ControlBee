@@ -138,6 +138,7 @@ public class ActorTest : ActorFactoryBase
         actor.Send(new TerminateMessage());
         actor.Join();
         Assert.IsType<ErrorState>(actor.State);
+        Assert.True(actor.GetStatus("Error") is true);
     }
 
     [Fact]

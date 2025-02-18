@@ -1,19 +1,25 @@
 ﻿using ControlBee.Exceptions;
-using ControlBee.Interfaces;
 
 namespace ControlBee.Models;
 
-public class ErrorState(SequenceError error) : IState
+public class ErrorState(Actor actor, SequenceError error) : State<Actor>(actor)
 {
     public SequenceError Error { get; } = error;
 
-    public virtual bool ProcessMessage(Message message)
+    public override bool ProcessMessage(Message message)
     {
+        switch (message.Name)
+        {
+            case StateEntryMessage.MessageName:
+                Actor.SetStatus("Error", true);
+                return true;
+        }
+
         return false;
     }
 
-    public virtual void Dispose()
+    public override void Dispose()
     {
-        // Empty
+        Actor.SetStatus("Error", false);
     }
 }

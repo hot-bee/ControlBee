@@ -410,7 +410,7 @@ public class Actor : IActorInternal, IDisposable
 
     protected virtual IState CreateErrorState(SequenceError error)
     {
-        return new ErrorState(error);
+        return new ErrorState(this, error);
     }
 
     public void Join()
