@@ -1,4 +1,5 @@
-﻿using ControlBee.Exceptions;
+﻿using System.Configuration;
+using ControlBee.Exceptions;
 using ControlBee.Models;
 using ControlBee.Tests.TestUtils;
 using JetBrains.Annotations;
@@ -15,6 +16,15 @@ public class ActorStateTest : ActorFactoryBase
     {
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
+        var called = false;
+        actor.StateChanged += (sender, tuple) =>
+        {
+            var (oldState, newState) = tuple;
+            Assert.IsType<StateA>(oldState);
+            Assert.IsType<StateB>(newState);
+            called = true;
+        };
+
         ScenarioFlowTester.Setup(
             [
                 [
@@ -30,15 +40,24 @@ public class ActorStateTest : ActorFactoryBase
         actor.Start();
         actor.Join();
         Assert.True(ScenarioFlowTester.Complete);
+        Assert.True(called);
     }
 
     [Fact]
-    public void CheckpointWithErrorTest()
+    public void StateChangeWithErrorTest()
     {
         var ui = MockActorFactory.Create("ui");
         ActorRegistry.Add(ui);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
+        var called = false;
+        actor.StateChanged += (sender, tuple) =>
+        {
+            var (oldState, newState) = tuple;
+            Assert.IsType<StateA>(oldState);
+            Assert.IsType<ErrorState>(newState);
+            called = true;
+        };
         ScenarioFlowTester.Setup(
             [
                 [
@@ -59,6 +78,7 @@ public class ActorStateTest : ActorFactoryBase
                 m => m.Send(It.Is<Message>(message => message.Name == "_stateChanged")),
                 Times.Once
             );
+        Assert.True(called);
     }
 
     public class TestActor : Actor

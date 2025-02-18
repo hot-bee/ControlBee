@@ -201,6 +201,8 @@ public class Actor : IActorInternal, IDisposable
         bool result
     )>? MessageProcessed;
 
+    public event EventHandler<(IState oldState, IState newState)>? StateChanged;
+
     public void SetTitle(string title)
     {
         _title = title;
@@ -367,6 +369,7 @@ public class Actor : IActorInternal, IDisposable
                             "State has changed but ProcessMessage() returns false."
                         );
                     oldState.Dispose();
+                    OnStateChanged((oldState, State));
                     ScenarioFlowTester.OnCheckpoint();
                     message = new StateEntryMessage(this);
                     Ui?.Send(new Message(this, "_stateChanged", State.GetType().Name));
@@ -384,6 +387,7 @@ public class Actor : IActorInternal, IDisposable
         }
         catch (SequenceError error)
         {
+            var oldState = State;
             if (error is FatalSequenceError fatalError)
             {
                 Logger.Fatal("Fatal Sequence Error", fatalError);
@@ -396,7 +400,7 @@ public class Actor : IActorInternal, IDisposable
                 State.Dispose();
                 State = CreateErrorState(error);
             }
-
+            OnStateChanged((oldState, State));
             ScenarioFlowTester.OnCheckpoint();
             Ui?.Send(new Message(this, "_stateChanged", State.GetType().Name));
             MessageHandler(new StateEntryMessage(this));
@@ -435,5 +439,10 @@ public class Actor : IActorInternal, IDisposable
     )
     {
         MessageProcessed?.Invoke(this, e);
+    }
+
+    protected virtual void OnStateChanged((IState oldState, IState newState) e)
+    {
+        StateChanged?.Invoke(this, e);
     }
 }
