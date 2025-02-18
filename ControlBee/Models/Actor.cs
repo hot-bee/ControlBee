@@ -153,7 +153,7 @@ public class Actor : IActorInternal, IDisposable
 
     public object? GetStatus(string name)
     {
-        return Status[name];
+        return Status.GetValueOrDefault(name);
     }
 
     public void SetStatusByActor(string actorName, string keyName, object? value)

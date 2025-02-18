@@ -9,6 +9,7 @@ using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Tests.Models;
 
@@ -169,14 +170,14 @@ public class ActorTest : ActorFactoryBase
 
         peer.Start();
         actor.Start();
-        actor.Send(
-            new Message(peer, "_status", new Dictionary<string, object> { ["Name"] = "Biden" })
-        );
+        actor.Send(new Message(peer, "_status", new Dict { ["Name"] = "Biden" }));
         actor.Send(new TerminateMessage());
 
         peer.Join();
         actor.Join();
 
+        Assert.Equal("Trump", actor.GetStatus("Name"));
+        Assert.Null(actor.GetStatus("Phone"));
         Mock.Get(ui)
             .Verify(
                 m =>
