@@ -31,7 +31,7 @@ public class BinaryActuatorTest()
 
         var match = new Func<Message, bool>(message => message.Name == "_displayDialog");
         Mock.Get(ui).Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);
-        Assert.True(TimeManager.CurrentMilliseconds > 5000);
+        Assert.True(TimeManager.CurrentMilliseconds >= 5000);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class BinaryActuatorTest()
 
         var match = new Func<Message, bool>(message => message.Name == "_displayDialog");
         Mock.Get(ui).Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);
-        Assert.True(TimeManager.CurrentMilliseconds is > 5000 and < 6000);
+        Assert.True(TimeManager.CurrentMilliseconds is >= 5000 and < 6000);
     }
 
     [Fact]

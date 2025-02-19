@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
+using ControlBee.Variables;
 
 namespace ControlBee.Models;
 
 public class BinaryActuator : ActorItem, IBinaryActuator
 {
-    private readonly int _millisecondsTimeout = 5000;
     private readonly IScenarioFlowTester _scenarioFlowTester;
     private readonly SystemConfigurations _systemConfigurations;
     private readonly ITimeManager _timeManager;
@@ -140,11 +140,11 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         _ = IsOn();
     }
 
-    private void SetOn(bool value)
+    private void SetOn(bool on)
     {
         Wait();
         _isOn = null;
-        _on = value;
+        _on = on;
         _outputOn.SetOn(_on);
 
         if (_outputOff != null)
@@ -152,10 +152,12 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         if (_systemConfigurations.SkipWaitSensor)
         {
             if (_inputOn != null)
-                ((FakeDigitalInput)_inputOn).On = value;
+                ((FakeDigitalInput)_inputOn).On = on;
             if (_inputOff != null)
-                ((FakeDigitalInput)_inputOff).On = !value;
+                ((FakeDigitalInput)_inputOff).On = !on;
         }
+
+        var delay = on ? OnTimeout.Value : OffTimeout.Value;
         _task = TimeManager.RunTask(() =>
         {
             var watch = _timeManager.CreateWatch();
@@ -165,7 +167,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
                     break;
                 if (!_on && OffDetect())
                     break;
-                if (watch.ElapsedMilliseconds > _millisecondsTimeout)
+                if (watch.ElapsedMilliseconds >= delay)
                     return false;
 
                 _timeManager.Sleep(1);
@@ -214,4 +216,11 @@ public class BinaryActuator : ActorItem, IBinaryActuator
             new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)
         );
     }
+
+    #region Timeouts
+
+    public Variable<int> OffTimeout = new(VariableScope.Global, 5000);
+    public Variable<int> OnTimeout = new(VariableScope.Global, 5000);
+
+    #endregion
 }

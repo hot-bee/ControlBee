@@ -20,7 +20,7 @@ Picker0:
     Unit: mm
     Desc: Please set the X-axis position for pickup.
   VacuumDet:
-    IsOnTimeout:
+    OnTimeoutError:
       Name: Timeout while waiting the sensor On
 
     Name: Vacuum Detect
@@ -41,8 +41,8 @@ Picker1:
         );
         Assert.Equal(
             "Timeout while waiting the sensor On",
-            dataSource.GetValue("Picker0", "/VacuumDet/IsOnTimeout", "Name") as string
+            dataSource.GetValue("Picker0", "/VacuumDet/OnTimeoutError", "Name") as string
         );
-        Assert.Null(dataSource.GetValue("Picker1", "/VacuumDet/IsOnTimeout", "Name") as string);
+        Assert.Null(dataSource.GetValue("Picker1", "/VacuumDet/OnTimeoutError", "Name") as string);
     }
 }

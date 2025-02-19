@@ -1,4 +1,5 @@
 ﻿using ControlBee.Interfaces;
+using ControlBee.Variables;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
@@ -7,10 +8,11 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
     : DigitalIO(deviceManager),
         IDigitalOutput
 {
-    private const int MillisecondsDelay = 100; // Temp
     private bool? _isOn;
-    protected bool InternalOn;
     private Task? _task;
+    protected bool InternalOn;
+    public Variable<int> OffDelay = new(VariableScope.Global, 100);
+    public Variable<int> OnDelay = new(VariableScope.Global, 100);
 
     public override bool ProcessMessage(ActorItemMessage message)
     {
@@ -36,12 +38,13 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
             return;
         InternalOn = on;
         WriteToDevice();
+        var delay = on ? OnDelay.Value : OffDelay.Value;
         _task = TimeManager.RunTask(() =>
         {
             var watch = timeManager.CreateWatch();
             while (true)
             {
-                if (watch.ElapsedMilliseconds > MillisecondsDelay)
+                if (watch.ElapsedMilliseconds >= delay)
                     break;
 
                 timeManager.Sleep(1);

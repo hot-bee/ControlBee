@@ -1,16 +1,13 @@
 ﻿using ControlBee.Exceptions;
 using ControlBee.Interfaces;
+using ControlBee.Variables;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
 public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManager), IDigitalInput
 {
-    private const int MillisecondsTimeout = 5000;
     private bool _isOn;
-
-    public IDialog IsOffTimeout = new DialogPlaceholder();
-    public IDialog IsOnTimeout = new DialogPlaceholder();
 
     protected bool InternalIsOn
     {
@@ -43,19 +40,14 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         return IsOnOffOrSet(false);
     }
 
-    protected virtual bool IsOnOffOrSet(bool on)
-    {
-        return IsOn();
-    }
-
     public void WaitOn()
     {
-        WaitOn(MillisecondsTimeout);
+        WaitOn(OnTimeout.Value);
     }
 
     public void WaitOff()
     {
-        WaitOff(MillisecondsTimeout);
+        WaitOff(OffTimeout.Value);
     }
 
     public override bool ProcessMessage(ActorItemMessage message)
@@ -72,6 +64,11 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         return base.ProcessMessage(message);
     }
 
+    protected virtual bool IsOnOffOrSet(bool on)
+    {
+        return IsOn();
+    }
+
     public void WaitOn(int millisecondsTimeout)
     {
         try
@@ -80,7 +77,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         }
         catch (TimeoutError)
         {
-            IsOnTimeout.Show();
+            OnTimeoutError.Show();
             throw;
         }
     }
@@ -93,7 +90,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         }
         catch (TimeoutError)
         {
-            IsOffTimeout.Show();
+            OffTimeoutError.Show();
             throw;
         }
     }
@@ -129,4 +126,18 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     {
         throw new NotImplementedException();
     }
+
+    #region Timeouts
+
+    public Variable<int> OffTimeout = new(VariableScope.Global, 5000);
+    public Variable<int> OnTimeout = new(VariableScope.Global, 5000);
+
+    #endregion
+
+    #region Dialogs
+
+    public IDialog OffTimeoutError = new DialogPlaceholder();
+    public IDialog OnTimeoutError = new DialogPlaceholder();
+
+    #endregion
 }

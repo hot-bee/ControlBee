@@ -43,7 +43,7 @@ public class FakeDigitalOutputTest : ActorFactoryBase
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
-        Assert.True(TimeManager.CurrentMilliseconds is > 100 and < 1000);
+        Assert.True(TimeManager.CurrentMilliseconds is >= 100 and < 1000);
         Assert.True(actor.Vacuum.IsOn() is true);
     }
 
