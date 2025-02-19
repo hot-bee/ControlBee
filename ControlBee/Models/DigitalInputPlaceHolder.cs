@@ -43,12 +43,22 @@ public class DigitalInputPlaceholder : IPlaceholder, IDigitalInput
         throw new UnimplementedByDesignError();
     }
 
-    public bool IsOnOrSet()
+    public bool IsOnOrTrue()
     {
         throw new UnimplementedByDesignError();
     }
 
-    public bool IsOffOrSet()
+    public bool IsOffOrTrue()
+    {
+        throw new UnimplementedByDesignError();
+    }
+
+    public bool IsOnOrFalse()
+    {
+        throw new UnimplementedByDesignError();
+    }
+
+    public bool IsOffOrFalse()
     {
         throw new UnimplementedByDesignError();
     }

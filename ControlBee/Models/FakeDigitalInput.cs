@@ -36,15 +36,9 @@ public class FakeDigitalInput(
         base.WaitSensor(isOn, millisecondsTimeout);
     }
 
-    protected override bool IsOnOffOrSet(bool on)
+    protected override bool IsOnOffOrValue(bool value)
     {
-        if (_skipWaitSensor)
-        {
-            On = on;
-            return true;
-        }
-
-        return base.IsOnOffOrSet(on);
+        return _skipWaitSensor ? value : base.IsOnOffOrValue(value);
     }
 
     protected override void OnAfterSleepWaitingSensor()

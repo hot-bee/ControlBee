@@ -42,7 +42,7 @@ public class FakeDigitalInputTest : ActorFactoryBase
     }
 
     [Fact]
-    public void IsOnOrSetTest()
+    public void IsOnOrValueTest()
     {
         var systemConfigurations = new SystemConfigurations
         {
@@ -50,13 +50,10 @@ public class FakeDigitalInputTest : ActorFactoryBase
             SkipWaitSensor = true,
         };
         var input = new FakeDigitalInput(systemConfigurations, EmptyScenarioFlowTester.Instance);
-        Assert.True(input.IsOnOrSet());
-        Assert.True(input.IsOn());
-        Assert.True(input.IsOff() is false);
-
-        Assert.True(input.IsOffOrSet());
-        Assert.True(input.IsOff());
-        Assert.True(input.IsOn() is false);
+        Assert.True(input.IsOnOrTrue());
+        Assert.False(input.IsOnOrFalse());
+        Assert.True(input.IsOffOrTrue());
+        Assert.False(input.IsOffOrFalse());
     }
 
     [Fact]

@@ -4,8 +4,10 @@ public interface IDigitalInput : IDigitalIO
 {
     bool IsOn();
     bool IsOff();
-    bool IsOnOrSet();
-    bool IsOffOrSet();
+    bool IsOnOrTrue();
+    bool IsOffOrTrue();
+    bool IsOnOrFalse();
+    bool IsOffOrFalse();
 
     void WaitOn();
     void WaitOff();
