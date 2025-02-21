@@ -20,12 +20,14 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
 
     private bool _initializing;
 
+    private IVariable? _jogSpeedVariable;
+    private Task? _task;
+
     protected SpeedProfile? SpeedProfile;
 
     public override void RefreshCache()
     {
         base.RefreshCache();
-
         var commandPosition = GetPosition(PositionType.Command);
         var actualPosition = GetPosition(PositionType.Actual);
         var isMoving = IsMoving();
@@ -79,6 +81,22 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
     {
         throw new NotImplementedException();
         RefreshCache();
+    }
+
+    public void SetJogSpeed(IVariable jogSpeedVariable)
+    {
+        _jogSpeedVariable = jogSpeedVariable;
+    }
+
+    public SpeedProfile? GetJogSpeed(JogSpeed jogSpeed)
+    {
+        if (_jogSpeedVariable == null)
+        {
+            Logger.Error($"Didn't set jog speed for this axis. ({ActorName}, {ItemPath})");
+            return null;
+        }
+
+        return (SpeedProfile)_jogSpeedVariable.ValueObject!;
     }
 
     public void Enable()
@@ -154,12 +172,14 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
     {
         ValidateBeforeMoving();
         // TODO
+        MonitorMoving();
     }
 
-    public virtual void MoveAndWait(double position)
+    public void MoveAndWait(double position)
     {
         ValidateBeforeMoving();
         Move(position);
+        MonitorMoving();
         Wait();
     }
 
@@ -191,10 +211,22 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         throw new NotImplementedException();
     }
 
-    public virtual void Wait()
+    public void Wait()
     {
-        while (IsMoving())
-            timeManager.Sleep(1);
+        if (_task != null)
+        {
+            _task.Wait();
+            _task = null;
+        }
+
+        if (IsMoving())
+        {
+            Logger.Error(
+                $"Monitoring task finished but axis is still moving. ({ActorName}, {ItemPath})"
+            );
+            while (IsMoving())
+                timeManager.Sleep(1);
+        }
     }
 
     public virtual double GetPosition(PositionType type)
@@ -245,6 +277,16 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         RefreshCache();
     }
 
+    protected void MonitorMoving()
+    {
+        _task = TimeManager.RunTask(() =>
+        {
+            var watch = timeManager.CreateWatch();
+            while (IsMoving())
+                timeManager.Sleep(1);
+        });
+    }
+
     private void SendDataToUi(Guid requestId)
     {
         Dict payload;
@@ -284,12 +326,10 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         if (SpeedProfile!.Velocity == 0)
             throw new ValueError("You must provide a speed greater than 0 to move the axis.");
         if (IsMoving())
-        {
             Logger.Warn(
                 $"Motion is still moving when it's trying to start move. ({ActorName}:{ItemPath})"
             );
-            Wait();
-        }
+        Wait();
     }
 
     #region Cache

@@ -73,11 +73,10 @@ public class ActorTest : ActorFactoryBase
 
         var items = actor.GetItems();
 
-        Assert.Equal(2, items.Length);
-        Assert.Equal("/MyVar", items[0].itemPath);
-        Assert.True(items[0].type.IsAssignableTo(typeof(IVariable)));
-        Assert.Equal("/MyOutput", items[1].itemPath);
-        Assert.True(items[1].type.IsAssignableTo(typeof(IDigitalOutput)));
+        Assert.Equal("/MyVar", items[^2].itemPath);
+        Assert.True(items[^2].type.IsAssignableTo(typeof(IVariable)));
+        Assert.Equal("/MyOutput", items[^1].itemPath);
+        Assert.True(items[^1].type.IsAssignableTo(typeof(IDigitalOutput)));
     }
 
     [Fact]

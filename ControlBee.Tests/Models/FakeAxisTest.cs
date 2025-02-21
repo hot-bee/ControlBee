@@ -19,29 +19,43 @@ public class FakeAxisTest : ActorFactoryBase
     [Fact]
     public void MoveTest()
     {
-        var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
-        using var frozenTimeManager = new FrozenTimeManager(
-            SystemConfigurations,
-            scenarioFlowTester
+        Recreate(
+            new ActorFactoryBaseConfig { ScenarioFlowTester = Mock.Of<IScenarioFlowTester>() }
+        );
+        var client = MockActorFactory.Create("client");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        ActorUtils.SetupGetMessage(
+            client,
+            "MoveDone",
+            message =>
+            {
+                actor.X.IsMoving().Should().BeTrue();
+                actor.X.GetPosition().Should().Be(0.0);
+                actor.X.GetPosition(PositionType.Actual).Should().Be(0.0);
+                actor.X.GetPosition(PositionType.Target).Should().Be(10.0);
+                Mock.Get(ScenarioFlowTester).Verify(m => m.OnCheckpoint(), Times.AtLeastOnce);
+                Mock.Get(ScenarioFlowTester).Invocations.Clear();
+                actor.Send(new Message(client, "Wait"));
+            }
+        );
+        ActorUtils.SetupGetMessage(
+            client,
+            "WaitDone",
+            message =>
+            {
+                actor.X.IsMoving().Should().BeFalse();
+                actor.X.GetPosition().Should().Be(10.0);
+                actor.X.GetPosition(PositionType.Actual).Should().Be(10.0);
+                actor.X.GetPosition(PositionType.Target).Should().Be(10.0);
+                Mock.Get(ScenarioFlowTester).Verify(m => m.OnCheckpoint(), Times.AtLeastOnce);
+                actor.Send(new TerminateMessage());
+            }
         );
 
-        frozenTimeManager.Register();
-        var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
-        fakeAxis.SetSpeed(new SpeedProfile { Velocity = 1.0 });
-        fakeAxis.Move(10.0);
-        fakeAxis.IsMoving().Should().BeTrue();
-        fakeAxis.GetPosition(PositionType.Command).Should().Be(0.0);
-        fakeAxis.GetPosition(PositionType.Actual).Should().Be(0.0);
-        fakeAxis.GetPosition(PositionType.Target).Should().Be(10.0);
-        Mock.Get(scenarioFlowTester).Verify(m => m.OnCheckpoint(), Times.Once);
-
-        Mock.Get(scenarioFlowTester).Invocations.Clear();
-        fakeAxis.Wait();
-        fakeAxis.IsMoving().Should().BeFalse();
-        fakeAxis.GetPosition(PositionType.Command).Should().Be(10.0);
-        fakeAxis.GetPosition(PositionType.Actual).Should().Be(10.0);
-        fakeAxis.GetPosition(PositionType.Target).Should().Be(10.0);
-        Mock.Get(scenarioFlowTester).Verify(m => m.OnCheckpoint(), Times.AtLeastOnce);
+        actor.Start();
+        actor.Send(new Message(client, "Move"));
+        actor.Join();
     }
 
     [Theory]
@@ -110,24 +124,38 @@ public class FakeAxisTest : ActorFactoryBase
     [Fact]
     public void WaitTest()
     {
-        var scenarioFlowTesterMock = new Mock<IScenarioFlowTester>();
-        var scenarioFlowTester = scenarioFlowTesterMock.Object;
-        using var frozenTimeManager = new FrozenTimeManager(
-            SystemConfigurations,
-            scenarioFlowTester
+        Recreate(
+            new ActorFactoryBaseConfig { ScenarioFlowTester = Mock.Of<IScenarioFlowTester>() }
+        );
+        var client = MockActorFactory.Create("client");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        ActorUtils.SetupGetMessage(
+            client,
+            "MoveDone",
+            message =>
+            {
+                actor.Send(new Message(client, "Wait"));
+            }
+        );
+        ActorUtils.SetupGetMessage(
+            client,
+            "WaitDone",
+            message =>
+            {
+                actor.X.IsMoving().Should().BeFalse();
+                actor.X.GetPosition(PositionType.Command).Should().Be(10.0);
+                actor.X.GetPosition(PositionType.Actual).Should().Be(10.0);
+                actor.X.GetPosition(PositionType.Target).Should().Be(10.0);
+                Mock.Get(ScenarioFlowTester).Verify(m => m.OnCheckpoint(), Times.AtLeastOnce);
+
+                actor.Send(new TerminateMessage());
+            }
         );
 
-        frozenTimeManager.Register();
-        var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
-        fakeAxis.SetSpeed(new SpeedProfile { Velocity = 1.0 });
-        fakeAxis.Move(10.0);
-        scenarioFlowTesterMock.Invocations.Clear();
-        fakeAxis.Wait();
-        fakeAxis.IsMoving().Should().BeFalse();
-        fakeAxis.GetPosition(PositionType.Command).Should().Be(10.0);
-        fakeAxis.GetPosition(PositionType.Actual).Should().Be(10.0);
-        fakeAxis.GetPosition(PositionType.Target).Should().Be(10.0);
-        scenarioFlowTesterMock.Verify(m => m.OnCheckpoint(), Times.AtLeastOnce);
+        actor.Start();
+        actor.Send(new Message(client, "Move"));
+        actor.Join();
     }
 
     [Fact]
@@ -219,9 +247,9 @@ public class FakeAxisTest : ActorFactoryBase
     public void SkipWaitTest(bool skipWaitSensor)
     {
         Recreate(
-            new ActorFactoryBaseConfig()
+            new ActorFactoryBaseConfig
             {
-                SystemConfigurations = new SystemConfigurations()
+                SystemConfigurations = new SystemConfigurations
                 {
                     FakeMode = true,
                     SkipWaitSensor = skipWaitSensor,
@@ -234,33 +262,13 @@ public class FakeAxisTest : ActorFactoryBase
         actor.Send(new TerminateMessage());
         actor.Join();
         if (skipWaitSensor)
+        {
             Assert.IsNotType<ErrorState>(actor.State);
+        }
         else
         {
             Assert.IsType<ErrorState>(actor.State);
             Assert.IsType<TimeoutError>(((ErrorState)actor.State).Error);
-        }
-    }
-
-    public class TestActor : Actor
-    {
-        public IAxis X;
-
-        public TestActor(ActorConfig config)
-            : base(config)
-        {
-            X = config.AxisFactory.Create();
-        }
-
-        protected override bool ProcessMessage(Message message)
-        {
-            switch (message.Name)
-            {
-                case "WaitSensor":
-                    X.WaitSensor(AxisSensorType.Home, true, 1000);
-                    return true;
-            }
-            return base.ProcessMessage(message);
         }
     }
 
@@ -278,20 +286,34 @@ public class FakeAxisTest : ActorFactoryBase
     [Fact]
     public void WaitForPositionTest()
     {
-        var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
-        using var frozenTimeManager = new FrozenTimeManager(
-            SystemConfigurations,
-            scenarioFlowTester
+        Recreate(
+            new ActorFactoryBaseConfig { ScenarioFlowTester = Mock.Of<IScenarioFlowTester>() }
+        );
+        var client = MockActorFactory.Create("client");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        ActorUtils.SetupGetMessage(
+            client,
+            "WaitForPositionDone",
+            message =>
+            {
+                Assert.True(actor.X.GetPosition() is > 5 and < 6);
+                actor.Send(new Message(client, "Wait"));
+            }
+        );
+        ActorUtils.SetupGetMessage(
+            client,
+            "WaitDone",
+            message =>
+            {
+                Assert.Equal(10, actor.X.GetPosition());
+                actor.Send(new TerminateMessage());
+            }
         );
 
-        frozenTimeManager.Register();
-        var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
-        fakeAxis.SetSpeed(new SpeedProfile { Velocity = 1.0 });
-        fakeAxis.Move(10.0);
-        fakeAxis.WaitForPosition(PositionComparisonType.Greater, 5);
-        Assert.True(fakeAxis.GetPosition(PositionType.Command) is > 5 and < 6);
-        fakeAxis.Wait();
-        Assert.Equal(10, fakeAxis.GetPosition(PositionType.Command));
+        actor.Start();
+        actor.Send(new Message(client, "WaitForPosition"));
+        actor.Join();
     }
 
     [Fact]
@@ -344,5 +366,43 @@ public class FakeAxisTest : ActorFactoryBase
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 10.0 });
         fakeAxis.Move(10.0);
         fakeAxis.WaitForPosition(PositionComparisonType.GreaterOrEqual, 10);
+    }
+
+    public class TestActor : Actor
+    {
+        public IAxis X;
+
+        public TestActor(ActorConfig config)
+            : base(config)
+        {
+            X = config.AxisFactory.Create();
+        }
+
+        protected override bool ProcessMessage(Message message)
+        {
+            switch (message.Name)
+            {
+                case "WaitSensor":
+                    X.WaitSensor(AxisSensorType.Home, true, 1000);
+                    return true;
+                case "Move":
+                    X.SetSpeed(new SpeedProfile { Velocity = 1.0 });
+                    X.Move(10.0);
+                    message.Sender.Send(new Message(message, this, "MoveDone"));
+                    return true;
+                case "Wait":
+                    X.Wait();
+                    message.Sender.Send(new Message(message, this, "WaitDone"));
+                    return true;
+                case "WaitForPosition":
+                    X.SetSpeed(new SpeedProfile { Velocity = 1.0 });
+                    X.Move(10.0);
+                    X.WaitForPosition(PositionComparisonType.Greater, 5);
+                    message.Sender.Send(new Message(message, this, "WaitForPositionDone"));
+                    return true;
+            }
+
+            return base.ProcessMessage(message);
+        }
     }
 }

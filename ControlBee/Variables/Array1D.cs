@@ -20,6 +20,12 @@ public class Array1D<T> : ArrayBase
         UpdateSubItem();
     }
 
+    public Array1D(T[] value)
+    {
+        _value = value;
+        UpdateSubItem();
+    }
+
     public T this[int x]
     {
         get => _value[x];

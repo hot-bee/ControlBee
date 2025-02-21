@@ -59,6 +59,7 @@ public class FakeAxis : Axis, IDisposable
         _isMoving = true;
         _flowTester.OnCheckpoint();
         RefreshCache();
+        MonitorMoving();
     }
 
     public override void VelocityMove(AxisDirection direction)
@@ -79,6 +80,7 @@ public class FakeAxis : Axis, IDisposable
         _isMoving = true;
         _flowTester.OnCheckpoint();
         RefreshCache();
+        MonitorMoving();
     }
 
     public override void Stop()

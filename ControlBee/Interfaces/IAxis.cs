@@ -1,5 +1,4 @@
 ﻿using ControlBee.Constants;
-using ControlBee.Models;
 using ControlBee.Variables;
 
 namespace ControlBee.Interfaces;
@@ -29,4 +28,6 @@ public interface IAxis : IDeviceChannel
     void Initialize();
     void SetInitializeAction(Action initializeAction);
     void SetEnable(bool status);
+    SpeedProfile? GetJogSpeed(JogSpeed jogSpeed);
+    void SetJogSpeed(IVariable jogSpeedVariable);
 }

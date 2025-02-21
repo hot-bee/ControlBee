@@ -3,6 +3,7 @@ using System.Reflection;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Utils;
+using ControlBee.Variables;
 using log4net;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
@@ -27,6 +28,12 @@ public class Actor : IActorInternal, IDisposable
     private IState _initialState;
 
     private string _title = string.Empty;
+
+    public Variable<Array1D<double>> StepJogSizes = new(
+        VariableScope.Global,
+        new Array1D<double>([0.01, 0.1, 1.0])
+    );
+
     public PlatformException? LastPlatformException;
 
     public Dictionary<string, IActor> PeerDict = [];
@@ -89,6 +96,11 @@ public class Actor : IActorInternal, IDisposable
     public IPositionAxesMap PositionAxesMap { get; }
     public IVariableManager VariableManager { get; }
 
+    public string[] GetAxisItemPaths(string positionItemPath)
+    {
+        return PositionAxesMap.Get(positionItemPath).ToList().ConvertAll(x => x.ItemPath).ToArray();
+    }
+
     public virtual void Init(ActorConfig config)
     {
         if (_init)
@@ -129,6 +141,11 @@ public class Actor : IActorInternal, IDisposable
         }
 
         Logger.Info("Actor instance successfully disposed.");
+    }
+
+    public double[] GetStepJogSizes()
+    {
+        return StepJogSizes.Value.Items.ToList().ConvertAll(x => (double)x!).ToArray();
     }
 
     private void UpdateTitle()
@@ -400,6 +417,7 @@ public class Actor : IActorInternal, IDisposable
                 State.Dispose();
                 State = CreateErrorState(error);
             }
+
             OnStateChanged((oldState, State));
             ScenarioFlowTester.OnCheckpoint();
             Ui?.Send(new Message(this, "_stateChanged", State.GetType().Name));

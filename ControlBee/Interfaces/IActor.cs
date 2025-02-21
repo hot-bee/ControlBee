@@ -10,4 +10,6 @@ public interface IActor
     (string itemPath, Type type)[] GetItems();
     IActorItem? GetItem(string itemPath);
     string[] GetFunctions();
+    string[] GetAxisItemPaths(string positionItemPath);
+    double[] GetStepJogSizes();
 }
