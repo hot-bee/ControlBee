@@ -28,7 +28,7 @@ public class FakeInitializeSequenceTest : ActorFactoryBase
         Assert.Equal(100.0, actor.X.GetPosition());
     }
 
-    public class TestActor : Actor
+    private class TestActor : Actor
     {
         public Variable<Position1D> HomePositionX = new(
             VariableScope.Global,

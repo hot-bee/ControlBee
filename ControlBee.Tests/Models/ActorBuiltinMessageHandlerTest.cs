@@ -71,7 +71,7 @@ public class ActorBuiltinMessageHandlerTest : ActorFactoryBase
             );
     }
 
-    public class TestActor : Actor
+    private class TestActor : Actor
     {
         public Variable<Position1D> HomePositionX = new(
             VariableScope.Global,
@@ -94,7 +94,7 @@ public class ActorBuiltinMessageHandlerTest : ActorFactoryBase
         }
     }
 
-    public class IdleState(TestActor actor) : State<TestActor>(actor)
+    private class IdleState(TestActor actor) : State<TestActor>(actor)
     {
         public override bool ProcessMessage(Message message)
         {
@@ -118,7 +118,7 @@ public class ActorBuiltinMessageHandlerTest : ActorFactoryBase
     }
 
     [Fact]
-    public void PropertyRead()
+    public void PropertyReadTest()
     {
         ActorItemInjectionDataSource.ReadFromString(
             @"

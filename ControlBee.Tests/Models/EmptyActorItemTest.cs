@@ -51,7 +51,7 @@ MyActor:
             .Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);
     }
 
-    public class TestActor(ActorConfig config) : Actor(config)
+    private class TestActor(ActorConfig config) : Actor(config)
     {
         public EmptyActorItem EmptyItem = new();
     }

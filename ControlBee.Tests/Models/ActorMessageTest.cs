@@ -182,7 +182,7 @@ public class ActorMessageTest : ActorFactoryBase
         Assert.True(state.Started);
     }
 
-    public class TestActorA1(ActorConfig config) : Actor(config)
+    private class TestActorA1(ActorConfig config) : Actor(config)
     {
         protected override bool ProcessMessage(Message message)
         {
@@ -197,7 +197,7 @@ public class ActorMessageTest : ActorFactoryBase
         }
     }
 
-    public class TestActorA(
+    private class TestActorA(
         ActorConfig config,
         string messageName,
         ConcurrentQueue<string> listener
@@ -217,7 +217,7 @@ public class ActorMessageTest : ActorFactoryBase
         }
     }
 
-    public class TestActorB : Actor
+    private class TestActorB : Actor
     {
         public TestActorB(ActorConfig config)
             : base(config)
@@ -226,7 +226,7 @@ public class ActorMessageTest : ActorFactoryBase
         }
     }
 
-    public class StateA(TestActorB actor) : State<TestActorB>(actor)
+    private class StateA(TestActorB actor) : State<TestActorB>(actor)
     {
         public bool Started;
 
@@ -249,7 +249,7 @@ public class ActorMessageTest : ActorFactoryBase
         }
     }
 
-    public class StateB(TestActorB actor) : State<TestActorB>(actor)
+    private class StateB(TestActorB actor) : State<TestActorB>(actor)
     {
         public override bool ProcessMessage(Message message)
         {

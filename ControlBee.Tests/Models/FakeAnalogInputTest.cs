@@ -73,7 +73,7 @@ MyActor:
             .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
     }
 
-    public class TestActor(ActorConfig config) : Actor(config)
+    private class TestActor(ActorConfig config) : Actor(config)
     {
         public IAnalogInput MySensor = new AnalogInputPlaceholder();
 

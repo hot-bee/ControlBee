@@ -3,9 +3,9 @@ using ControlBee.Variables;
 
 namespace ControlBee.Models;
 
-public class EmptyActor
+public class EmptyActor : Actor
 {
-    public static Actor Instance = new(
+    public static Actor Instance = new EmptyActor(
         new ActorConfig(
             "_empty",
             new SystemConfigurations(),
@@ -24,4 +24,7 @@ public class EmptyActor
             null
         )
     );
+
+    private EmptyActor(ActorConfig config)
+        : base(config) { }
 }

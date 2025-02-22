@@ -152,7 +152,7 @@ public class FakeDigitalOutputTest : ActorFactoryBase
             .Verify(m => m.Send(It.Is<Message>(message => match3(message))), Times.Once);
     }
 
-    public class TestActor : Actor
+    private class TestActor : Actor
     {
         public IDigitalOutput Vacuum;
 

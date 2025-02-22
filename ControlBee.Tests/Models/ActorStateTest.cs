@@ -81,7 +81,7 @@ public class ActorStateTest : ActorFactoryBase
         Assert.True(called);
     }
 
-    public class TestActor : Actor
+    private class TestActor : Actor
     {
         public TestActor(ActorConfig config)
             : base(config)
@@ -90,7 +90,7 @@ public class ActorStateTest : ActorFactoryBase
         }
     }
 
-    public class StateA(TestActor actor) : State<TestActor>(actor)
+    private class StateA(TestActor actor) : State<TestActor>(actor)
     {
         public override bool ProcessMessage(Message message)
         {
@@ -107,7 +107,7 @@ public class ActorStateTest : ActorFactoryBase
         }
     }
 
-    public class StateB(TestActor actor) : State<TestActor>(actor)
+    private class StateB(TestActor actor) : State<TestActor>(actor)
     {
         public override bool ProcessMessage(Message message)
         {

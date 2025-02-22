@@ -11,7 +11,7 @@ using Xunit;
 namespace ControlBee.Tests.Services;
 
 [TestSubject(typeof(ActorFactory))]
-public class ActorFactoryTest()
+public class TestTest()
     : ActorFactoryBase(
         new ActorFactoryBaseConfig
         {

@@ -37,32 +37,6 @@ public class ActorBuiltinMessageHandler(Actor actor)
                 message.Sender.Send(new Message(message, actor, "_property", value));
                 return true;
             }
-            case "_jogStart":
-            {
-                var axisItemPath = (string)message.DictPayload!["AxisItemPath"]!;
-                var direction = (AxisDirection)message.DictPayload!["Direction"]!;
-                var jogSpeed = (JogSpeed)message.DictPayload!["JogSpeed"]!;
-                var axis = (IAxis)actor.GetItem(axisItemPath)!;
-                var speed = axis.GetJogSpeed(jogSpeed);
-                if (speed == null)
-                {
-                    Logger.Error($"Couldn't get jog speed. ({actor.Name}, {axisItemPath})");
-                    return false;
-                }
-
-                Logger.Debug("Continuous Jog Start");
-                axis.SetSpeed(speed);
-                axis.VelocityMove(direction);
-                return true;
-            }
-            case "_jogStop":
-            {
-                Logger.Debug("Continuous Jog Stop");
-                var axisItemPath = (string)message.DictPayload!["AxisItemPath"]!;
-                var axis = (IAxis)actor.GetItem(axisItemPath)!;
-                axis.Stop();
-                return true;
-            }
         }
 
         return false;

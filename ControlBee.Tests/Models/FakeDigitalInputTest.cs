@@ -153,7 +153,7 @@ MyActor:
             .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
     }
 
-    public class TestActor : Actor
+    private class TestActor : Actor
     {
         public IDigitalInput MySensor = new DigitalInputPlaceholder();
 

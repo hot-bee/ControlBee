@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Tests.TestUtils;
@@ -108,32 +108,6 @@ public class AxisTest : ActorFactoryBase
             .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
     }
 
-    public class TestActor : Actor
-    {
-        public IAxis X;
-        public bool Initialized = false;
-
-        public TestActor(ActorConfig config)
-            : base(config)
-        {
-            X = config.AxisFactory.Create();
-            X.SetPosition(100.0);
-            X.SetInitializeAction(() => Initialized = true);
-        }
-
-        protected override bool ProcessMessage(Message message)
-        {
-            switch (message.Name)
-            {
-                case "ChangeValue":
-                    X.SetPosition(200.0);
-                    return true;
-            }
-
-            return base.ProcessMessage(message);
-        }
-    }
-
     [Fact]
     public void InitializeTest()
     {
@@ -168,5 +142,95 @@ public class AxisTest : ActorFactoryBase
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
+    }
+
+    [Fact]
+    public void GetStepJogSizesTest()
+    {
+        var client = MockActorFactory.Create("Client");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        var called = false;
+        ActorUtils.SetupGetMessage(
+            client,
+            "_stepJogSizes",
+            message =>
+            {
+                Assert.Equal([0.01, 0.1, 10.0], (double[])message.Payload!);
+                called = true;
+            }
+        );
+
+        actor.Start();
+        actor.Send(new ActorItemMessage(client, "/X", "_getStepJogSizes"));
+        actor.Send(new TerminateMessage());
+        actor.Join();
+
+        Assert.True(called);
+    }
+
+    [Fact]
+    public void JogTest()
+    {
+        var client = MockActorFactory.Create("Client");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        ActorUtils.SetupGetMessage(
+            client,
+            "_jogStarted",
+            message =>
+            {
+                Assert.True(actor.X.IsMoving());
+                actor.Send(new ActorItemMessage(client, "/X", "_jogStop"));
+            }
+        );
+        ActorUtils.SetupGetMessage(
+            client,
+            "_jogStopped",
+            message =>
+            {
+                Assert.False(actor.X.IsMoving());
+                actor.Send(new TerminateMessage());
+            }
+        );
+
+        actor.Start();
+        actor.Send(
+            new ActorItemMessage(
+                client,
+                "/X",
+                "_jogStart",
+                new Dict { ["Direction"] = AxisDirection.Positive, ["JogSpeed"] = JogSpeed.Medium }
+            )
+        );
+        actor.Join();
+    }
+
+    private class TestActor : Actor
+    {
+        public bool Initialized;
+        public IAxis X;
+
+        public TestActor(ActorConfig config)
+            : base(config)
+        {
+            X = config.AxisFactory.Create();
+            X.SetPosition(100.0);
+            X.SetInitializeAction(() => Initialized = true);
+
+            ((Axis)X).StepJogSizes.Value[2] = 10;
+        }
+
+        protected override bool ProcessMessage(Message message)
+        {
+            switch (message.Name)
+            {
+                case "ChangeValue":
+                    X.SetPosition(200.0);
+                    return true;
+            }
+
+            return base.ProcessMessage(message);
+        }
     }
 }

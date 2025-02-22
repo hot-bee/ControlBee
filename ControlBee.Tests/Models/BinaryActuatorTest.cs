@@ -280,7 +280,7 @@ public class BinaryActuatorTest()
         Assert.False(actor.Cyl1.OnDetect());
     }
 
-    public class TestActor : Actor
+    private class TestActor : Actor
     {
         public IBinaryActuator Cyl1;
 

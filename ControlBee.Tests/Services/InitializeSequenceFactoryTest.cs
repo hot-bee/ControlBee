@@ -50,7 +50,7 @@ public class InitializeSequenceFactoryTest : ActorFactoryBase
             Assert.IsType<InitializeSequence>(actor.InitializeSequenceX);
     }
 
-    public class TestActor : Actor
+    private class TestActor : Actor
     {
         public Variable<Position1D> HomePositionX = new(
             VariableScope.Global,

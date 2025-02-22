@@ -40,7 +40,7 @@ public class PositionTest : ActorFactoryBase
         Assert.True(actor.Y.GetPosition() is > 10 and < 30);
     }
 
-    public class TestActor : Actor
+    private class TestActor : Actor
     {
         public Variable<Position2D> MyPosition = new(
             VariableScope.Global,

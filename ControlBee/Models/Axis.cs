@@ -20,10 +20,31 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
 
     private bool _initializing;
 
-    private IVariable? _jogSpeedVariable;
     private Task? _task;
 
+    public Variable<SpeedProfile> HomingSpeed = new(
+        VariableScope.Global,
+        new SpeedProfile { Velocity = 10.0 }
+    );
+
+    public Variable<SpeedProfile> JogSpeed = new(
+        VariableScope.Global,
+        new SpeedProfile { Velocity = 10.0 }
+    );
+
+    public Variable<SpeedProfile> OperationSpeed = new(
+        VariableScope.Global,
+        new SpeedProfile { Velocity = 10.0 }
+    );
+
     protected SpeedProfile? SpeedProfile;
+
+    public Variable<Array1D<double>> StepJogSizes = new(
+        VariableScope.Global,
+        new Array1D<double>([0.01, 0.1, 1.0])
+    );
+
+    public bool IsMonitored => _task != null;
 
     public override void RefreshCache()
     {
@@ -72,6 +93,31 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
             case "_initialize":
                 Initialize();
                 return true;
+            case "_getStepJogSizes":
+            {
+                var sizes = StepJogSizes.Value.Items.ToList().ConvertAll(x => (double)x!).ToArray();
+                message.Sender.Send(new Message(message, Actor, "_stepJogSizes", sizes));
+                return true;
+            }
+
+            case "_jogStart":
+            {
+                Logger.Debug("Continuous Jog Start");
+                var direction = (AxisDirection)message.DictPayload!["Direction"]!;
+                var jogSpeed = (JogSpeed)message.DictPayload!["JogSpeed"]!;
+                var speed = GetJogSpeed(jogSpeed);
+                SetSpeed(speed);
+                VelocityMove(direction);
+                message.Sender.Send(new Message(message, Actor, "_jogStarted"));
+                return true;
+            }
+            case "_jogStop":
+            {
+                Logger.Debug("Continuous Jog Stop");
+                Stop();
+                message.Sender.Send(new Message(message, Actor, "_jogStopped"));
+                return true;
+            }
         }
 
         return base.ProcessMessage(message);
@@ -83,20 +129,9 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         RefreshCache();
     }
 
-    public void SetJogSpeed(IVariable jogSpeedVariable)
+    public SpeedProfile GetJogSpeed(JogSpeed jogSpeed)
     {
-        _jogSpeedVariable = jogSpeedVariable;
-    }
-
-    public SpeedProfile? GetJogSpeed(JogSpeed jogSpeed)
-    {
-        if (_jogSpeedVariable == null)
-        {
-            Logger.Error($"Didn't set jog speed for this axis. ({ActorName}, {ItemPath})");
-            return null;
-        }
-
-        return (SpeedProfile)_jogSpeedVariable.ValueObject!;
+        return (SpeedProfile)JogSpeed.ValueObject!;
     }
 
     public void Enable()
@@ -170,16 +205,14 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
 
     public virtual void Move(double position)
     {
-        ValidateBeforeMoving();
+        ValidateBeforeMove();
         // TODO
         MonitorMoving();
     }
 
     public void MoveAndWait(double position)
     {
-        ValidateBeforeMoving();
         Move(position);
-        MonitorMoving();
         Wait();
     }
 
@@ -219,14 +252,13 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
             _task = null;
         }
 
-        if (IsMoving())
-        {
-            Logger.Error(
-                $"Monitoring task finished but axis is still moving. ({ActorName}, {ItemPath})"
-            );
-            while (IsMoving())
-                timeManager.Sleep(1);
-        }
+        if (!IsMoving())
+            return;
+        Logger.Error(
+            $"Monitoring task finished but axis is still moving. Fallback by spinning wait. ({ActorName}, {ItemPath})"
+        );
+        while (IsMoving()) // Fallback
+            timeManager.Sleep(1);
     }
 
     public virtual double GetPosition(PositionType type)
@@ -279,9 +311,15 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
 
     protected void MonitorMoving()
     {
+        if (_task != null)
+        {
+            Logger.Error("`_task` should be null here.");
+            _task.Wait();
+            _task = null;
+        }
+
         _task = TimeManager.RunTask(() =>
         {
-            var watch = timeManager.CreateWatch();
             while (IsMoving())
                 timeManager.Sleep(1);
         });
@@ -319,7 +357,7 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         return true;
     }
 
-    protected void ValidateBeforeMoving()
+    protected void ValidateBeforeMove()
     {
         if (SpeedProfile == null)
             throw new ValueError("You need to provide a SpeedProfile to move the axis.");
@@ -329,6 +367,7 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
             Logger.Warn(
                 $"Motion is still moving when it's trying to start move. ({ActorName}:{ItemPath})"
             );
+        Stop();
         Wait();
     }
 

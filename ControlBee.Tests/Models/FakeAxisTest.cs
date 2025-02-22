@@ -30,6 +30,7 @@ public class FakeAxisTest : ActorFactoryBase
             "MoveDone",
             message =>
             {
+                Assert.True(actor.X.IsMonitored);
                 actor.X.IsMoving().Should().BeTrue();
                 actor.X.GetPosition().Should().Be(0.0);
                 actor.X.GetPosition(PositionType.Actual).Should().Be(0.0);
@@ -44,6 +45,7 @@ public class FakeAxisTest : ActorFactoryBase
             "WaitDone",
             message =>
             {
+                Assert.False(actor.X.IsMonitored);
                 actor.X.IsMoving().Should().BeFalse();
                 actor.X.GetPosition().Should().Be(10.0);
                 actor.X.GetPosition(PositionType.Actual).Should().Be(10.0);
@@ -63,62 +65,159 @@ public class FakeAxisTest : ActorFactoryBase
     [InlineData(AxisDirection.Negative)]
     public void VelocityMoveTest(AxisDirection direction)
     {
-        var scenarioFlowTesterMock = new Mock<IScenarioFlowTester>();
-        var scenarioFlowTester = scenarioFlowTesterMock.Object;
-        using var frozenTimeManager = new FrozenTimeManager(
+        var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+        var timeManager = new FrozenTimeManager(
             new FrozenTimeManagerConfig { ManualMode = true },
             scenarioFlowTester
         );
+        Recreate(
+            new ActorFactoryBaseConfig
+            {
+                ScenarioFlowTester = scenarioFlowTester,
+                TimeManager = timeManager,
+            }
+        );
+        var client = MockActorFactory.Create("Client");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
 
-        var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
-        fakeAxis.SetSpeed(new SpeedProfile { Velocity = 1.0 });
-        fakeAxis.VelocityMove(direction);
-        fakeAxis.IsMoving().Should().BeTrue();
-        fakeAxis.GetPosition(PositionType.Command).Should().Be(0.0);
-        fakeAxis.GetPosition(PositionType.Actual).Should().Be(0.0);
-        switch (direction)
-        {
-            case AxisDirection.Positive:
-                fakeAxis.GetPosition(PositionType.Target).Should().Be(double.PositiveInfinity);
-                break;
-            case AxisDirection.Negative:
-                fakeAxis.GetPosition(PositionType.Target).Should().Be(double.NegativeInfinity);
-                break;
-            default:
-                throw new Exception();
-        }
+        ActorUtils.SetupGetMessage(
+            client,
+            "VelocityMoveDone",
+            message =>
+            {
+                actor.X.IsMoving().Should().BeTrue();
+                actor.X.GetPosition().Should().Be(0.0);
+                actor.X.GetPosition(PositionType.Actual).Should().Be(0.0);
+                Assert.True(actor.X.IsMonitored);
+                switch (direction)
+                {
+                    case AxisDirection.Positive:
+                        actor
+                            .X.GetPosition(PositionType.Target)
+                            .Should()
+                            .Be(double.PositiveInfinity);
+                        break;
+                    case AxisDirection.Negative:
+                        actor
+                            .X.GetPosition(PositionType.Target)
+                            .Should()
+                            .Be(double.NegativeInfinity);
+                        break;
+                    default:
+                        throw new Exception();
+                }
 
-        scenarioFlowTesterMock.Verify(m => m.OnCheckpoint(), Times.Once);
+                Mock.Get(scenarioFlowTester).Verify(m => m.OnCheckpoint(), Times.AtLeastOnce);
 
-        frozenTimeManager.Tick(100);
-        switch (direction)
-        {
-            case AxisDirection.Positive:
-                fakeAxis.GetPosition(PositionType.Command).Should().Be(0.1);
-                fakeAxis.GetPosition(PositionType.Actual).Should().Be(0.1);
-                break;
-            case AxisDirection.Negative:
-                fakeAxis.GetPosition(PositionType.Command).Should().Be(-0.1);
-                fakeAxis.GetPosition(PositionType.Actual).Should().Be(-0.1);
-                break;
-            default:
-                throw new Exception();
-        }
+                timeManager.Tick(100);
+                switch (direction)
+                {
+                    case AxisDirection.Positive:
+                        actor.X.GetPosition().Should().Be(0.1);
+                        actor.X.GetPosition(PositionType.Actual).Should().Be(0.1);
+                        break;
+                    case AxisDirection.Negative:
+                        actor.X.GetPosition().Should().Be(-0.1);
+                        actor.X.GetPosition(PositionType.Actual).Should().Be(-0.1);
+                        break;
+                    default:
+                        throw new Exception();
+                }
 
-        frozenTimeManager.Tick(100);
-        switch (direction)
-        {
-            case AxisDirection.Positive:
-                fakeAxis.GetPosition(PositionType.Command).Should().Be(0.2);
-                fakeAxis.GetPosition(PositionType.Actual).Should().Be(0.2);
-                break;
-            case AxisDirection.Negative:
-                fakeAxis.GetPosition(PositionType.Command).Should().Be(-0.2);
-                fakeAxis.GetPosition(PositionType.Actual).Should().Be(-0.2);
-                break;
-            default:
-                throw new Exception();
-        }
+                timeManager.Tick(100);
+                switch (direction)
+                {
+                    case AxisDirection.Positive:
+                        actor.X.GetPosition().Should().Be(0.2);
+                        actor.X.GetPosition(PositionType.Actual).Should().Be(0.2);
+                        break;
+                    case AxisDirection.Negative:
+                        actor.X.GetPosition().Should().Be(-0.2);
+                        actor.X.GetPosition(PositionType.Actual).Should().Be(-0.2);
+                        break;
+                    default:
+                        throw new Exception();
+                }
+                actor.Send(new TerminateMessage());
+            }
+        );
+        actor.Start();
+        actor.Send(new Message(client, "VelocityMove", direction));
+        actor.Join();
+    }
+
+    [Fact]
+    public void VelocityMoveStopTest()
+    {
+        var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+        Recreate(new ActorFactoryBaseConfig { ScenarioFlowTester = scenarioFlowTester });
+        var client = MockActorFactory.Create("Client");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        ActorUtils.SetupGetMessage(
+            client,
+            "VelocityMoveDone",
+            message =>
+            {
+                actor.Send(new Message(client, "Stop"));
+            }
+        );
+        ActorUtils.SetupGetMessage(
+            client,
+            "StopDone",
+            message =>
+            {
+                Assert.False(actor.X.IsMonitored);
+                Assert.False(actor.X.IsMoving());
+                actor.Send(new TerminateMessage());
+            }
+        );
+
+        actor.Start();
+        actor.Send(new Message(client, "VelocityMove", AxisDirection.Positive));
+        actor.Join();
+    }
+
+    [Fact]
+    public void VelocityMoveOnMovingTest()
+    {
+        var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+        Recreate(new ActorFactoryBaseConfig { ScenarioFlowTester = scenarioFlowTester });
+        var client = MockActorFactory.Create("Client");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        var count = 0;
+        ActorUtils.SetupGetMessage(
+            client,
+            "VelocityMoveDone",
+            message =>
+            {
+                switch (count)
+                {
+                    case 0:
+                        Assert.True(actor.X.IsMoving());
+                        Assert.Equal(
+                            double.PositiveInfinity,
+                            actor.X.GetPosition(PositionType.Target)
+                        );
+                        actor.Send(new Message(client, "VelocityMove", AxisDirection.Negative));
+                        break;
+                    case 1:
+                        Assert.True(actor.X.IsMoving());
+                        Assert.Equal(
+                            double.NegativeInfinity,
+                            actor.X.GetPosition(PositionType.Target)
+                        );
+                        actor.Send(new TerminateMessage());
+                        break;
+                }
+
+                count++;
+            }
+        );
+        actor.Start();
+        actor.Send(new Message(client, "VelocityMove", AxisDirection.Positive));
+        actor.Join();
     }
 
     [Fact]
@@ -144,7 +243,7 @@ public class FakeAxisTest : ActorFactoryBase
             message =>
             {
                 actor.X.IsMoving().Should().BeFalse();
-                actor.X.GetPosition(PositionType.Command).Should().Be(10.0);
+                actor.X.GetPosition().Should().Be(10.0);
                 actor.X.GetPosition(PositionType.Actual).Should().Be(10.0);
                 actor.X.GetPosition(PositionType.Target).Should().Be(10.0);
                 Mock.Get(ScenarioFlowTester).Verify(m => m.OnCheckpoint(), Times.AtLeastOnce);
@@ -368,7 +467,7 @@ public class FakeAxisTest : ActorFactoryBase
         fakeAxis.WaitForPosition(PositionComparisonType.GreaterOrEqual, 10);
     }
 
-    public class TestActor : Actor
+    private class TestActor : Actor
     {
         public IAxis X;
 
@@ -399,6 +498,18 @@ public class FakeAxisTest : ActorFactoryBase
                     X.Move(10.0);
                     X.WaitForPosition(PositionComparisonType.Greater, 5);
                     message.Sender.Send(new Message(message, this, "WaitForPositionDone"));
+                    return true;
+                case "VelocityMove":
+                {
+                    var direction = (AxisDirection)message.Payload!;
+                    X.SetSpeed(new SpeedProfile { Velocity = 1.0 });
+                    X.VelocityMove(direction);
+                    message.Sender.Send(new Message(message, this, "VelocityMoveDone"));
+                    return true;
+                }
+                case "Stop":
+                    X.Stop();
+                    message.Sender.Send(new Message(message, this, "StopDone"));
                     return true;
             }
 

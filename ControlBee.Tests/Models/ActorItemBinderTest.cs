@@ -105,4 +105,27 @@ public class ActorItemBinderTest : ActorFactoryBase
         Assert.Equal(2, callCount);
         Assert.True(metaDataChangedCall);
     }
+
+    [Fact]
+    public void GetAxisItemPathsTest()
+    {
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+        var axisItemPaths = actor.GetAxisItemPaths("/PositionXY");
+        Assert.Equal(["/X", "/Y"], axisItemPaths);
+    }
+
+    private class TestActor : Actor
+    {
+        public Variable<Position2D> PositionXY = new();
+        public IAxis X;
+        public IAxis Y;
+
+        public TestActor(ActorConfig config)
+            : base(config)
+        {
+            X = config.AxisFactory.Create();
+            Y = config.AxisFactory.Create();
+            PositionAxesMap.Add(PositionXY, [X, Y]);
+        }
+    }
 }

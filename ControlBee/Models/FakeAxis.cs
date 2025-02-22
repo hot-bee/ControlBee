@@ -54,7 +54,7 @@ public class FakeAxis : Axis, IDisposable
 
     public override void Move(double position)
     {
-        ValidateBeforeMoving();
+        ValidateBeforeMove();
         _targetPosition = position;
         _isMoving = true;
         _flowTester.OnCheckpoint();
@@ -64,7 +64,7 @@ public class FakeAxis : Axis, IDisposable
 
     public override void VelocityMove(AxisDirection direction)
     {
-        ValidateBeforeMoving();
+        ValidateBeforeMove();
         switch (direction)
         {
             case AxisDirection.Positive:
@@ -91,6 +91,7 @@ public class FakeAxis : Axis, IDisposable
         _isMoving = false;
         _flowTester.OnCheckpoint();
         RefreshCache();
+        Wait();
     }
 
     public override double GetPosition(PositionType type)

@@ -25,23 +25,37 @@ public class FrozenTimeManagerTest : ActorFactoryBase
     [Fact]
     public async Task RunTaskTest()
     {
-        var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
-        using var frozenTimeManager = new FrozenTimeManager(
-            SystemConfigurations,
-            scenarioFlowTester
-        );
-        var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
+        var client = MockActorFactory.Create("Client");
+        var actor = ActorFactory.Create<TestActor>("Actor");
 
-        var task = frozenTimeManager.RunTask(() =>
-        {
-            // ReSharper disable once AccessToDisposedClosure
-            Assert.Equal(1, frozenTimeManager.RegisteredThreadsCount);
-            fakeAxis.SetSpeed(new SpeedProfile { Velocity = 1.0 });
-            fakeAxis.MoveAndWait(10.0);
-        });
-        await task;
+        var called = false;
+        ActorUtils.SetupGetMessage(
+            client,
+            "RegisteredThreadsCount",
+            message =>
+            {
+                var registeredThreadsCount = (int)message.Payload!;
+                Assert.Equal(2, registeredThreadsCount);
+                called = true;
+            }
+        );
+        ActorUtils.SetupGetMessage(
+            client,
+            "RunTaskDone",
+            _ =>
+            {
+                actor.Send(new TerminateMessage());
+            }
+        );
+
+        actor.Start();
+        actor.Send(new Message(client, "RunTask"));
+        actor.Join();
+
+        var frozenTimeManager = (FrozenTimeManager)TimeManager;
         Assert.Equal(0, frozenTimeManager.RegisteredThreadsCount);
-        Assert.Equal(10.0, fakeAxis.GetPosition(PositionType.Command));
+        Assert.Equal(10.0, actor.X.GetPosition());
+        Assert.True(called);
     }
 
     [Fact]
@@ -170,7 +184,28 @@ public class FrozenTimeManagerTest : ActorFactoryBase
                     TimeManager.Sleep(100);
                     Send(new Message(this, "Sleep"));
                     return true;
+                case "RunTask":
+                {
+                    var task = TimeManager.RunTask(() =>
+                    {
+                        var frozenTimeManager = (FrozenTimeManager)TimeManager;
+                        message.Sender.Send(
+                            new Message(
+                                message,
+                                this,
+                                "RegisteredThreadsCount",
+                                frozenTimeManager.RegisteredThreadsCount
+                            )
+                        );
+                        X.SetSpeed(new SpeedProfile { Velocity = 1.0 });
+                        X.MoveAndWait(10.0);
+                    });
+                    task.Wait();
+                    message.Sender.Send(new Message(message, this, "RunTaskDone"));
+                    return true;
+                }
             }
+
             return false;
         }
     }

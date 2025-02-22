@@ -234,7 +234,7 @@ public class ActorTest : ActorFactoryBase
             );
     }
 
-    public class TestActorC : Actor
+    private class TestActorC : Actor
     {
         public IAxis X;
 
