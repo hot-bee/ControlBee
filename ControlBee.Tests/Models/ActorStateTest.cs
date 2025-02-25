@@ -81,6 +81,21 @@ public class ActorStateTest : ActorFactoryBase
         Assert.True(called);
     }
 
+    [Fact]
+    public void StateEntryMessageTest()
+    {
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+        var state = new StateC(actor);
+
+        actor.State = state;
+        actor.Send(new Message(EmptyActor.Instance, "FasterThanEntry"));
+        actor.Start();
+        actor.Send(new TerminateMessage());
+        actor.Join();
+
+        Assert.Equal("FasterThanEntry", state.Name);
+    }
+
     private class TestActor : Actor
     {
         public TestActor(ActorConfig config)
@@ -115,6 +130,26 @@ public class ActorStateTest : ActorFactoryBase
             {
                 case StateEntryMessage.MessageName:
                     break;
+            }
+
+            return false;
+        }
+    }
+
+    private class StateC(TestActor actor) : State<TestActor>(actor)
+    {
+        public string? Name;
+
+        public override bool ProcessMessage(Message message)
+        {
+            switch (message.Name)
+            {
+                case StateEntryMessage.MessageName:
+                    Name ??= StateEntryMessage.MessageName;
+                    break;
+                case "FasterThanEntry":
+                    Name ??= "FasterThanEntry";
+                    return true;
             }
 
             return false;
