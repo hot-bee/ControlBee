@@ -153,6 +153,9 @@ public class Actor : IActorInternal, IDisposable
 
     public void SetStatus(string name, object? value)
     {
+        if (value != null && Status.TryGetValue(name, out var oldValue))
+            if (value.Equals(oldValue))
+                return;
         Status[name] = value;
         PublishStatus();
     }

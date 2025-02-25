@@ -253,6 +253,7 @@ public class ActorTest : ActorFactoryBase
             {
                 case StateEntryMessage.MessageName:
                     Actor.SetStatus("Name", "Leo");
+                    Actor.SetStatus("Name", "Leo");
                     Actor.SetStatus("Name", "Trump");
                     Actor.SetStatusByActor("Peer", "WifiId", "KTWorld");
                     return true;
