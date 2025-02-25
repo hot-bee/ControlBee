@@ -52,6 +52,7 @@ public class Actor : IActorInternal, IDisposable
         _initialState = State;
 
         ActorBuiltinMessageHandler = new ActorBuiltinMessageHandler(this);
+        _mailbox.Add(new StateEntryMessage(this));
     }
 
     public bool SkipWaitSensor { get; }
@@ -301,7 +302,6 @@ public class Actor : IActorInternal, IDisposable
     public virtual void Start()
     {
         Logger.Info($"Starting Actor instance. ({Name})");
-        _mailbox.Add(new StateEntryMessage(this));
         _thread.Name = $"Actor_{Name}";
         _thread.Start();
     }

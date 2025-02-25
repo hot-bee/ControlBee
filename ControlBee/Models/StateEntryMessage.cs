@@ -4,5 +4,5 @@ namespace ControlBee.Models;
 
 public class StateEntryMessage(IActor sender) : Message(sender, MessageName)
 {
-    public const string MessageName = "_stateEntry";
+    public const string MessageName = "_onStateEntry";
 }
