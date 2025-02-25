@@ -71,52 +71,6 @@ public class ActorBuiltinMessageHandlerTest : ActorFactoryBase
             );
     }
 
-    private class TestActor : Actor
-    {
-        public Variable<Position1D> HomePositionX = new(
-            VariableScope.Global,
-            new Position1D(DenseVector.OfArray([10.0]))
-        );
-        public Variable<SpeedProfile> HomeSpeedX = new();
-        public IInitializeSequence InitializeSequenceX;
-        public IAxis X;
-
-        public TestActor(ActorConfig config)
-            : base(config)
-        {
-            X = config.AxisFactory.Create();
-            InitializeSequenceX = config.InitializeSequenceFactory.Create(
-                X,
-                HomeSpeedX,
-                HomePositionX
-            );
-            X.SetInitializeAction(() => throw new FatalSequenceError());
-        }
-    }
-
-    private class IdleState(TestActor actor) : State<TestActor>(actor)
-    {
-        public override bool ProcessMessage(Message message)
-        {
-            switch (message.Name)
-            {
-                case "_status":
-                {
-                    var peer = Actor.PeerDict["peer"];
-                    peer.Send(
-                        new Message(
-                            Actor,
-                            "ReplyYourName",
-                            Actor.PeerStatus[Actor.PeerDict["peer"]]["Name"]
-                        )
-                    );
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
-
     [Fact]
     public void PropertyReadTest()
     {
@@ -150,7 +104,7 @@ MyActor:
         );
         Assert.Equal(
             "Start Centering Dancer",
-            ((myActor.GetProperty("/Status/CenterDancer") as Dict)!)["Name"]
+            (myActor.GetProperty("/Status/CenterDancer") as Dict)!["Name"]
         );
 
         Mock.Get(client)
@@ -174,5 +128,70 @@ MyActor:
                     ),
                 Times.Once
             );
+    }
+
+    [Fact]
+    public void UpdateStatusTest()
+    {
+        var client = MockActorFactory.Create("Client");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+        actor.InitPeers([client]);
+
+        actor.Start();
+        ActorUtils.SendSignal(client, actor, "foo");
+        ActorUtils.SendSignal(client, actor, "bar");
+        actor.Send(new TerminateMessage());
+        actor.Join();
+
+        Assert.True(actor.GetPeerStatus(client, "foo") is true);
+        Assert.True(actor.GetPeerStatus(client, "bar") is true);
+    }
+
+    private class TestActor : Actor
+    {
+        public readonly Variable<Position1D> HomePositionX = new(
+            VariableScope.Global,
+            new Position1D(DenseVector.OfArray([10.0]))
+        );
+
+        public readonly Variable<SpeedProfile> HomeSpeedX = new();
+        public IInitializeSequence InitializeSequenceX;
+        public readonly IAxis X;
+
+        public TestActor(ActorConfig config)
+            : base(config)
+        {
+            X = config.AxisFactory.Create();
+            InitializeSequenceX = config.InitializeSequenceFactory.Create(
+                X,
+                HomeSpeedX,
+                HomePositionX
+            );
+            X.SetInitializeAction(() => throw new FatalSequenceError());
+        }
+    }
+
+    private class IdleState(TestActor actor) : State<TestActor>(actor)
+    {
+        public override bool ProcessMessage(Message message)
+        {
+            switch (message.Name)
+            {
+                case "_status":
+                {
+                    var peer = Actor.PeerDict["peer"];
+                    peer.Send(
+                        new Message(
+                            Actor,
+                            "ReplyYourName",
+                            Actor.PeerStatus[Actor.PeerDict["peer"]]["Name"]
+                        )
+                    );
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

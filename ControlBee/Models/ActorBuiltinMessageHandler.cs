@@ -28,8 +28,12 @@ public class ActorBuiltinMessageHandler(Actor actor)
                 return true;
             }
             case "_status":
-                actor.PeerStatus[message.Sender] = message.DictPayload!;
+            {
+                var peerStatus = actor.PeerStatus[message.Sender];
+                foreach (var (key, value) in message.DictPayload!)
+                    peerStatus[key] = value;
                 return true;
+            }
             case "_propertyRead":
             {
                 var propertyPath = (string)message.Payload!;

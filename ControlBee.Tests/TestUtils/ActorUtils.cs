@@ -18,7 +18,7 @@ public class ActorUtils
     {
         foreach (var (key, value) in dict)
         {
-            if (key == "Error")
+            if (key == "_error")
                 continue;
             if (value is true)
                 throw new Exception();
@@ -27,19 +27,60 @@ public class ActorUtils
         }
     }
 
-    public static void SetupTriggerSignal(
-        IActor actorA,
-        IActor actorB,
-        string signalNameA,
-        string signalNameB
+    public static void SetupActionOnSignalByActor(
+        IActor actorFrom,
+        IActor actorTo,
+        string signalName,
+        Action action
     )
     {
-        Mock.Get(actorB)
+        Mock.Get(actorTo)
             .Setup(m =>
                 m.Send(
                     It.Is<Message>(message =>
                         message.Name == "_status"
-                        && DictPath.Start(message.DictPayload)[actorB.Name][signalNameA].Value
+                        && DictPath.Start(message.DictPayload)[actorTo.Name][signalName].Value
+                            as bool?
+                            == true
+                    )
+                )
+            )
+            .Callback(action);
+    }
+
+    public static void SetupActionOnSignal(
+        IActor actorFrom,
+        IActor actorTo,
+        string signalName,
+        Action action
+    )
+    {
+        Mock.Get(actorTo)
+            .Setup(m =>
+                m.Send(
+                    It.Is<Message>(message =>
+                        message.Name == "_status"
+                        && message.Sender == actorFrom
+                        && DictPath.Start(message.DictPayload)[signalName].Value as bool? == true
+                    )
+                )
+            )
+            .Callback(action);
+    }
+
+    public static void SetupSignalByActor(
+        IActor actorFrom,
+        IActor actorTo,
+        string signalNameFrom,
+        string signalNameTo
+    )
+    {
+        Mock.Get(actorTo)
+            .Setup(m =>
+                m.Send(
+                    It.Is<Message>(message =>
+                        message.Name == "_status"
+                        && DictPath.Start(message.DictPayload)[actorTo.Name][signalNameFrom].Value
                             as bool?
                             == true
                     )
@@ -47,29 +88,29 @@ public class ActorUtils
             )
             .Callback(() =>
             {
-                actorA.Send(
+                actorFrom.Send(
                     new Message(
-                        actorB,
+                        actorTo,
                         "_status",
-                        new Dict { [actorA.Name] = new Dict { [signalNameB] = true } }
+                        new Dict { [actorFrom.Name] = new Dict { [signalNameTo] = true } }
                     )
                 );
             });
     }
 
-    public static void SetupTriggerErrorSignal(
-        IActor actorA,
-        IActor actorB,
-        string signalNameA,
+    public static void SetupErrorSignalByActor(
+        IActor actorFrom,
+        IActor actorTo,
+        string signalName,
         IActor actorInError
     )
     {
-        Mock.Get(actorB)
+        Mock.Get(actorTo)
             .Setup(m =>
                 m.Send(
                     It.Is<Message>(message =>
                         message.Name == "_status"
-                        && DictPath.Start(message.DictPayload)[actorB.Name][signalNameA].Value
+                        && DictPath.Start(message.DictPayload)[actorTo.Name][signalName].Value
                             as bool?
                             == true
                     )
@@ -77,7 +118,9 @@ public class ActorUtils
             )
             .Callback(() =>
             {
-                actorA.Send(new Message(actorInError, "_status", new Dict { ["Error"] = true }));
+                actorFrom.Send(
+                    new Message(actorInError, "_status", new Dict { ["_error"] = true })
+                );
             });
     }
 
@@ -91,31 +134,56 @@ public class ActorUtils
         };
     }
 
-    public static void SendSignal(IActor actorTo, IActor actorFrom, string signalName)
+    public static void SendSignalByActor(IActor actorFrom, IActor actorTo, string signalName)
+    {
+        SendSignalByActor(actorFrom, actorTo, signalName, true);
+    }
+
+    public static void SendSignalByActor(
+        IActor actorFrom,
+        IActor actorTo,
+        string signalName,
+        object? signalValue
+    )
     {
         actorTo.Send(
             new Message(
                 actorFrom,
                 "_status",
-                new Dict { [actorTo.Name] = new Dict { [signalName] = true } }
+                new Dict { [actorTo.Name] = new Dict { [signalName] = signalValue } }
             )
         );
     }
 
-    public static void SendErrorSignal(IActor actorTo, IActor actorInError)
+    public static void SendSignal(IActor actorFrom, IActor actorTo, string signalName)
     {
-        actorTo.Send(new Message(actorInError, "_status", new Dict { ["Error"] = true }));
+        SendSignal(actorFrom, actorTo, signalName, true);
     }
 
-    public static void VerifyGetSignal(IActor actor, string signalName, Func<Times> times)
+    public static void SendSignal(
+        IActor actorFrom,
+        IActor actorTo,
+        string signalName,
+        object? signalValue
+    )
     {
-        Mock.Get(actor)
+        actorTo.Send(new Message(actorFrom, "_status", new Dict { [signalName] = signalValue }));
+    }
+
+    public static void SendErrorSignal(IActor actorFrom, IActor actorTo)
+    {
+        actorTo.Send(new Message(actorFrom, "_status", new Dict { ["_error"] = true }));
+    }
+
+    public static void VerifyGetSignalByActor(IActor actorTo, string signalName, Func<Times> times)
+    {
+        Mock.Get(actorTo)
             .Verify(
                 m =>
                     m.Send(
                         It.Is<Message>(message =>
                             message.Name == "_status"
-                            && DictPath.Start(message.DictPayload)[actor.Name][signalName].Value
+                            && DictPath.Start(message.DictPayload)[actorTo.Name][signalName].Value
                                 as bool?
                                 == true
                         )
@@ -124,51 +192,87 @@ public class ActorUtils
             );
     }
 
-    public static void SetupGetMessage(IActor actor, string messageName, Action<Message> action)
+    public static void SetupActionOnGetMessage(
+        IActor actor,
+        string messageName,
+        Action<Message> action
+    )
     {
         Mock.Get(actor)
             .Setup(m => m.Send(It.Is<Message>(message => message.Name == messageName)))
             .Callback(action);
     }
 
-    public static void SetupReplyMessage(IActor actor, string messageReqName, string messageResName)
+    public static void SetupReplyMessage(
+        IActor actorFrom,
+        IActor actorTo,
+        string messageReqName,
+        string messageResName
+    )
     {
-        Mock.Get(actor)
-            .Setup(m => m.Send(It.Is<Message>(message => message.Name == messageReqName)))
+        Mock.Get(actorTo)
+            .Setup(m =>
+                m.Send(
+                    It.Is<Message>(message =>
+                        message.Sender == actorFrom && message.Name == messageReqName
+                    )
+                )
+            )
             .Callback<Message>(message =>
             {
-                message.Sender.Send(new Message(message, actor, messageResName));
-            });
+                message.Sender.Send(new Message(message, actorTo, messageResName));
+            })
+            .Returns<Message>(message => message.Id);
     }
 
     public static void SetupReplyErrorMessage(
-        IActor actor,
+        IActor actorTo,
         string messageReqName,
         IActor actorInError
     )
     {
-        Mock.Get(actor)
+        Mock.Get(actorTo)
             .Setup(m => m.Send(It.Is<Message>(message => message.Name == messageReqName)))
             .Callback<Message>(message =>
             {
-                SendErrorSignal(message.Sender, actorInError);
-            });
+                SendErrorSignal(actorInError, message.Sender);
+            })
+            .Returns<Message>(message => message.Id);
     }
 
-    public static void VerifyGetMessage(IActor actor, string messageName, Func<Times> times)
+    public static void VerifyGetMessage(IActor actorTo, string messageName, Func<Times> times)
     {
-        Mock.Get(actor)
+        Mock.Get(actorTo)
             .Verify(m => m.Send(It.Is<Message>(message => message.Name == messageName)), times);
     }
 
     public static void VerifyGetMessage(
-        IActor actor,
+        Guid requestId,
+        IActor actorTo,
+        string messageName,
+        Func<Times> times
+    )
+    {
+        Mock.Get(actorTo)
+            .Verify(
+                m =>
+                    m.Send(
+                        It.Is<Message>(message =>
+                            message.RequestId == requestId && message.Name == messageName
+                        )
+                    ),
+                times
+            );
+    }
+
+    public static void VerifyGetMessage(
+        IActor actorTo,
         string messageName,
         object payload,
         Func<Times> times
     )
     {
-        Mock.Get(actor)
+        Mock.Get(actorTo)
             .Verify(
                 m =>
                     m.Send(

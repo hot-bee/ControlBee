@@ -440,7 +440,7 @@ public class Actor : IActorInternal, IDisposable
         {
             if (!PeerDict.TryAdd(peer.Name, peer))
                 throw new ValueError("Duplicate name.");
-            PeerStatus[peer] = new Dictionary<string, object?>();
+            PeerStatus[peer] = new Dict();
         }
     }
 

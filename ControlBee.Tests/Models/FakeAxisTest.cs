@@ -25,7 +25,7 @@ public class FakeAxisTest : ActorFactoryBase
         var client = MockActorFactory.Create("client");
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
-        ActorUtils.SetupGetMessage(
+        ActorUtils.SetupActionOnGetMessage(
             client,
             "MoveDone",
             message =>
@@ -40,7 +40,7 @@ public class FakeAxisTest : ActorFactoryBase
                 actor.Send(new Message(client, "Wait"));
             }
         );
-        ActorUtils.SetupGetMessage(
+        ActorUtils.SetupActionOnGetMessage(
             client,
             "WaitDone",
             message =>
@@ -80,7 +80,7 @@ public class FakeAxisTest : ActorFactoryBase
         var client = MockActorFactory.Create("Client");
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
-        ActorUtils.SetupGetMessage(
+        ActorUtils.SetupActionOnGetMessage(
             client,
             "VelocityMoveDone",
             message =>
@@ -154,7 +154,7 @@ public class FakeAxisTest : ActorFactoryBase
         var client = MockActorFactory.Create("Client");
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
-        ActorUtils.SetupGetMessage(
+        ActorUtils.SetupActionOnGetMessage(
             client,
             "VelocityMoveDone",
             message =>
@@ -162,7 +162,7 @@ public class FakeAxisTest : ActorFactoryBase
                 actor.Send(new Message(client, "Stop"));
             }
         );
-        ActorUtils.SetupGetMessage(
+        ActorUtils.SetupActionOnGetMessage(
             client,
             "StopDone",
             message =>
@@ -187,7 +187,7 @@ public class FakeAxisTest : ActorFactoryBase
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
         var count = 0;
-        ActorUtils.SetupGetMessage(
+        ActorUtils.SetupActionOnGetMessage(
             client,
             "VelocityMoveDone",
             message =>
@@ -229,7 +229,7 @@ public class FakeAxisTest : ActorFactoryBase
         var client = MockActorFactory.Create("client");
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
-        ActorUtils.SetupGetMessage(
+        ActorUtils.SetupActionOnGetMessage(
             client,
             "MoveDone",
             message =>
@@ -237,7 +237,7 @@ public class FakeAxisTest : ActorFactoryBase
                 actor.Send(new Message(client, "Wait"));
             }
         );
-        ActorUtils.SetupGetMessage(
+        ActorUtils.SetupActionOnGetMessage(
             client,
             "WaitDone",
             message =>
@@ -391,7 +391,7 @@ public class FakeAxisTest : ActorFactoryBase
         var client = MockActorFactory.Create("client");
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
-        ActorUtils.SetupGetMessage(
+        ActorUtils.SetupActionOnGetMessage(
             client,
             "WaitForPositionDone",
             message =>
@@ -400,7 +400,7 @@ public class FakeAxisTest : ActorFactoryBase
                 actor.Send(new Message(client, "Wait"));
             }
         );
-        ActorUtils.SetupGetMessage(
+        ActorUtils.SetupActionOnGetMessage(
             client,
             "WaitDone",
             message =>
