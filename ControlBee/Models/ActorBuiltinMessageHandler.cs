@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using ControlBee.Constants;
 using ControlBee.Interfaces;
 using log4net;
 
@@ -29,7 +28,12 @@ public class ActorBuiltinMessageHandler(Actor actor)
             }
             case "_status":
             {
-                var peerStatus = actor.PeerStatus[message.Sender];
+                if (!actor.PeerStatus.TryGetValue(message.Sender, out var peerStatus))
+                {
+                    peerStatus = [];
+                    actor.PeerStatus[message.Sender] = peerStatus;
+                }
+
                 foreach (var (key, value) in message.DictPayload!)
                     peerStatus[key] = value;
                 return true;

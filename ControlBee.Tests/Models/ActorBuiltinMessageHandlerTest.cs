@@ -135,7 +135,6 @@ MyActor:
     {
         var client = MockActorFactory.Create("Client");
         var actor = ActorFactory.Create<TestActor>("MyActor");
-        actor.InitPeers([client]);
 
         actor.Start();
         ActorUtils.SendSignal(client, actor, "foo");
