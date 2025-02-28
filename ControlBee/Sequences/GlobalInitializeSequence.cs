@@ -9,18 +9,18 @@ namespace ControlBee.Sequences;
 
 public class GlobalInitializeSequence
 {
-    private static readonly ILog Logger = LogManager.GetLogger(
-        MethodBase.GetCurrentMethod()!.DeclaringType!
-    );
+    private static readonly ILog Logger = LogManager.GetLogger("General");
 
     private readonly IActor _actor;
 
     private readonly Dictionary<IActor, InitializationStatus> _initializationState = new();
     private readonly Action<GlobalInitializeSequence> _runAction;
 
-    public GlobalInitializeSequence(IActor actor,
+    public GlobalInitializeSequence(
+        IActor actor,
         Action<GlobalInitializeSequence> runAction,
-        IEnumerable<IActor> initializingActors)
+        IEnumerable<IActor> initializingActors
+    )
     {
         _actor = actor;
         _runAction = runAction;
@@ -32,8 +32,8 @@ public class GlobalInitializeSequence
         _initializationState.All(x =>
             x.Value
                 is InitializationStatus.Initialized
-                or InitializationStatus.Skipped
-                or InitializationStatus.Error
+                    or InitializationStatus.Skipped
+                    or InitializationStatus.Error
         );
 
     public bool IsInitializingActors =>

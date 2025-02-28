@@ -5,9 +5,7 @@ namespace ControlBee.Models;
 
 public class FakeAnalogOutput() : AnalogOutput(EmptyDeviceManager.Instance)
 {
-    private static readonly ILog Logger = LogManager.GetLogger(
-        MethodBase.GetCurrentMethod()!.DeclaringType!
-    );
+    private static readonly ILog Logger = LogManager.GetLogger("General");
 
     protected override void WriteToDevice()
     {

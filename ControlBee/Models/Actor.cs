@@ -10,7 +10,8 @@ namespace ControlBee.Models;
 
 public class Actor : IActorInternal, IDisposable
 {
-    private static readonly ILog Logger = LogManager.GetLogger(typeof(Actor));
+    private static readonly ILog Logger = LogManager.GetLogger("General");
+    private static readonly ILog MessageLogger = LogManager.GetLogger("Message");
     private readonly IActorItemInjectionDataSource _actorItemInjectionDataSource;
 
     private readonly Dictionary<string, IActorItem> _actorItems = new();
@@ -76,6 +77,7 @@ public class Actor : IActorInternal, IDisposable
     public virtual Guid Send(Message message) // TODO: Remove virtual
     {
         _mailbox.Add(message);
+        MessageLogger.Debug($"{message.Sender.Name}->{Name}: {message.Name}");
         return message.Id;
     }
 

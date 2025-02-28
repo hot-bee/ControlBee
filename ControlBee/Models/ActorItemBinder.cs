@@ -6,9 +6,7 @@ namespace ControlBee.Models;
 
 public class ActorItemBinder : IDisposable
 {
-    private static readonly ILog Logger = LogManager.GetLogger(
-        MethodBase.GetCurrentMethod()!.DeclaringType!
-    );
+    private static readonly ILog Logger = LogManager.GetLogger("General");
     private static int _instanceCount;
     private readonly string _actorName;
     private readonly Guid? _itemMetaDataReadMessageId;

@@ -8,9 +8,7 @@ namespace ControlBee.Models;
 
 public class Dialog(DialogContextFactory dialogContextFactory) : ActorItem, IDialog
 {
-    private static readonly ILog Logger = LogManager.GetLogger(
-        MethodBase.GetCurrentMethod()!.DeclaringType!
-    );
+    private static readonly ILog Logger = LogManager.GetLogger("General");
 
     protected IDialogContext Context = dialogContextFactory.Create();
 

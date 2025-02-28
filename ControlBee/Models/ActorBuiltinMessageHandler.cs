@@ -6,9 +6,7 @@ namespace ControlBee.Models;
 
 public class ActorBuiltinMessageHandler(Actor actor)
 {
-    private static readonly ILog Logger = LogManager.GetLogger(
-        MethodBase.GetCurrentMethod()!.DeclaringType!
-    );
+    private static readonly ILog Logger = LogManager.GetLogger("General");
 
     public bool ProcessMessage(Message message)
     {

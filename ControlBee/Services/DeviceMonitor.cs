@@ -6,9 +6,7 @@ namespace ControlBee.Services;
 
 public class DeviceMonitor : IDisposable, IDeviceMonitor
 {
-    private static readonly ILog Logger = LogManager.GetLogger(
-        MethodBase.GetCurrentMethod()!.DeclaringType!
-    );
+    private static readonly ILog Logger = LogManager.GetLogger("General");
 
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly List<IDeviceChannel> _channels = [];

@@ -11,9 +11,7 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry)
     : IVariableManager,
         IDisposable
 {
-    private static readonly ILog Logger = LogManager.GetLogger(
-        MethodBase.GetCurrentMethod()!.DeclaringType!
-    );
+    private static readonly ILog Logger = LogManager.GetLogger("General");
 
     private readonly Dictionary<Tuple<string, string>, IVariable> _variables = [];
     private string _localName = "Default";
