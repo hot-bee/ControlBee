@@ -256,6 +256,7 @@ public class ActorTest : ActorFactoryBase
                     Actor.SetStatus("Name", "Leo");
                     Actor.SetStatus("Name", "Trump");
                     Actor.SetStatusByActor("Peer", "WifiId", "KTWorld");
+                    Actor.SetStatusByActor("Peer", "WifiId", "KTWorld");
                     return true;
                 case "_status":
                 {

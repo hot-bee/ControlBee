@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
+using System.Xml.Linq;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Utils;
@@ -170,6 +171,9 @@ public class Actor : IActorInternal, IDisposable
     public void SetStatusByActor(string actorName, string keyName, object? value)
     {
         var statusByActor = Status.GetValueOrDefault(actorName) as Dict ?? new Dict();
+        if (value != null && statusByActor.TryGetValue(keyName, out var oldValue))
+            if (value.Equals(oldValue))
+                return;
         statusByActor[keyName] = value;
         Status[actorName] = statusByActor;
         PublishStatus();
