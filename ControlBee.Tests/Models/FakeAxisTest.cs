@@ -63,6 +63,25 @@ public class FakeAxisTest : ActorFactoryBase
         actor.Join();
     }
 
+    [Fact]
+    public void RelativeMoveTest()
+    {
+        Recreate(
+            new ActorFactoryBaseConfig { ScenarioFlowTester = Mock.Of<IScenarioFlowTester>() }
+        );
+        var client = MockActorFactory.Create("client");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        actor.Start();
+        actor.Send(new Message(client, "RelativeMove"));
+        actor.Send(new Message(client, "RelativeMove"));
+        actor.Send(new Message(client, "RelativeMove"));
+        actor.Send(new TerminateMessage());
+        actor.Join();
+
+        Assert.Equal(30.0, actor.X.GetPosition());
+    }
+
     [Theory]
     [InlineData(AxisDirection.Positive)]
     [InlineData(AxisDirection.Negative)]
@@ -478,6 +497,11 @@ public class FakeAxisTest : ActorFactoryBase
                 case "Wait":
                     X.Wait();
                     message.Sender.Send(new Message(message, this, "WaitDone"));
+                    return true;
+                case "RelativeMove":
+                    X.SetSpeed(new SpeedProfile { Velocity = 1.0 });
+                    X.RelativeMoveAndWait(10.0);
+                    message.Sender.Send(new Message(message, this, "RelativeMoveDone"));
                     return true;
                 case "WaitForPosition":
                     X.SetSpeed(new SpeedProfile { Velocity = 1.0 });

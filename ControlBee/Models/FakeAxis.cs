@@ -41,13 +41,10 @@ public class FakeAxis : Axis, IDisposable
         _timeManager = timeManager;
         _flowTester = flowTester;
         _skipWaitSensor = skipWaitSensor;
-        // _fakeDevice = new FakeMotionDevice();
         _timeManager.CurrentTimeChanged += TimeManagerOnCurrentTimeChanged;
     }
 
     public bool IsMovingMonitored => _movingTask != null;
-
-    // protected override IMotionDevice? MotionDevice => _fakeDevice;
 
     public void Dispose()
     {

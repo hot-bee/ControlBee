@@ -232,9 +232,21 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         MonitorMoving();
     }
 
+    public void RelativeMove(double distance)
+    {
+        var position = GetPosition(PositionType.Command) + distance;
+        Move(position);
+    }
+
     public void MoveAndWait(double position)
     {
         Move(position);
+        Wait();
+    }
+
+    public void RelativeMoveAndWait(double distance)
+    {
+        RelativeMove(distance);
         Wait();
     }
 
