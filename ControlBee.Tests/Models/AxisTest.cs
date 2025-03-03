@@ -3,7 +3,7 @@ using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Tests.TestUtils;
-using DeviceBase;
+using ControlBeeAbstract.Devices;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;

@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using ControlBee.Interfaces;
 using ControlBee.Utils;
-using DeviceBase;
+using ControlBeeAbstract.Devices;
 using log4net;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 

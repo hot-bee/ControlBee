@@ -1,5 +1,5 @@
 ﻿using ControlBee.Interfaces;
-using DeviceBase;
+using ControlBeeAbstract.Devices;
 using log4net;
 
 namespace ControlBee.Models;

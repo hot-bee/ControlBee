@@ -2,7 +2,7 @@
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Variables;
-using DeviceBase;
+using ControlBeeAbstract.Devices;
 using log4net;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
@@ -268,6 +268,7 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
             Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
             return;
         }
+
         switch (type)
         {
             case PositionType.Command:
@@ -285,6 +286,7 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
             default:
                 throw new ValueError();
         }
+
         RefreshCache();
     }
 

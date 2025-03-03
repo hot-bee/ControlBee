@@ -1,4 +1,4 @@
-﻿using DeviceBase;
+﻿using ControlBeeAbstract.Devices;
 
 namespace ControlBee.Interfaces;
 
