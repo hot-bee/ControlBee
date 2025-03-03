@@ -49,32 +49,7 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         base.RefreshCache();
         if (MotionDevice == null)
             return;
-        var commandPosition = GetPosition(PositionType.Command);
-        var actualPosition = GetPosition(PositionType.Actual);
-        var isMoving = IsMoving();
-        var isAlarmed = IsAlarmed();
-        var isEnabled = IsEnabled();
-        var isInitializing = IsInitializing();
-        var isHomeDet = GetSensorValue(AxisSensorType.Home);
-        var isNegativeLimitDet = GetSensorValue(AxisSensorType.NegativeLimit);
-        var isPositiveLimitDet = GetSensorValue(AxisSensorType.PositiveLimit);
-
-        var updated = false;
-        lock (this)
-        {
-            updated |= UpdateCache(ref _commandPositionCache, commandPosition);
-            updated |= UpdateCache(ref _actualPositionCache, actualPosition);
-            updated |= UpdateCache(ref _isMovingCache, isMoving);
-            updated |= UpdateCache(ref _isAlarmedCache, isAlarmed);
-            updated |= UpdateCache(ref _isEnabledCache, isEnabled);
-            updated |= UpdateCache(ref _isInitializingCache, isInitializing);
-            updated |= UpdateCache(ref _isHomeDetCache, isHomeDet);
-            updated |= UpdateCache(ref _isNegativeLimitDetCache, isNegativeLimitDet);
-            updated |= UpdateCache(ref _isPositiveLimitDetCache, isPositiveLimitDet);
-        }
-
-        if (updated)
-            SendDataToUi(Guid.Empty);
+        RefreshCacheImpl();
     }
 
     public override bool ProcessMessage(ActorItemMessage message)
@@ -161,7 +136,13 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
 
     public virtual bool IsEnabled()
     {
-        return true; // TODO
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return false;
+        }
+
+        return MotionDevice.IsEnabled(Channel);
     }
 
     public virtual bool IsInitializing()
@@ -366,6 +347,36 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         _initializeAction();
         _initializing = false;
         RefreshCache();
+    }
+
+    protected void RefreshCacheImpl()
+    {
+        var commandPosition = GetPosition(PositionType.Command);
+        var actualPosition = GetPosition(PositionType.Actual);
+        var isMoving = IsMoving();
+        var isAlarmed = IsAlarmed();
+        var isEnabled = IsEnabled();
+        var isInitializing = IsInitializing();
+        var isHomeDet = GetSensorValue(AxisSensorType.Home);
+        var isNegativeLimitDet = GetSensorValue(AxisSensorType.NegativeLimit);
+        var isPositiveLimitDet = GetSensorValue(AxisSensorType.PositiveLimit);
+
+        var updated = false;
+        lock (this)
+        {
+            updated |= UpdateCache(ref _commandPositionCache, commandPosition);
+            updated |= UpdateCache(ref _actualPositionCache, actualPosition);
+            updated |= UpdateCache(ref _isMovingCache, isMoving);
+            updated |= UpdateCache(ref _isAlarmedCache, isAlarmed);
+            updated |= UpdateCache(ref _isEnabledCache, isEnabled);
+            updated |= UpdateCache(ref _isInitializingCache, isInitializing);
+            updated |= UpdateCache(ref _isHomeDetCache, isHomeDet);
+            updated |= UpdateCache(ref _isNegativeLimitDetCache, isNegativeLimitDet);
+            updated |= UpdateCache(ref _isPositiveLimitDetCache, isPositiveLimitDet);
+        }
+
+        if (updated)
+            SendDataToUi(Guid.Empty);
     }
 
     protected virtual void MonitorMoving()

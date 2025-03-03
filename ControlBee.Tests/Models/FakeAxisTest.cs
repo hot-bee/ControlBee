@@ -489,6 +489,10 @@ public class FakeAxisTest : ActorFactoryBase
                 case "WaitSensor":
                     X.WaitSensor(AxisSensorType.Home, true, 1000);
                     return true;
+                case "EnableX":
+                    X.Enable(true);
+                    message.Sender.Send(new Message(message, this, "EnableXDone"));
+                    return true;
                 case "Move":
                     X.SetSpeed(new SpeedProfile { Velocity = 1.0 });
                     X.Move(10.0);
@@ -525,5 +529,31 @@ public class FakeAxisTest : ActorFactoryBase
 
             return base.ProcessMessage(message);
         }
+    }
+
+    [Fact]
+    public void RefreshCacheTest()
+    {
+        var uiActor = Mock.Of<IUiActor>();
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
+        ActorRegistry.Add(uiActor);
+
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        actor.Start();
+        actor.Send(new Message(uiActor, "EnableX"));
+        actor.Send(new TerminateMessage());
+        actor.Join();
+
+        var match1 = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = message as ActorItemMessage;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/X" }
+                && (bool)actorItemMessage.DictPayload!["IsEnabled"]!;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
+        Assert.IsNotType<FatalErrorState>(actor.State);
     }
 }

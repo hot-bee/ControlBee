@@ -1,5 +1,6 @@
 ﻿using System;
 using ControlBee.Constants;
+using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Tests.TestUtils;
@@ -238,6 +239,7 @@ public class AxisTest : ActorFactoryBase
     {
         Recreate(new ActorFactoryBaseConfig { SystemConfigurations = new SystemConfigurations() });
         var device = SetupWithDevice();
+        Mock.Get(device).Setup(m => m.IsEnabled(0)).Returns(true);
 
         var client = MockActorFactory.Create("Client");
         var actor = ActorFactory.Create<TestActor>("MyActor");
@@ -249,6 +251,7 @@ public class AxisTest : ActorFactoryBase
 
         Assert.Equal(200, TimeManager.CurrentMilliseconds);
         Mock.Get(device).Verify(m => m.Enable(0, true));
+        Assert.IsNotType<FatalErrorState>(actor.State);
     }
 
     private class TestActor : Actor
@@ -263,6 +266,16 @@ public class AxisTest : ActorFactoryBase
             X.SetInitializeAction(() => Initialized = true);
 
             ((Axis)X).StepJogSizes.Value[2] = 10;
+        }
+
+        protected override IState CreateErrorState(SequenceError error)
+        {
+            return new ErrorState(this, error);
+        }
+
+        protected override IState CreateFatalErrorState(FatalSequenceError fatalError)
+        {
+            return new FatalErrorState(this, fatalError);
         }
 
         protected override bool ProcessMessage(Message message)
@@ -282,5 +295,35 @@ public class AxisTest : ActorFactoryBase
 
             return base.ProcessMessage(message);
         }
+    }
+
+    [Fact]
+    public void RefreshCacheTest()
+    {
+        Recreate(new ActorFactoryBaseConfig { SystemConfigurations = new SystemConfigurations() });
+        var device = SetupWithDevice();
+        Mock.Get(device).Setup(m => m.IsEnabled(0)).Returns(true);
+
+        var uiActor = Mock.Of<IUiActor>();
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
+        ActorRegistry.Add(uiActor);
+
+        var client = MockActorFactory.Create("Client");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        actor.Start();
+        actor.Send(new TerminateMessage());
+        actor.Join();
+
+        var match1 = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = (ActorItemMessage)message;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/X" }
+                && (bool)actorItemMessage.DictPayload!["IsEnabled"]!;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
+        Assert.IsNotType<FatalErrorState>(actor.State);
     }
 }

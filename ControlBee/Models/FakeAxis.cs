@@ -211,6 +211,12 @@ public class FakeAxis : Axis, IDisposable
         RefreshCache();
     }
 
+    public override void RefreshCache()
+    {
+        base.RefreshCache();
+        RefreshCacheImpl();
+    }
+
     protected override void MonitorMoving()
     {
         if (_movingTask != null)
