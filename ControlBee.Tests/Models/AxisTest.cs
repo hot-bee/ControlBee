@@ -160,6 +160,7 @@ public class AxisTest : ActorFactoryBase
 
         var called = false;
         ActorUtils.SetupActionOnGetMessage(
+            actor,
             client,
             "_stepJogSizes",
             message =>
@@ -184,6 +185,7 @@ public class AxisTest : ActorFactoryBase
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
         ActorUtils.SetupActionOnGetMessage(
+            actor,
             client,
             "_jogStarted",
             message =>
@@ -193,6 +195,7 @@ public class AxisTest : ActorFactoryBase
             }
         );
         ActorUtils.SetupActionOnGetMessage(
+            actor,
             client,
             "_jogStopped",
             message =>

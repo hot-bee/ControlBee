@@ -31,16 +31,41 @@ public abstract class ActorFactoryBase : IDisposable
 #pragma warning restore CS8618, CS9264
     {
         Recreate(config);
+        // ReSharper disable once VirtualMemberCallInConstructor
+        Setup();
     }
 
     protected ActorFactoryBase()
         : this(new ActorFactoryBaseConfig()) { }
 
+    public virtual void Dispose()
+    {
+        // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
+        TimeManager?.Dispose();
+    }
+
+    public void RecreateWithSkipWaitSensor()
+    {
+        Recreate(
+            new ActorFactoryBaseConfig
+            {
+                SystemConfigurations = new SystemConfigurations
+                {
+                    FakeMode = true,
+                    SkipWaitSensor = true,
+                },
+            }
+        );
+        Setup();
+    }
+
+    public virtual void Setup() { }
+
     public void Recreate(ActorFactoryBaseConfig config)
     {
         Dispose();
         SystemConfigurations =
-            config.SystemConfigurations ?? new SystemConfigurations() { FakeMode = true };
+            config.SystemConfigurations ?? new SystemConfigurations { FakeMode = true };
         ScenarioFlowTester = config.ScenarioFlowTester ?? new ScenarioFlowTester();
         TimeManager =
             config.TimeManager ?? new FrozenTimeManager(SystemConfigurations, ScenarioFlowTester);
@@ -106,11 +131,5 @@ public abstract class ActorFactoryBase : IDisposable
                 SystemPropertiesDataSource,
                 ActorRegistry
             );
-    }
-
-    public virtual void Dispose()
-    {
-        // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
-        TimeManager?.Dispose();
     }
 }

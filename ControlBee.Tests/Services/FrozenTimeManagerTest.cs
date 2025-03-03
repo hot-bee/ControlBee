@@ -30,6 +30,7 @@ public class FrozenTimeManagerTest : ActorFactoryBase
 
         var called = false;
         ActorUtils.SetupActionOnGetMessage(
+            actor,
             client,
             "RegisteredThreadsCount",
             message =>
@@ -40,6 +41,7 @@ public class FrozenTimeManagerTest : ActorFactoryBase
             }
         );
         ActorUtils.SetupActionOnGetMessage(
+            actor,
             client,
             "RunTaskDone",
             _ =>

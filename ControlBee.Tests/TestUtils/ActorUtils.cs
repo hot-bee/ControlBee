@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Utils;
@@ -9,22 +10,42 @@ namespace ControlBee.Tests.TestUtils;
 
 public class ActorUtils
 {
-    public static void EnsureAllStatusFalse(Actor actor)
+    public static void EnsureAllStatusFalse(Actor actor, Dict? excludes = null)
     {
-        EnsureAllStatusFalse(actor.Status);
+        EnsureAllStatusFalse(actor.Status, excludes);
     }
 
-    public static void EnsureAllStatusFalse(Dict dict)
+    public static void EnsureAllStatusFalse(Dict dict, Dict? excludes)
     {
         foreach (var (key, value) in dict)
         {
             if (key == "_error")
                 continue;
-            if (value is true)
+            if (value is true && excludes?.ContainsKey(key) is false)
                 throw new Exception();
             if (value is Dict nested)
-                EnsureAllStatusFalse(nested);
+                EnsureAllStatusFalse(nested, excludes?.GetValueOrDefault(key) as Dict);
         }
+    }
+
+    public static void SetupActionOnRequestByActor(
+        IActor actorFrom,
+        IActor actorTo,
+        string signalName,
+        Action<Message> action
+    )
+    {
+        Mock.Get(actorTo)
+            .Setup(m =>
+                m.Send(
+                    It.Is<Message>(message =>
+                        message.Name == "_status"
+                        && DictPath.Start(message.DictPayload)[actorTo.Name][signalName].Value
+                            is Guid
+                    )
+                )
+            )
+            .Callback(action);
     }
 
     public static void SetupActionOnSignalByActor(
@@ -193,14 +214,39 @@ public class ActorUtils
     }
 
     public static void SetupActionOnGetMessage(
-        IActor actor,
+        IActor actorFrom,
+        IActor actorTo,
         string messageName,
         Action<Message> action
     )
     {
-        Mock.Get(actor)
-            .Setup(m => m.Send(It.Is<Message>(message => message.Name == messageName)))
+        Mock.Get(actorTo)
+            .Setup(m =>
+                m.Send(
+                    It.Is<Message>(message =>
+                        message.Sender == actorFrom && message.Name == messageName
+                    )
+                )
+            )
             .Callback(action);
+    }
+
+    public static void SetupFuncOnGetMessage(
+        IActor actorFrom,
+        IActor actorTo,
+        string messageName,
+        Func<Message, Guid> func
+    )
+    {
+        Mock.Get(actorTo)
+            .Setup(m =>
+                m.Send(
+                    It.Is<Message>(message =>
+                        message.Sender == actorFrom && message.Name == messageName
+                    )
+                )
+            )
+            .Returns(func);
     }
 
     public static void SetupReplyMessage(
@@ -226,13 +272,20 @@ public class ActorUtils
     }
 
     public static void SetupReplyErrorMessage(
+        IActor actorFrom,
         IActor actorTo,
         string messageReqName,
         IActor actorInError
     )
     {
         Mock.Get(actorTo)
-            .Setup(m => m.Send(It.Is<Message>(message => message.Name == messageReqName)))
+            .Setup(m =>
+                m.Send(
+                    It.Is<Message>(message =>
+                        message.Sender == actorFrom && message.Name == messageReqName
+                    )
+                )
+            )
             .Callback<Message>(message =>
             {
                 SendErrorSignal(actorInError, message.Sender);
@@ -247,7 +300,7 @@ public class ActorUtils
     }
 
     public static void VerifyGetMessage(
-        Guid requestId,
+        IActor actorFrom,
         IActor actorTo,
         string messageName,
         Func<Times> times
@@ -258,7 +311,7 @@ public class ActorUtils
                 m =>
                     m.Send(
                         It.Is<Message>(message =>
-                            message.RequestId == requestId && message.Name == messageName
+                            message.Sender == actorFrom && message.Name == messageName
                         )
                     ),
                 times
@@ -266,6 +319,30 @@ public class ActorUtils
     }
 
     public static void VerifyGetMessage(
+        Guid requestId,
+        IActor actorFrom,
+        IActor actorTo,
+        string messageName,
+        Func<Times> times
+    )
+    {
+        Mock.Get(actorTo)
+            .Verify(
+                m =>
+                    m.Send(
+                        It.Is<Message>(message =>
+                            message.Sender == actorFrom
+                            && message.RequestId == requestId
+                            && message.Name == messageName
+                        )
+                    ),
+                times
+            );
+    }
+
+    public static void VerifyGetMessage(
+        Guid requestId,
+        IActor actorFrom,
         IActor actorTo,
         string messageName,
         object payload,
@@ -277,7 +354,32 @@ public class ActorUtils
                 m =>
                     m.Send(
                         It.Is<Message>(message =>
-                            message.Name == messageName && payload.Equals(message.Payload)
+                            message.Sender == actorFrom
+                            && message.RequestId == requestId
+                            && message.Name == messageName
+                            && payload.Equals(message.Payload)
+                        )
+                    ),
+                times
+            );
+    }
+
+    public static void VerifyGetMessage(
+        IActor actorFrom,
+        IActor actorTo,
+        string messageName,
+        object payload,
+        Func<Times> times
+    )
+    {
+        Mock.Get(actorTo)
+            .Verify(
+                m =>
+                    m.Send(
+                        It.Is<Message>(message =>
+                            message.Sender == actorFrom
+                            && message.Name == messageName
+                            && payload.Equals(message.Payload)
                         )
                     ),
                 times
