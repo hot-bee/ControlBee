@@ -1,5 +1,6 @@
 ﻿using ControlBee.Exceptions;
 using ControlBee.Interfaces;
+using DeviceBase;
 
 namespace ControlBee.Models;
 
@@ -9,8 +10,13 @@ public class EmptyDeviceManager : IDeviceManager
 
     public static EmptyDeviceManager Instance { get; } = new();
 
-    public IDevice GetDevice(string deviceName)
+    public IDevice Get(string name)
     {
         throw new UnimplementedByDesignError();
+    }
+
+    public void Add(string name, IDevice device)
+    {
+        throw new NotImplementedException();
     }
 }

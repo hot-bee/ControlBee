@@ -136,7 +136,7 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
         }
     }
 
-    public override void InjectProperties(IActorItemInjectionDataSource dataSource)
+    public override void InjectProperties(ISystemPropertiesDataSource dataSource)
     {
         base.InjectProperties(dataSource);
         if (dataSource.GetValue(ActorName, ItemPath, nameof(Unit)) is string unit)

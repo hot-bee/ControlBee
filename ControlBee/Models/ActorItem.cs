@@ -39,7 +39,7 @@ public abstract class ActorItem : IActorItem
 
     public virtual void UpdateSubItem() { }
 
-    public virtual void InjectProperties(IActorItemInjectionDataSource dataSource)
+    public virtual void InjectProperties(ISystemPropertiesDataSource dataSource)
     {
         if (dataSource.GetValue(ActorName, ItemPath, nameof(Name)) is string name)
             _name = name;

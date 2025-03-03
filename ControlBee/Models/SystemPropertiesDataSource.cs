@@ -1,12 +1,11 @@
-﻿using System.Text;
-using ControlBee.Interfaces;
+﻿using ControlBee.Interfaces;
 using ControlBee.Utils;
 using YamlDotNet.Serialization;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
-public class ActorItemInjectionDataSource : IActorItemInjectionDataSource
+public class SystemPropertiesDataSource : ISystemPropertiesDataSource
 {
     private Dict? _data;
 
@@ -18,10 +17,27 @@ public class ActorItemInjectionDataSource : IActorItemInjectionDataSource
 
     public object? GetValue(string actorName, string propertyPath)
     {
+        var globalPropertyPath = string.Join('/', actorName.Trim('/'), propertyPath.Trim('/'));
+        return GetValue(globalPropertyPath);
+    }
+
+    public void ReadFromFile()
+    {
+        using var reader = new StreamReader("ActorProperties.yaml");
+        _data = ParseYaml(reader.ReadToEnd());
+    }
+
+    public void ReadFromString(string content)
+    {
+        _data = ParseYaml(content);
+    }
+
+    public object? GetValue(string propertyPath)
+    {
         var access = DictPath.Start(_data);
         try
         {
-            var globalPropertyPath = string.Join('/', actorName.Trim('/'), propertyPath.Trim('/'));
+            var globalPropertyPath = string.Join('/', propertyPath.Trim('/'));
             foreach (var propName in globalPropertyPath.Split("/"))
                 access = access[propName];
 
@@ -42,16 +58,5 @@ public class ActorItemInjectionDataSource : IActorItemInjectionDataSource
         var deserializer = new DeserializerBuilder().Build();
         var objData = (Dictionary<object, object>)deserializer.Deserialize(content)!;
         return DictCopy.Copy(objData);
-    }
-
-    public void ReadFromFile()
-    {
-        using var reader = new StreamReader("ActorProperties.yaml");
-        _data = ParseYaml(reader.ReadToEnd());
-    }
-
-    public void ReadFromString(string content)
-    {
-        _data = ParseYaml(content);
     }
 }

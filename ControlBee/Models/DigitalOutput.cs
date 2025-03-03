@@ -118,6 +118,7 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
 
     public virtual void WriteToDevice()
     {
-        throw new NotImplementedException();
+        // TODO
+        // throw new NotImplementedException();
     }
 }

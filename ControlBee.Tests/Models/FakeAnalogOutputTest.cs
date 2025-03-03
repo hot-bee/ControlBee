@@ -26,7 +26,7 @@ public class FakeAnalogOutputTest : ActorFactoryBase
     [Fact]
     public void InjectPropertiesTest()
     {
-        ActorItemInjectionDataSource.ReadFromString(
+        SystemPropertiesDataSource.ReadFromString(
             """
             MyActor:
               MyActuator:

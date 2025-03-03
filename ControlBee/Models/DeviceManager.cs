@@ -1,11 +1,26 @@
 ﻿using ControlBee.Interfaces;
+using DeviceBase;
 
 namespace ControlBee.Models;
 
-public class DeviceManager : IDeviceManager
+public class DeviceManager : IDeviceManager, IDisposable
 {
-    public IDevice GetDevice(string deviceName)
+    private readonly Dictionary<string, IDevice> _devices = [];
+
+    public IDevice Get(string name)
     {
-        throw new NotImplementedException();
+        return _devices[name];
+    }
+
+    public void Add(string name, IDevice device)
+    {
+        _devices.Add(name, device);
+    }
+
+    public void Dispose()
+    {
+        foreach (var (name, device) in _devices)
+            device.Dispose();
+        _devices.Clear();
     }
 }

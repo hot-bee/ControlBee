@@ -3,6 +3,7 @@ using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Tests.TestUtils;
+using DeviceBase;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -16,7 +17,7 @@ public class AxisTest : ActorFactoryBase
     [Fact]
     public void InjectPropertiesTest()
     {
-        ActorItemInjectionDataSource.ReadFromString(
+        SystemPropertiesDataSource.ReadFromString(
             """
 
             MyActor:
@@ -35,6 +36,8 @@ public class AxisTest : ActorFactoryBase
     [Fact]
     public void DataChangedTest()
     {
+        SetupWithDevice();
+
         var uiActor = Mock.Of<IUiActor>();
         Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
         ActorRegistry.Add(uiActor);
@@ -55,8 +58,9 @@ public class AxisTest : ActorFactoryBase
                 // ReSharper disable once CompareOfFloatsByEqualityOperator
                 && (double)payload["CommandPosition"]! == 100.0;
         });
+
         Mock.Get(uiActor)
-            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
+            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Exactly(2));
 
         var match2 = new Func<Message, bool>(message =>
         {
@@ -74,6 +78,8 @@ public class AxisTest : ActorFactoryBase
     [Fact]
     public void DataWriteTest()
     {
+        SetupWithDevice();
+
         var uiActor = Mock.Of<IUiActor>();
         Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
         ActorRegistry.Add(uiActor);
@@ -95,7 +101,7 @@ public class AxisTest : ActorFactoryBase
                 && (bool)actorItemMessage.DictPayload!["IsEnabled"]! == false;
         });
         Mock.Get(uiActor)
-            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
+            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Exactly(2));
 
         var match2 = new Func<Message, bool>(message =>
         {
@@ -111,6 +117,8 @@ public class AxisTest : ActorFactoryBase
     [Fact]
     public void InitializeTest()
     {
+        SetupWithDevice();
+
         var uiActor = Mock.Of<IUiActor>();
         Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
         ActorRegistry.Add(uiActor);
@@ -141,7 +149,7 @@ public class AxisTest : ActorFactoryBase
                 && (bool)actorItemMessage.DictPayload!["IsInitializing"]! == false;
         });
         Mock.Get(uiActor)
-            .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
+            .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Exactly(2));
     }
 
     [Fact]
@@ -206,16 +214,49 @@ public class AxisTest : ActorFactoryBase
         actor.Join();
     }
 
+    private IMotionDevice SetupWithDevice()
+    {
+        SystemPropertiesDataSource.ReadFromString(
+            """
+              MyActor:
+                X:
+                  DeviceName: MyDevice
+                  Channel: 0
+            """
+        );
+
+        var device = Mock.Of<IMotionDevice>();
+        DeviceManager.Add("MyDevice", device);
+        return device;
+    }
+
+    [Fact]
+    public void EnableTest()
+    {
+        Recreate(new ActorFactoryBaseConfig { SystemConfigurations = new SystemConfigurations() });
+        var device = SetupWithDevice();
+
+        var client = MockActorFactory.Create("Client");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        actor.Start();
+        actor.Send(new Message(client, "EnableX"));
+        actor.Send(new TerminateMessage());
+        actor.Join();
+
+        Assert.Equal(200, TimeManager.CurrentMilliseconds);
+        Mock.Get(device).Verify(m => m.Enable(0, true));
+    }
+
     private class TestActor : Actor
     {
+        public readonly IAxis X;
         public bool Initialized;
-        public IAxis X;
 
         public TestActor(ActorConfig config)
             : base(config)
         {
             X = config.AxisFactory.Create();
-            X.SetPosition(100.0);
             X.SetInitializeAction(() => Initialized = true);
 
             ((Axis)X).StepJogSizes.Value[2] = 10;
@@ -225,8 +266,14 @@ public class AxisTest : ActorFactoryBase
         {
             switch (message.Name)
             {
+                case StateEntryMessage.MessageName:
+                    X.SetPosition(100.0);
+                    return true;
                 case "ChangeValue":
                     X.SetPosition(200.0);
+                    return true;
+                case "EnableX":
+                    X.Enable();
                     return true;
             }
 

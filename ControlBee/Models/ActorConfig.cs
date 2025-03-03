@@ -16,7 +16,7 @@ public class ActorConfig(
     IVariableManager variableManager,
     ITimeManager timeManager,
     IScenarioFlowTester scenarioFlowTester,
-    IActorItemInjectionDataSource actorItemInjectionDataSource,
+    ISystemPropertiesDataSource systemPropertiesDataSource,
     IActor? uiActor
 )
 {
@@ -34,8 +34,7 @@ public class ActorConfig(
     public IDialogFactory DialogFactory { get; } = dialogFactory;
     public IInitializeSequenceFactory InitializeSequenceFactory => initializeSequenceFactory;
 
-    public IActorItemInjectionDataSource ActorItemInjectionDataSource =>
-        actorItemInjectionDataSource;
+    public ISystemPropertiesDataSource SystemPropertiesDataSource => systemPropertiesDataSource;
 
     public IActor? UiActor => uiActor;
 }

@@ -1,6 +1,5 @@
 ﻿using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Services;
 
 namespace ControlBee.Tests.TestUtils;
 
@@ -9,7 +8,7 @@ public class ActorFactoryBaseConfig
     public SystemConfigurations? SystemConfigurations;
     public IActorFactory? ActorFactory;
     public IActorRegistry? ActorRegistry;
-    public IActorItemInjectionDataSource? ActorItemInjectionDataSource;
+    public ISystemPropertiesDataSource? SystemPropertiesDataSource;
     public IInitializeSequenceFactory? InitializeSequenceFactory;
     public IDigitalOutputFactory? DigitalOutputFactory;
     public IDigitalInputFactory? DigitalInputFactory;

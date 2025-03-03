@@ -57,7 +57,7 @@ public class ActorItemBinderTest : ActorFactoryBase
         var variable = new Variable<int>(VariableScope.Global, 1);
         actor.AddItem(variable, "/MyVar");
 
-        var actorItemInjectionDataSource = Mock.Of<IActorItemInjectionDataSource>();
+        var actorItemInjectionDataSource = Mock.Of<ISystemPropertiesDataSource>();
         Mock.Get(actorItemInjectionDataSource)
             .Setup(m => m.GetValue("MyActor", "/MyVar", "Name"))
             .Returns("My variable");

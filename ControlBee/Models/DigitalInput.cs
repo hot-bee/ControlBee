@@ -134,7 +134,8 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
 
     protected virtual void ReadFromDevice()
     {
-        throw new NotImplementedException();
+        // TODO
+        // throw new NotImplementedException();
     }
 
     #region Timeouts

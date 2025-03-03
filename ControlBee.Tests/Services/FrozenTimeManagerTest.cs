@@ -93,7 +93,7 @@ public class FrozenTimeManagerTest : ActorFactoryBase
             SystemConfigurations,
             scenarioFlowTester
         );
-        var fakeAxis = new FakeAxis(frozenTimeManager, scenarioFlowTester);
+        var fakeAxis = new FakeAxis(DeviceManager, frozenTimeManager, scenarioFlowTester);
 
         var cancellationTokenSource = new CancellationTokenSource();
         var task = frozenTimeManager.RunTask(() =>

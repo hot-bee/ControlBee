@@ -22,7 +22,7 @@ public class DialogPlaceholder : IPlaceholder, IDialog
         throw new UnimplementedByDesignError();
     }
 
-    public void InjectProperties(IActorItemInjectionDataSource dataSource)
+    public void InjectProperties(ISystemPropertiesDataSource dataSource)
     {
         throw new UnimplementedByDesignError();
     }

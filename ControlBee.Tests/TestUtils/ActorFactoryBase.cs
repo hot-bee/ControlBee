@@ -11,7 +11,7 @@ public abstract class ActorFactoryBase : IDisposable
     protected SystemConfigurations SystemConfigurations;
     protected IActorFactory ActorFactory;
     protected IActorRegistry ActorRegistry;
-    protected IActorItemInjectionDataSource ActorItemInjectionDataSource;
+    protected ISystemPropertiesDataSource SystemPropertiesDataSource;
     protected IInitializeSequenceFactory InitializeSequenceFactory;
     protected IDigitalOutputFactory DigitalOutputFactory;
     protected IDigitalInputFactory DigitalInputFactory;
@@ -86,8 +86,8 @@ public abstract class ActorFactoryBase : IDisposable
         BinaryActuatorFactory =
             config.BinaryActuatorFactory
             ?? new BinaryActuatorFactory(SystemConfigurations, TimeManager, ScenarioFlowTester);
-        ActorItemInjectionDataSource =
-            config.ActorItemInjectionDataSource ?? new ActorItemInjectionDataSource();
+        SystemPropertiesDataSource =
+            config.SystemPropertiesDataSource ?? new SystemPropertiesDataSource();
         ActorFactory =
             config.ActorFactory
             ?? new ActorFactory(
@@ -103,7 +103,7 @@ public abstract class ActorFactoryBase : IDisposable
                 VariableManager,
                 TimeManager,
                 ScenarioFlowTester,
-                ActorItemInjectionDataSource,
+                SystemPropertiesDataSource,
                 ActorRegistry
             );
     }

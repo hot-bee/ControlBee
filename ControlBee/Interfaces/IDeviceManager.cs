@@ -1,6 +1,9 @@
-﻿namespace ControlBee.Interfaces;
+﻿using DeviceBase;
+
+namespace ControlBee.Interfaces;
 
 public interface IDeviceManager
 {
-    IDevice GetDevice(string deviceName);
+    IDevice Get(string name);
+    void Add(string name, IDevice device);
 }

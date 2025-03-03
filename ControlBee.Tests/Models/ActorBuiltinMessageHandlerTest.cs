@@ -74,7 +74,7 @@ public class ActorBuiltinMessageHandlerTest : ActorFactoryBase
     [Fact]
     public void PropertyReadTest()
     {
-        ActorItemInjectionDataSource.ReadFromString(
+        SystemPropertiesDataSource.ReadFromString(
             @"
 MyActor:
   Status:

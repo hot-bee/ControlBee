@@ -27,7 +27,6 @@ public interface IAxis : IDeviceChannel
     void WaitSensor(AxisSensorType type, bool waitingValue, int millisecondsTimeout);
     void Initialize();
     void SetInitializeAction(Action initializeAction);
-    void SetEnable(bool status);
+    void Enable(bool value);
     SpeedProfile GetJogSpeed(JogSpeed jogSpeed);
-    bool IsMonitored { get; }
 }

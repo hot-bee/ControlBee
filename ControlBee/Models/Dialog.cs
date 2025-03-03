@@ -23,7 +23,7 @@ public class Dialog(DialogContextFactory dialogContextFactory) : ActorItem, IDia
         return Actor.Ui?.Send(new Message(Actor, "_displayDialog", Context)) ?? Guid.Empty;
     }
 
-    public override void InjectProperties(IActorItemInjectionDataSource dataSource)
+    public override void InjectProperties(ISystemPropertiesDataSource dataSource)
     {
         base.InjectProperties(dataSource);
         Context.Name = Name;

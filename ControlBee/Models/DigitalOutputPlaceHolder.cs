@@ -24,7 +24,7 @@ public class DigitalOutputPlaceholder : IPlaceholder, IDigitalOutput
         throw new UnimplementedByDesignError();
     }
 
-    public void InjectProperties(IActorItemInjectionDataSource dataSource)
+    public void InjectProperties(ISystemPropertiesDataSource dataSource)
     {
         throw new UnimplementedByDesignError();
     }

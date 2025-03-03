@@ -195,7 +195,7 @@ public class VariableTest : ActorFactoryBase
         var uiActor = Mock.Of<IActor>();
         var reqMessage = new ActorItemMessage(uiActor, "/MyVar", "_itemMetaDataRead");
 
-        var actorItemInjectionDataSource = Mock.Of<IActorItemInjectionDataSource>();
+        var actorItemInjectionDataSource = Mock.Of<ISystemPropertiesDataSource>();
         Mock.Get(actorItemInjectionDataSource)
             .Setup(m => m.GetValue("MyActor", "/MyVar", "Name"))
             .Returns("My variable");
@@ -242,7 +242,7 @@ public class VariableTest : ActorFactoryBase
     [Fact]
     public void InjectPropertiesTest()
     {
-        ActorItemInjectionDataSource.ReadFromString(
+        SystemPropertiesDataSource.ReadFromString(
             @"
 MyActor:
   MyVar1:
@@ -271,8 +271,8 @@ MyActor:
         );
 
         Assert.Equal("/MyVar1", myVariable1.Name);
-        myVariable1.InjectProperties(ActorItemInjectionDataSource);
-        myVariable2.InjectProperties(ActorItemInjectionDataSource);
+        myVariable1.InjectProperties(SystemPropertiesDataSource);
+        myVariable2.InjectProperties(SystemPropertiesDataSource);
 
         Assert.Equal("My Variable 1", myVariable1.Name);
         Assert.Equal("mm", myVariable1.Unit);

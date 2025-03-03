@@ -18,7 +18,7 @@ public class EmptyActorItemTest() : ActorFactoryBase
     [Fact]
     public void GetMetaDataTest()
     {
-        ActorItemInjectionDataSource.ReadFromString(
+        SystemPropertiesDataSource.ReadFromString(
             @"
 MyActor:
   EmptyItem:

@@ -13,7 +13,12 @@ public class AxisFactory(
     public IAxis Create()
     {
         var axis = systemConfigurations.FakeMode
-            ? new FakeAxis(timeManager, flowTester, systemConfigurations.SkipWaitSensor)
+            ? new FakeAxis(
+                deviceManager,
+                timeManager,
+                flowTester,
+                systemConfigurations.SkipWaitSensor
+            )
             : new Axis(deviceManager, timeManager);
         deviceMonitor.Add(axis);
         return axis;

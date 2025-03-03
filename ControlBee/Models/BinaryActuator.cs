@@ -151,10 +151,10 @@ public class BinaryActuator : ActorItem, IBinaryActuator
             _outputOff.SetOn(!_on);
         if (_systemConfigurations.SkipWaitSensor)
         {
-            if (_inputOn != null)
-                ((FakeDigitalInput)_inputOn).On = on;
-            if (_inputOff != null)
-                ((FakeDigitalInput)_inputOff).On = !on;
+            if (_inputOn is FakeDigitalInput fakeInputOn)
+                fakeInputOn.On = on;
+            if (_inputOff is FakeDigitalInput fakeInputOff)
+                fakeInputOff.On = !on;
         }
 
         var delay = on ? OnTimeout.Value : OffTimeout.Value;

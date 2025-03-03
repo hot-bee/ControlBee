@@ -13,7 +13,7 @@ public class Actor : IActorInternal, IDisposable
 {
     private static readonly ILog Logger = LogManager.GetLogger("General");
     private static readonly ILog MessageLogger = LogManager.GetLogger("Message");
-    private readonly IActorItemInjectionDataSource _actorItemInjectionDataSource;
+    private readonly ISystemPropertiesDataSource _systemPropertiesDataSource;
 
     private readonly Dictionary<string, IActorItem> _actorItems = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
@@ -46,7 +46,7 @@ public class Actor : IActorInternal, IDisposable
         VariableManager = config.VariableManager;
         TimeManager = config.TimeManager;
         ScenarioFlowTester = config.ScenarioFlowTester;
-        _actorItemInjectionDataSource = config.ActorItemInjectionDataSource;
+        _systemPropertiesDataSource = config.SystemPropertiesDataSource;
         PositionAxesMap = new PositionAxesMap();
         Name = config.ActorName;
         Ui = config.UiActor;
@@ -272,13 +272,13 @@ public class Actor : IActorInternal, IDisposable
         }
 
         AddItem(actorItem, itemPath);
-        actorItem.InjectProperties(_actorItemInjectionDataSource);
+        actorItem.InjectProperties(_systemPropertiesDataSource);
         return actorItem;
     }
 
     public object? GetProperty(string propertyPath)
     {
-        return _actorItemInjectionDataSource.GetValue(Name, propertyPath);
+        return _systemPropertiesDataSource.GetValue(Name, propertyPath);
     }
 
     private IActorItem ReplacePlaceholder(

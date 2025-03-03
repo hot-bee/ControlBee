@@ -102,7 +102,7 @@ public class FakeDigitalInputTest : ActorFactoryBase
     [Fact]
     public void InjectPropertiesTest()
     {
-        ActorItemInjectionDataSource.ReadFromString(
+        SystemPropertiesDataSource.ReadFromString(
             @"
 MyActor:
   MySensor:

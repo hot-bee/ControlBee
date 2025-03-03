@@ -109,7 +109,7 @@ public class ActorTest : ActorFactoryBase
     [Fact]
     public void UpdateTitle()
     {
-        ActorItemInjectionDataSource.ReadFromString(
+        SystemPropertiesDataSource.ReadFromString(
             """
 
             MyActor:

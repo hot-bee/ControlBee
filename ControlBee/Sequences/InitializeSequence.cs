@@ -77,7 +77,7 @@ public class InitializeSequence(IAxis axis, SpeedProfile homingSpeed, Position1D
         homePosition.MoveAndWait();
     }
 
-    public override void InjectProperties(IActorItemInjectionDataSource dataSource)
+    public override void InjectProperties(ISystemPropertiesDataSource dataSource)
     {
         // TODO
     }

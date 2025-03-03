@@ -2,11 +2,11 @@
 
 namespace ControlBee.Models;
 
-public class EmptyActorItemInjectionDataSource : IActorItemInjectionDataSource
+public class EmptySystemPropertiesDataSource : ISystemPropertiesDataSource
 {
-    public static IActorItemInjectionDataSource Instance = new EmptyActorItemInjectionDataSource();
+    public static ISystemPropertiesDataSource Instance = new EmptySystemPropertiesDataSource();
 
-    private EmptyActorItemInjectionDataSource() { }
+    private EmptySystemPropertiesDataSource() { }
 
     public object? GetValue(string actorName, string itemPath, string propertyName)
     {
@@ -26,5 +26,10 @@ public class EmptyActorItemInjectionDataSource : IActorItemInjectionDataSource
     public void ReadFromString(string content)
     {
         // Empty
+    }
+
+    public object? GetValue(string propertyPath)
+    {
+        return null;
     }
 }

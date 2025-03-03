@@ -22,7 +22,7 @@ public class FakeAnalogInputTest : ActorFactoryBase
     [Fact]
     public void InjectPropertiesTest()
     {
-        ActorItemInjectionDataSource.ReadFromString(
+        SystemPropertiesDataSource.ReadFromString(
             @"
 MyActor:
   MySensor:

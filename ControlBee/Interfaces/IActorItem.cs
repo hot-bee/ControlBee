@@ -11,5 +11,5 @@ public interface IActorItem : INotifyPropertyChanged
     string Desc { get; }
     bool ProcessMessage(ActorItemMessage message);
     void UpdateSubItem();
-    void InjectProperties(IActorItemInjectionDataSource dataSource);
+    void InjectProperties(ISystemPropertiesDataSource dataSource);
 }

@@ -16,7 +16,7 @@ public class ActorFactory(
     IVariableManager variableManager,
     ITimeManager timeManager,
     IScenarioFlowTester scenarioFlowTester,
-    IActorItemInjectionDataSource actorItemInjectionDataSource,
+    ISystemPropertiesDataSource systemPropertiesDataSource,
     IActorRegistry actorRegistry
 ) : IActorFactory
 {
@@ -42,7 +42,7 @@ public class ActorFactory(
             variableManager,
             timeManager,
             scenarioFlowTester,
-            actorItemInjectionDataSource,
+            systemPropertiesDataSource,
             uiActor
         );
         var actorArgs = new List<object?> { actorConfig };

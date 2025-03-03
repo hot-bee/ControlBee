@@ -5,13 +5,13 @@ using Xunit;
 
 namespace ControlBee.Tests.Models;
 
-[TestSubject(typeof(ActorItemInjectionDataSource))]
-public class ActorItemInjectionDataSourceTest
+[TestSubject(typeof(SystemPropertiesDataSource))]
+public class SystemPropertiesDataSourceTest
 {
     [Fact]
     public void ReadTest()
     {
-        var dataSource = new ActorItemInjectionDataSource();
+        var dataSource = new SystemPropertiesDataSource();
         dataSource.ReadFromString(
             @"
 Picker0:

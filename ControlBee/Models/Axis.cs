@@ -1,8 +1,8 @@
-﻿using System.Reflection;
-using ControlBee.Constants;
+﻿using ControlBee.Constants;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Variables;
+using DeviceBase;
 using log4net;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
@@ -15,10 +15,9 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
     private static readonly ILog Logger = LogManager.GetLogger("General");
 
     private Action? _initializeAction;
-
     private bool _initializing;
 
-    private Task? _task;
+    public Variable<int> EnableDelay = new(VariableScope.Global, 200);
 
     public Variable<SpeedProfile> HomingSpeed = new(
         VariableScope.Global,
@@ -42,11 +41,14 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         new Array1D<double>([0.01, 0.1, 1.0])
     );
 
-    public bool IsMonitored => _task != null;
+    // ReSharper disable once SuspiciousTypeConversion.Global
+    protected virtual IMotionDevice? MotionDevice => Device as IMotionDevice;
 
     public override void RefreshCache()
     {
         base.RefreshCache();
+        if (MotionDevice == null)
+            return;
         var commandPosition = GetPosition(PositionType.Command);
         var actualPosition = GetPosition(PositionType.Actual);
         var isMoving = IsMoving();
@@ -85,7 +87,7 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
             case "_itemDataWrite":
             {
                 if (message.DictPayload!.GetValueOrDefault("Enable") is bool enable)
-                    SetEnable(enable);
+                    Enable(enable);
                 return true;
             }
             case "_initialize":
@@ -121,9 +123,19 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         return base.ProcessMessage(message);
     }
 
-    public virtual void SetEnable(bool enable)
+    public virtual void Enable(bool value)
     {
-        throw new NotImplementedException();
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        MotionDevice.Enable(Channel, value);
+        if (value)
+            TimeManager.Sleep(EnableDelay.Value);
+        if (IsEnabled() != value)
+            throw new FatalSequenceError("Enabling axis has been failed.");
         RefreshCache();
     }
 
@@ -134,12 +146,12 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
 
     public void Enable()
     {
-        SetEnable(true);
+        Enable(true);
     }
 
     public void Disable()
     {
-        SetEnable(false);
+        Enable(false);
     }
 
     public bool IsAlarmed()
@@ -149,7 +161,7 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
 
     public virtual bool IsEnabled()
     {
-        throw new NotImplementedException();
+        return true; // TODO
     }
 
     public virtual bool IsInitializing()
@@ -198,13 +210,25 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
 
     public virtual bool IsMoving()
     {
-        return false;
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return false;
+        }
+
+        return MotionDevice.IsMoving(Channel);
     }
 
     public virtual void Move(double position)
     {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
         ValidateBeforeMove();
-        // TODO
+        MotionDevice.TrapezoidalMove(0, (int)position, 10000, 10000, 10000);
         MonitorMoving();
     }
 
@@ -239,17 +263,40 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         PositionType type = PositionType.CommandAndActual
     )
     {
-        throw new NotImplementedException();
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+        switch (type)
+        {
+            case PositionType.Command:
+                MotionDevice.SetCommandPosition(position);
+                break;
+            case PositionType.Actual:
+                MotionDevice.SetActualPosition(position);
+                break;
+            case PositionType.CommandAndActual:
+                MotionDevice.SetCommandPosition(position);
+                MotionDevice.SetActualPosition(position);
+                break;
+            case PositionType.Target:
+                throw new ValueError();
+            default:
+                throw new ValueError();
+        }
+        RefreshCache();
     }
 
-    public void Wait()
+    public virtual void Wait()
     {
-        if (_task != null)
+        if (MotionDevice == null)
         {
-            _task.Wait();
-            _task = null;
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
         }
 
+        MotionDevice.Wait(Channel);
         if (!IsMoving())
             return;
         Logger.Error(
@@ -261,7 +308,7 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
 
     public virtual double GetPosition(PositionType type)
     {
-        throw new NotImplementedException();
+        return 0; // TODO
     }
 
     public virtual bool GetSensorValue(AxisSensorType type)
@@ -307,20 +354,9 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         RefreshCache();
     }
 
-    protected void MonitorMoving()
+    protected virtual void MonitorMoving()
     {
-        if (_task != null)
-        {
-            Logger.Error("`_task` should be null here.");
-            _task.Wait();
-            _task = null;
-        }
-
-        _task = TimeManager.RunTask(() =>
-        {
-            while (IsMoving())
-                timeManager.Sleep(1);
-        });
+        // Empty
     }
 
     private void SendDataToUi(Guid requestId)
@@ -361,10 +397,11 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
             throw new ValueError("You need to provide a SpeedProfile to move the axis.");
         if (SpeedProfile!.Velocity == 0)
             throw new ValueError("You must provide a speed greater than 0 to move the axis.");
-        if (IsMoving())
-            Logger.Warn(
-                $"Motion is still moving when it's trying to start move. ({ActorName}:{ItemPath})"
-            );
+        if (!IsMoving())
+            return;
+        Logger.Warn(
+            $"Motion is still moving when it's trying to start move. ({ActorName}:{ItemPath})"
+        );
         Stop();
         Wait();
     }

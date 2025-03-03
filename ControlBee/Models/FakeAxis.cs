@@ -1,34 +1,58 @@
 ﻿using ControlBee.Constants;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
+using DeviceBase;
+using log4net;
 
 namespace ControlBee.Models;
 
 public class FakeAxis : Axis, IDisposable
 {
     private const double Tolerance = 1e-6;
+    private static readonly ILog Logger = LogManager.GetLogger("General");
     private readonly IScenarioFlowTester _flowTester;
+    private readonly bool _skipWaitSensor;
     private readonly ITimeManager _timeManager;
-    private bool _isEnabled;
     private double _actualPosition;
     private double _commandPosition;
     private bool _homeSensor;
+    private bool _isEnabled;
     private bool _isMoving;
+
+    private Task? _movingTask;
     private bool _negativeLimitSensor;
     private bool _positiveLimitSensor;
-    private readonly bool _skipWaitSensor;
     private double _targetPosition;
 
-    public FakeAxis(ITimeManager timeManager, IScenarioFlowTester flowTester)
-        : this(timeManager, flowTester, false) { }
+    public FakeAxis(
+        IDeviceManager deviceManager,
+        ITimeManager timeManager,
+        IScenarioFlowTester flowTester
+    )
+        : this(deviceManager, timeManager, flowTester, false) { }
 
-    public FakeAxis(ITimeManager timeManager, IScenarioFlowTester flowTester, bool skipWaitSensor)
-        : base(EmptyDeviceManager.Instance, timeManager)
+    public FakeAxis(
+        IDeviceManager deviceManager,
+        ITimeManager timeManager,
+        IScenarioFlowTester flowTester,
+        bool skipWaitSensor
+    )
+        : base(deviceManager, timeManager)
     {
         _timeManager = timeManager;
         _flowTester = flowTester;
         _skipWaitSensor = skipWaitSensor;
+        // _fakeDevice = new FakeMotionDevice();
         _timeManager.CurrentTimeChanged += TimeManagerOnCurrentTimeChanged;
+    }
+
+    public bool IsMovingMonitored => _movingTask != null;
+
+    // protected override IMotionDevice? MotionDevice => _fakeDevice;
+
+    public void Dispose()
+    {
+        _timeManager.CurrentTimeChanged -= TimeManagerOnCurrentTimeChanged;
     }
 
     public override bool IsMoving()
@@ -45,11 +69,6 @@ public class FakeAxis : Axis, IDisposable
             AxisSensorType.NegativeLimit => _negativeLimitSensor,
             _ => throw new ValueError(),
         };
-    }
-
-    public void Dispose()
-    {
-        _timeManager.CurrentTimeChanged -= TimeManagerOnCurrentTimeChanged;
     }
 
     public override void Move(double position)
@@ -190,9 +209,49 @@ public class FakeAxis : Axis, IDisposable
         return _isEnabled;
     }
 
-    public override void SetEnable(bool enable)
+    public override void Enable(bool value)
     {
-        _isEnabled = enable;
+        _isEnabled = value;
         RefreshCache();
+    }
+
+    protected override void MonitorMoving()
+    {
+        if (_movingTask != null)
+        {
+            Logger.Error("`_movingTask` should be null here.");
+            _movingTask.Wait();
+            _movingTask = null;
+        }
+
+        _movingTask = TimeManager.RunTask(() =>
+        {
+            while (IsMoving())
+                _timeManager.Sleep(1);
+        });
+    }
+
+    public override void Wait()
+    {
+        if (_movingTask != null)
+        {
+            try
+            {
+                _movingTask.Wait();
+                _movingTask = null;
+            }
+            catch (AggregateException exception)
+            {
+                throw exception.InnerExceptions[0];
+            }
+        }
+
+        if (!IsMoving())
+            return;
+        Logger.Error(
+            $"Monitoring task finished but axis is still moving. Fallback by spinning wait. ({ActorName}, {ItemPath})"
+        );
+        while (IsMoving()) // Fallback
+            _timeManager.Sleep(1);
     }
 }
