@@ -1,4 +1,4 @@
-﻿using System.Configuration;
+﻿using System;
 using ControlBee.Exceptions;
 using ControlBee.Models;
 using ControlBee.Tests.TestUtils;
@@ -81,6 +81,78 @@ public class ActorStateTest : ActorFactoryBase
         Assert.True(called);
     }
 
+    [Fact]
+    public void PushStateAndReturnTest()
+    {
+        var ui = MockActorFactory.Create("ui");
+        ActorRegistry.Add(ui);
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        ActorUtils.TerminateWhenStateChanged(actor, typeof(StateE));
+        actor.StateChanged += (sender, tuple) =>
+        {
+            var (oldState, newState) = tuple;
+            if (newState is StateD stateD)
+                actor.Send(new Message(ui, "Return"));
+            if (newState is StateC stateC)
+                actor.Send(new Message(ui, "TransitToStateE"));
+        };
+
+        actor.State = new StateC(actor);
+        actor.Start();
+        actor.Send(new Message(ui, "LongSignal"));
+        actor.Join();
+
+        var mockActor = Mock.Get(ui);
+        ActorUtils.VerifyGetMessage(
+            actor,
+            ui,
+            "ReadLongSignalFromC",
+            new ValueTuple<int, bool?>(0, null),
+            Times.Once
+        );
+        ActorUtils.VerifyGetMessage(
+            actor,
+            ui,
+            "ReadLongSignalFromC",
+            new ValueTuple<int, bool?>(1, true),
+            Times.Once
+        );
+        ActorUtils.VerifyGetMessage(actor, ui, "ReadLongSignalFromD", true, Times.Once);
+        Assert.True(actor.GetStatus("LongSignal") is false);
+    }
+
+    [Fact]
+    public void PushStateAndErrorTest()
+    {
+        var ui = MockActorFactory.Create("ui");
+        ActorRegistry.Add(ui);
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        ActorUtils.TerminateWhenStateChanged(actor, typeof(ErrorState));
+        actor.StateChanged += (sender, tuple) =>
+        {
+            var (oldState, newState) = tuple;
+            if (newState is StateD stateD)
+                actor.Send(new Message(ui, "GoError"));
+        };
+
+        actor.State = new StateC(actor);
+        actor.Start();
+        actor.Send(new Message(ui, "LongSignal"));
+        actor.Join();
+
+        ActorUtils.VerifyGetMessage(
+            actor,
+            ui,
+            "ReadLongSignalFromC",
+            new ValueTuple<int, bool?>(0, null),
+            Times.Once
+        );
+        ActorUtils.VerifyGetMessage(actor, ui, "ReadLongSignalFromD", true, Times.Once);
+        Assert.True(actor.GetStatus("LongSignal") is false);
+    }
+
     private class TestActor : Actor
     {
         public TestActor(ActorConfig config)
@@ -117,6 +189,75 @@ public class ActorStateTest : ActorFactoryBase
                     break;
             }
 
+            return false;
+        }
+    }
+
+    private class StateC(TestActor actor) : State<TestActor>(actor)
+    {
+        private int _entryCount;
+
+        public override void Dispose()
+        {
+            Actor.SetStatus("LongSignal", false);
+        }
+
+        public override bool ProcessMessage(Message message)
+        {
+            switch (message.Name)
+            {
+                case StateEntryMessage.MessageName:
+                {
+                    var longSignal = Actor.GetStatus("LongSignal") as bool?;
+                    Actor.Ui!.Send(
+                        new Message(Actor, "ReadLongSignalFromC", (_entryCount, longSignal))
+                    );
+                    _entryCount++;
+                    return true;
+                }
+                case "LongSignal":
+                    Actor.SetStatus("LongSignal", true);
+                    Actor.PushState(new StateD(Actor));
+                    return true;
+                case "TransitToStateE":
+                    Actor.State = new StateE(Actor);
+                    return true;
+            }
+
+            return false;
+        }
+    }
+
+    private class StateD(TestActor actor) : State<TestActor>(actor)
+    {
+        public override void Dispose() { }
+
+        public override bool ProcessMessage(Message message)
+        {
+            switch (message.Name)
+            {
+                case "Return":
+                    Actor.Ui!.Send(
+                        new Message(Actor, "ReadLongSignalFromD", Actor.GetStatus("LongSignal"))
+                    );
+                    if (!Actor.TryPopState())
+                        Actor.State = new EmptyState();
+                    return true;
+                case "GoError":
+                    Actor.Ui!.Send(
+                        new Message(Actor, "ReadLongSignalFromD", Actor.GetStatus("LongSignal"))
+                    );
+                    throw new SequenceError();
+            }
+
+            return false;
+        }
+    }
+
+    private class StateE(TestActor actor) : State<TestActor>(actor)
+    {
+        public override bool ProcessMessage(Message message)
+        {
             return false;
         }
     }

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
-using System.Xml.Linq;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Utils;
@@ -13,13 +12,13 @@ public class Actor : IActorInternal, IDisposable
 {
     private static readonly ILog Logger = LogManager.GetLogger("General");
     private static readonly ILog MessageLogger = LogManager.GetLogger("Message");
-    private readonly ISystemPropertiesDataSource _systemPropertiesDataSource;
 
     private readonly Dictionary<string, IActorItem> _actorItems = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly BlockingCollection<Message> _mailbox = new();
 
     private readonly PlaceholderManager _placeholderManager = new();
+    private readonly ISystemPropertiesDataSource _systemPropertiesDataSource;
     private readonly Thread _thread;
 
     protected readonly ActorBuiltinMessageHandler ActorBuiltinMessageHandler;
@@ -28,13 +27,15 @@ public class Actor : IActorInternal, IDisposable
 
     private IState _initialState;
 
+    private readonly Stack<IState> _stateStack = new(new List<IState> { new EmptyState() });
+
     private string _title = string.Empty;
 
     public PlatformException? LastPlatformException;
 
     public Dictionary<string, IActor> PeerDict = [];
     public Dictionary<IActor, Dict> PeerStatus = new();
-    public IState State = new EmptyState();
+
     public Dict Status = new();
 
     public Actor(ActorConfig config)
@@ -56,6 +57,22 @@ public class Actor : IActorInternal, IDisposable
         ActorBuiltinMessageHandler = new ActorBuiltinMessageHandler(this);
         _mailbox.Add(new StateEntryMessage(this));
     }
+
+    public IState State
+    {
+        get => _stateStack.Peek();
+        set
+        {
+            if (_stateStack.Count > 1)
+                Logger.Warn(
+                    "State Stack Count is greater than 1. However, it's setting an state over it."
+                );
+            _stateStack.Clear();
+            _stateStack.Push(value);
+        }
+    }
+
+    public int StateStackCount => _stateStack.Count;
 
     public bool SkipWaitSensor { get; }
 
@@ -138,6 +155,24 @@ public class Actor : IActorInternal, IDisposable
         }
 
         Logger.Info("Actor instance successfully disposed.");
+    }
+
+    public void PushState(IState state)
+    {
+        _stateStack.Push(state);
+    }
+
+    public void PopState()
+    {
+        _stateStack.Pop();
+    }
+
+    public bool TryPopState()
+    {
+        if (StateStackCount <= 1)
+            return false;
+        _stateStack.Pop();
+        return true;
     }
 
     private void UpdateTitle()
@@ -375,6 +410,7 @@ public class Actor : IActorInternal, IDisposable
             while (true)
             {
                 var oldState = State;
+                var oldStateHashes = new HashSet<IState>(_stateStack);
                 var result = ProcessMessage(message);
                 OnMessageProcessed((message, oldState, State, result));
                 if (oldState != State)
@@ -383,7 +419,10 @@ public class Actor : IActorInternal, IDisposable
                         throw new PlatformException(
                             "State has changed but ProcessMessage() returns false."
                         );
-                    oldState.Dispose();
+                    var newStateHashes = new HashSet<IState>(_stateStack);
+                    oldStateHashes.ExceptWith(newStateHashes);
+                    oldStateHashes.ToList().ForEach(x => x.Dispose());
+
                     OnStateChanged((oldState, State));
                     ScenarioFlowTester.OnCheckpoint();
                     message = new StateEntryMessage(this);
@@ -403,16 +442,17 @@ public class Actor : IActorInternal, IDisposable
         catch (SequenceError error)
         {
             var oldState = State;
+            var oldStateHashes = new HashSet<IState>(_stateStack);
             if (error is FatalSequenceError fatalError)
             {
                 Logger.Fatal("Fatal Sequence Error", fatalError);
-                State.Dispose();
+                oldStateHashes.ToList().ForEach(x => x.Dispose());
                 State = CreateFatalErrorState(fatalError);
             }
             else
             {
                 Logger.Error("Sequence Error", error);
-                State.Dispose();
+                oldStateHashes.ToList().ForEach(x => x.Dispose());
                 State = CreateErrorState(error);
             }
 
