@@ -132,12 +132,23 @@ public class ActorTest : ActorFactoryBase
         var actor = ActorFactory.Create<TestActorC>("MyActor");
         actor.State = new StateE(actor);
 
+        actor.MessageProcessed += (sender, tuple) =>
+        {
+            var (message, oldState, newState, result) = tuple;
+            if (
+                newState.GetType() == typeof(ErrorState)
+                && message.GetType() == typeof(StateEntryMessage)
+            )
+            {
+                Assert.True(actor.GetStatus("Error") is true);
+            }
+        };
         actor.Start();
         actor.Send(new Message(EmptyActor.Instance, "DoSomethingWrong"));
         actor.Send(new TerminateMessage());
         actor.Join();
         Assert.IsType<ErrorState>(actor.State);
-        Assert.True(actor.GetStatus("Error") is true);
+        Assert.True(actor.GetStatus("Error") is false);
     }
 
     [Fact]
