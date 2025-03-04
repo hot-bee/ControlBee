@@ -461,6 +461,7 @@ public class Actor : IActorInternal, IDisposable
                 State = CreateErrorState(error);
             }
 
+            StateMessageLogger.Info($"State: {oldState.GetType().Name}->{State.GetType().Name}");
             OnStateChanged((oldState, State));
             ScenarioFlowTester.OnCheckpoint();
             Ui?.Send(new Message(this, "_stateChanged", State.GetType().Name));
