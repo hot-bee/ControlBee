@@ -11,7 +11,7 @@ namespace ControlBee.Models;
 public class Actor : IActorInternal, IDisposable
 {
     private static readonly ILog Logger = LogManager.GetLogger("General");
-    private static readonly ILog MessageLogger = LogManager.GetLogger("Message");
+    private static readonly ILog StateMessageLogger = LogManager.GetLogger("StateMessage");
 
     private readonly Dictionary<string, IActorItem> _actorItems = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
@@ -95,7 +95,9 @@ public class Actor : IActorInternal, IDisposable
     public virtual Guid Send(Message message) // TODO: Remove virtual
     {
         _mailbox.Add(message);
-        MessageLogger.Debug($"{message.Sender.Name}->{Name}: {message.Name}");
+        StateMessageLogger.Info(
+            $"Message: {message.Sender.Name}->{Name}: {message.Name} ({message.Id.ToString()[..6]},{message.RequestId.ToString()[..6]})"
+        );
         return message.Id;
     }
 
@@ -343,7 +345,7 @@ public class Actor : IActorInternal, IDisposable
     public virtual void Start()
     {
         Logger.Info($"Starting Actor instance. ({Name})");
-        _thread.Name = $"Actor_{Name}";
+        _thread.Name = $"{Name}";
         _thread.Start();
     }
 
@@ -423,6 +425,9 @@ public class Actor : IActorInternal, IDisposable
                     oldStateHashes.ExceptWith(newStateHashes);
                     oldStateHashes.ToList().ForEach(x => x.Dispose());
 
+                    StateMessageLogger.Info(
+                        $"State: {oldState.GetType().Name}->{State.GetType().Name}"
+                    );
                     OnStateChanged((oldState, State));
                     ScenarioFlowTester.OnCheckpoint();
                     message = new StateEntryMessage(this);

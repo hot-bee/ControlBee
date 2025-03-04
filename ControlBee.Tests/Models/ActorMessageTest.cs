@@ -27,19 +27,19 @@ public class ActorMessageTest : ActorFactoryBase
     public void SendMessageTest()
     {
         var listener = new ConcurrentQueue<string>();
-        var actor1 = ActorFactory.Create<TestActorA>("MyActor1", "foo", listener);
-        var actor2 = ActorFactory.Create<TestActorA>("MyActor2", "bar", listener);
+        var actor1 = ActorFactory.Create<TestActorA>("MyActor1", listener);
+        var actor2 = ActorFactory.Create<TestActorA>("MyActor2", listener);
 
         actor1.Start();
         actor2.Start();
 
-        actor2.Send(new Message(actor1, "foo"));
+        actor2.Send(new Message(actor1, "ping", 0));
         actor1.Join();
         actor2.Join();
 
         Assert.Equal(12, listener.Count);
-        Assert.True(listener.Where((item, index) => index % 2 == 0).All(s => s == "foo"));
-        Assert.True(listener.Where((item, index) => index % 2 == 1).All(s => s == "bar"));
+        Assert.True(listener.Where((item, index) => index % 2 == 0).All(s => s == "MyActor2"));
+        Assert.True(listener.Where((item, index) => index % 2 == 1).All(s => s == "MyActor1"));
     }
 
     [Fact]
@@ -197,23 +197,27 @@ public class ActorMessageTest : ActorFactoryBase
         }
     }
 
-    private class TestActorA(
-        ActorConfig config,
-        string messageName,
-        ConcurrentQueue<string> listener
-    ) : Actor(config)
+    private class TestActorA(ActorConfig config, ConcurrentQueue<string> listener) : Actor(config)
     {
         protected override bool ProcessMessage(Message message)
         {
-            if (message == Message.Empty)
-                return false;
-            if (message.Name == StateEntryMessage.MessageName)
-                return false;
-            listener.Enqueue(message.Name);
-            message.Sender.Send(new Message(this, messageName));
-            if (listener.Count > 10)
-                throw new OperationCanceledException();
-            return true;
+            switch (message.Name)
+            {
+                case "ping":
+                {
+                    var count = (int)message.Payload! + 1;
+                    if (count > 12)
+                    {
+                        message.Sender.Send(new TerminateMessage());
+                        Send(new TerminateMessage());
+                        return true;
+                    }
+                    listener.Enqueue(Name);
+                    message.Sender.Send(new Message(this, "ping", count));
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
