@@ -11,7 +11,8 @@ namespace ControlBee.Models;
 public class Actor : IActorInternal, IDisposable
 {
     private static readonly ILog Logger = LogManager.GetLogger("General");
-    private static readonly ILog StateMessageLogger = LogManager.GetLogger("StateMessage");
+    private static readonly ILog StateLogger = LogManager.GetLogger("State");
+    private static readonly ILog MessageLogger = LogManager.GetLogger("Message");
 
     private readonly Dictionary<string, IActorItem> _actorItems = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
@@ -95,8 +96,8 @@ public class Actor : IActorInternal, IDisposable
     public virtual Guid Send(Message message) // TODO: Remove virtual
     {
         _mailbox.Add(message);
-        StateMessageLogger.Info(
-            $"Message: {message.Sender.Name}->{Name}: {message.Name} ({message.Id.ToString()[..6]},{message.RequestId.ToString()[..6]})"
+        MessageLogger.Info(
+            $"{message.Sender.Name}->{Name}: {message.Name} ({message.Id.ToString()[..6]},{message.RequestId.ToString()[..6]})"
         );
         return message.Id;
     }
@@ -425,9 +426,7 @@ public class Actor : IActorInternal, IDisposable
                     oldStateHashes.ExceptWith(newStateHashes);
                     oldStateHashes.ToList().ForEach(x => x.Dispose());
 
-                    StateMessageLogger.Info(
-                        $"State: {oldState.GetType().Name}->{State.GetType().Name}"
-                    );
+                    StateLogger.Info($"{oldState.GetType().Name}->{State.GetType().Name}");
                     OnStateChanged((oldState, State));
                     ScenarioFlowTester.OnCheckpoint();
                     message = new StateEntryMessage(this);
@@ -461,7 +460,7 @@ public class Actor : IActorInternal, IDisposable
                 State = CreateErrorState(error);
             }
 
-            StateMessageLogger.Info($"State: {oldState.GetType().Name}->{State.GetType().Name}");
+            StateLogger.Info($"{oldState.GetType().Name}->{State.GetType().Name}");
             OnStateChanged((oldState, State));
             ScenarioFlowTester.OnCheckpoint();
             Ui?.Send(new Message(this, "_stateChanged", State.GetType().Name));
