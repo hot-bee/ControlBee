@@ -13,12 +13,15 @@ public class Actor : IActorInternal, IDisposable
     private static readonly ILog Logger = LogManager.GetLogger("General");
     private static readonly ILog StateLogger = LogManager.GetLogger("State");
     private static readonly ILog MessageLogger = LogManager.GetLogger("Message");
+    private static readonly ILog StatusLogger = LogManager.GetLogger("Status");
 
     private readonly Dictionary<string, IActorItem> _actorItems = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly BlockingCollection<Message> _mailbox = new();
 
     private readonly PlaceholderManager _placeholderManager = new();
+
+    private readonly Stack<IState> _stateStack = new(new List<IState> { new EmptyState() });
     private readonly ISystemPropertiesDataSource _systemPropertiesDataSource;
     private readonly Thread _thread;
 
@@ -27,8 +30,6 @@ public class Actor : IActorInternal, IDisposable
     private bool _init;
 
     private IState _initialState;
-
-    private readonly Stack<IState> _stateStack = new(new List<IState> { new EmptyState() });
 
     private string _title = string.Empty;
 
@@ -96,9 +97,13 @@ public class Actor : IActorInternal, IDisposable
     public virtual Guid Send(Message message) // TODO: Remove virtual
     {
         _mailbox.Add(message);
-        MessageLogger.Info(
-            $"{message.Sender.Name}->{Name}: {message.Name} ({message.Id.ToString()[..6]},{message.RequestId.ToString()[..6]})"
-        );
+
+        var content =
+            $"{message.Sender.Name}->{Name}: {message.Name} ({message.Id.ToString()[..6]},{message.RequestId.ToString()[..6]})";
+        if (message.Name == "_status")
+            MessageLogger.Debug(content);
+        else
+            MessageLogger.Info(content);
         return message.Id;
     }
 
@@ -197,6 +202,7 @@ public class Actor : IActorInternal, IDisposable
         if (value != null && Status.TryGetValue(name, out var oldValue))
             if (value.Equals(oldValue))
                 return;
+        StatusLogger.Info($"SetStatus: {name}, {value}");
         Status[name] = value;
         PublishStatus();
     }
@@ -212,6 +218,7 @@ public class Actor : IActorInternal, IDisposable
         if (value != null && statusByActor.TryGetValue(keyName, out var oldValue))
             if (value.Equals(oldValue))
                 return;
+        StatusLogger.Info($"SetStatusByActor: {actorName}, {keyName}, {value}");
         statusByActor[keyName] = value;
         Status[actorName] = statusByActor;
         PublishStatus();
@@ -371,6 +378,7 @@ public class Actor : IActorInternal, IDisposable
                         _stateStack.ToList().ForEach(x => x.Dispose());
                         break;
                     }
+
                     MessageHandler(message);
                 }
                 else
