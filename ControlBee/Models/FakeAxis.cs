@@ -8,7 +8,7 @@ namespace ControlBee.Models;
 public class FakeAxis : Axis, IDisposable
 {
     private const double Tolerance = 1e-6;
-    private static readonly ILog Logger = LogManager.GetLogger("General");
+    private static readonly ILog Logger = LogManager.GetLogger(nameof(Axis));
     private readonly IScenarioFlowTester _flowTester;
     private readonly bool _skipWaitSensor;
     private readonly ITimeManager _timeManager;

@@ -12,7 +12,7 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
     : DeviceChannel(deviceManager),
         IAxis
 {
-    private static readonly ILog Logger = LogManager.GetLogger("General");
+    private static readonly ILog Logger = LogManager.GetLogger(nameof(Axis));
 
     private Action? _initializeAction;
     private bool _initializing;

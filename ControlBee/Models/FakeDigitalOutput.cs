@@ -7,7 +7,7 @@ namespace ControlBee.Models;
 public class FakeDigitalOutput(IDeviceManager deviceManager, ITimeManager timeManager)
     : DigitalOutput(deviceManager, timeManager)
 {
-    private static readonly ILog Logger = LogManager.GetLogger("General");
+    private static readonly ILog Logger = LogManager.GetLogger(nameof(DigitalOutput));
 
     public override void WriteToDevice()
     {

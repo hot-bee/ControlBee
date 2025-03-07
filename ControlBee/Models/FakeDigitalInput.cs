@@ -9,7 +9,7 @@ public class FakeDigitalInput(
     IScenarioFlowTester flowTester
 ) : DigitalInput(EmptyDeviceManager.Instance)
 {
-    private static readonly ILog Logger = LogManager.GetLogger("General");
+    private static readonly ILog Logger = LogManager.GetLogger(nameof(DigitalInput));
 
     private readonly bool _skipWaitSensor = systemConfigurations.SkipWaitSensor;
 
