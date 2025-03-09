@@ -60,7 +60,7 @@ public class FakeDigitalInputTest : ActorFactoryBase
     public void TimeoutTest()
     {
         var ui = Mock.Of<IUiActor>();
-        Mock.Get(ui).Setup(m => m.Name).Returns("ui");
+        Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(ui);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
@@ -77,7 +77,7 @@ public class FakeDigitalInputTest : ActorFactoryBase
     public void WaitOnWithDelayTest()
     {
         var ui = Mock.Of<IUiActor>();
-        Mock.Get(ui).Setup(m => m.Name).Returns("ui");
+        Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(ui);
         var actor = ActorFactory.Create<TestActor>("MyActor");
         ScenarioFlowTester.Setup(
@@ -120,7 +120,7 @@ MyActor:
     public void DataChangedTest()
     {
         var uiActor = Mock.Of<IUiActor>();
-        Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 

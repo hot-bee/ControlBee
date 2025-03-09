@@ -167,7 +167,7 @@ public class ActorTest : ActorFactoryBase
     [Fact]
     public void StatusTest()
     {
-        var ui = MockActorFactory.Create("ui");
+        var ui = MockActorFactory.Create("Ui");
         ActorRegistry.Add(ui);
         //var peer = MockActorFactory.Create("Peer");
         var peer = ActorFactory.Create<Actor>("Peer");
@@ -273,7 +273,7 @@ public class ActorTest : ActorFactoryBase
                 {
                     var peerName = Actor.GetPeerStatus("Peer", "Name");
                     if (peerName != null)
-                        Actor.PeerDict["ui"].Send(new Message(Actor, "GotYourName", peerName));
+                        Actor.PeerDict["Ui"].Send(new Message(Actor, "GotYourName", peerName));
                     return true;
                 }
             }
@@ -293,7 +293,7 @@ public class ActorTest : ActorFactoryBase
                     var wifiId = Actor.GetPeerStatusByActor("MyActor", "WifiId");
                     if (wifiId != null)
                     {
-                        Actor.PeerDict["ui"].Send(new Message(Actor, "GotWifiId", wifiId));
+                        Actor.PeerDict["Ui"].Send(new Message(Actor, "GotWifiId", wifiId));
                         Actor.Send(new TerminateMessage());
                     }
 

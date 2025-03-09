@@ -32,7 +32,7 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry)
                 Logger.Warn("Skip getting UI Actor.");
                 return _uiActor;
             }
-            _uiActor = actorRegistry.Get("ui");
+            _uiActor = actorRegistry.Get("Ui");
             return _uiActor;
         }
     }

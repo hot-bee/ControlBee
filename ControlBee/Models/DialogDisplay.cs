@@ -9,7 +9,7 @@ public class DialogDisplay
     public DialogDisplay(IActorRegistry actorRegistry, DialogViewFactory dialogViewFactory)
     {
         _dialogViewFactory = dialogViewFactory;
-        var ui = (IUiActor)actorRegistry.Get("ui")!;
+        var ui = (IUiActor)actorRegistry.Get("Ui")!;
         ui.MessageArrived += Ui_MessageArrived;
     }
 

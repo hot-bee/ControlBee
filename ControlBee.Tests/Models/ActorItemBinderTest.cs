@@ -16,7 +16,7 @@ public class ActorItemBinderTest : ActorFactoryBase
     public void DataChangedTest()
     {
         var uiActor = Mock.Of<IUiActor>();
-        Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("Ui");
 
         ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<Actor>("MyActor");
@@ -51,7 +51,7 @@ public class ActorItemBinderTest : ActorFactoryBase
     [Fact]
     public void BindingTest()
     {
-        var uiActor = ActorFactory.Create<UiActor>("ui");
+        var uiActor = ActorFactory.Create<UiActor>("Ui");
         var actor = ActorFactory.Create<Actor>("MyActor");
         uiActor.SetHandler(new DirectUiActorMessageHandler());
         var variable = new Variable<int>(VariableScope.Global, 1);

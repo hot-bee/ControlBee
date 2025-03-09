@@ -40,7 +40,7 @@ public class AxisTest : ActorFactoryBase
         SetupWithDevice();
 
         var uiActor = Mock.Of<IUiActor>();
-        Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
@@ -82,7 +82,7 @@ public class AxisTest : ActorFactoryBase
         SetupWithDevice();
 
         var uiActor = Mock.Of<IUiActor>();
-        Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
@@ -121,7 +121,7 @@ public class AxisTest : ActorFactoryBase
         SetupWithDevice();
 
         var uiActor = Mock.Of<IUiActor>();
-        Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
@@ -305,7 +305,7 @@ public class AxisTest : ActorFactoryBase
         Mock.Get(device).Setup(m => m.IsEnabled(0)).Returns(true);
 
         var uiActor = Mock.Of<IUiActor>();
-        Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(uiActor);
 
         var client = MockActorFactory.Create("Client");

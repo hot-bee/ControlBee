@@ -46,7 +46,7 @@ public class ActorStateTest : ActorFactoryBase
     [Fact]
     public void StateChangeWithErrorTest()
     {
-        var ui = MockActorFactory.Create("ui");
+        var ui = MockActorFactory.Create("Ui");
         ActorRegistry.Add(ui);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
@@ -84,7 +84,7 @@ public class ActorStateTest : ActorFactoryBase
     [Fact]
     public void PushStateAndReturnTest()
     {
-        var ui = MockActorFactory.Create("ui");
+        var ui = MockActorFactory.Create("Ui");
         ActorRegistry.Add(ui);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
@@ -125,7 +125,7 @@ public class ActorStateTest : ActorFactoryBase
     [Fact]
     public void PushStateAndErrorTest()
     {
-        var ui = MockActorFactory.Create("ui");
+        var ui = MockActorFactory.Create("Ui");
         ActorRegistry.Add(ui);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 

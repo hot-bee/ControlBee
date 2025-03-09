@@ -40,7 +40,7 @@ MyActor:
     public void DataChangedTest()
     {
         var uiActor = Mock.Of<IUiActor>();
-        Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 

@@ -84,7 +84,7 @@ public class ActorMessageTest : ActorFactoryBase
     [Fact]
     public void StateChangeTest()
     {
-        var uiActor = MockActorFactory.Create("ui");
+        var uiActor = MockActorFactory.Create("Ui");
         ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<TestActorB>("MyActor");
 

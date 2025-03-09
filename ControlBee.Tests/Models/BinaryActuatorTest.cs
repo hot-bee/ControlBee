@@ -20,7 +20,7 @@ public class BinaryActuatorTest()
     public void TimeoutTest()
     {
         var ui = Mock.Of<IUiActor>();
-        Mock.Get(ui).Setup(m => m.Name).Returns("ui");
+        Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(ui);
         var actor = ActorFactory.Create<TestActor>("myActor");
 
@@ -38,7 +38,7 @@ public class BinaryActuatorTest()
     public void TimeoutBothTest()
     {
         var ui = Mock.Of<IUiActor>();
-        Mock.Get(ui).Setup(m => m.Name).Returns("ui");
+        Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(ui);
         var actor = ActorFactory.Create<TestActor>("myActor");
 
@@ -56,7 +56,7 @@ public class BinaryActuatorTest()
     public void OnAndWaitTest()
     {
         var ui = Mock.Of<IUiActor>();
-        Mock.Get(ui).Setup(m => m.Name).Returns("ui");
+        Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(ui);
         var actor = ActorFactory.Create<TestActor>("myActor");
         ScenarioFlowTester.Setup(
@@ -84,7 +84,7 @@ public class BinaryActuatorTest()
     public void OnAndWaitBothTest()
     {
         var ui = Mock.Of<IUiActor>();
-        Mock.Get(ui).Setup(m => m.Name).Returns("ui");
+        Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(ui);
         var actor = ActorFactory.Create<TestActor>("myActor");
         ScenarioFlowTester.Setup(
@@ -115,7 +115,7 @@ public class BinaryActuatorTest()
     public void OnAndTimeoutTest()
     {
         var ui = Mock.Of<IUiActor>();
-        Mock.Get(ui).Setup(m => m.Name).Returns("ui");
+        Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(ui);
         var actor = ActorFactory.Create<TestActor>("myActor");
 
@@ -143,7 +143,7 @@ public class BinaryActuatorTest()
         Recreate(config);
 
         var uiActor = Mock.Of<IUiActor>();
-        Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
@@ -207,7 +207,7 @@ public class BinaryActuatorTest()
         Recreate(config);
 
         var uiActor = Mock.Of<IUiActor>();
-        Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
@@ -265,7 +265,7 @@ public class BinaryActuatorTest()
         Recreate(config);
 
         var uiActor = Mock.Of<IUiActor>();
-        Mock.Get(uiActor).Setup(m => m.Name).Returns("ui");
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 

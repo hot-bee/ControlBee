@@ -17,7 +17,7 @@ public class ActorItemBinder : IDisposable
     {
         _actorName = actorName;
         _itemPath = itemPath;
-        _uiActor = (IUiActor)actorRegistry.Get("ui")!;
+        _uiActor = (IUiActor)actorRegistry.Get("Ui")!;
         var actor = actorRegistry.Get(actorName)!;
         _uiActor.MessageArrived += _uiActor_MessageArrived;
         _itemMetaDataReadMessageId = actor.Send(

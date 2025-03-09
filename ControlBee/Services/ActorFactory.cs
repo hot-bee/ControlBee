@@ -27,7 +27,7 @@ public class ActorFactory(
             throw new ApplicationException(
                 "Cannot create this object. It must be derived from the 'Actor' class."
             );
-        var uiActor = actorRegistry.Get("ui");
+        var uiActor = actorRegistry.Get("Ui");
         var actorConfig = new ActorConfig(
             actorName,
             systemConfigurations,
