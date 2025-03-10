@@ -115,7 +115,7 @@ public class FrozenTimeManager : ITimeManager
                     !_threadEvents.TryGetValue(Thread.CurrentThread.ManagedThreadId, out var @event)
                 )
                     throw new PlatformException(
-                        "Couldn't find the registered thread. Please register it before use."
+                        $"Couldn't find the registered thread. Please register it before use. ({_threadEvents.Count})"
                     );
                 threadEvent = @event;
             }
