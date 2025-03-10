@@ -10,7 +10,7 @@ public class FrozenTimeManager : ITimeManager
     private readonly IScenarioFlowTester _scenarioFlowTester;
     private readonly FrozenTimeManagerConfig _config;
 
-    private readonly Dictionary<Thread, FrozenTimeManagerEvent> _threadEvents = new();
+    private readonly Dictionary<int, FrozenTimeManagerEvent> _threadEvents = new();
     private readonly Thread? _tickingThread;
 
     private bool _disposing;
@@ -111,7 +111,9 @@ public class FrozenTimeManager : ITimeManager
             FrozenTimeManagerEvent threadEvent;
             lock (_threadEvents)
             {
-                if (!_threadEvents.TryGetValue(Thread.CurrentThread, out var @event))
+                if (
+                    !_threadEvents.TryGetValue(Thread.CurrentThread.ManagedThreadId, out var @event)
+                )
                     throw new PlatformException(
                         "Couldn't find the registered thread. Please register it before use."
                     );
@@ -135,7 +137,7 @@ public class FrozenTimeManager : ITimeManager
 
     public void Register()
     {
-        var thread = Thread.CurrentThread;
+        var thread = Thread.CurrentThread.ManagedThreadId;
         lock (_threadEvents)
         {
             if (_threadEvents.ContainsKey(thread))
@@ -146,7 +148,7 @@ public class FrozenTimeManager : ITimeManager
 
     public void Unregister()
     {
-        var thread = Thread.CurrentThread;
+        var thread = Thread.CurrentThread.ManagedThreadId;
         lock (_threadEvents)
         {
             if (!_threadEvents.ContainsKey(thread))
