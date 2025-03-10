@@ -1,16 +1,13 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Sequences;
-using ControlBee.Services;
 using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
-using Moq;
 using Xunit;
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
@@ -67,8 +64,6 @@ public class InitializeSequenceTest : ActorFactoryBase
         ScenarioFlowTester.Complete.Should().BeTrue();
     }
 
-    // ReSharper disable once ClassNeverInstantiated.Local
-    [SuppressMessage("ReSharper", "MemberCanBePrivate.Local")]
     private class TestActor : Actor
     {
         public readonly Variable<Position1D> HomePositionX = new(
@@ -125,7 +120,7 @@ public class InitializeSequenceTest : ActorFactoryBase
             InitializeSequenceZ = new InitializeSequence(Z, HomingSpeedZ, HomePositionZ);
         }
 
-        protected override void MessageHandler(Message message)
+        protected override bool ProcessMessage(Message message)
         {
             if (message.Name == "_initialize")
             {
@@ -142,7 +137,9 @@ public class InitializeSequenceTest : ActorFactoryBase
                         return 0;
                     })
                 );
+                return true;
             }
+            return base.ProcessMessage(message);
         }
     }
 }

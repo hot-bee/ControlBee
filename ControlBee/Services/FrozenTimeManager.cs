@@ -7,10 +7,20 @@ namespace ControlBee.Services;
 
 public class FrozenTimeManager : ITimeManager
 {
-    private readonly IScenarioFlowTester _scenarioFlowTester;
-    private readonly FrozenTimeManagerConfig _config;
+    public enum KeyType
+    {
+        Thread,
+        Task,
+    }
 
-    private readonly Dictionary<Thread, FrozenTimeManagerEvent> _threadEvents = new();
+    private readonly Dictionary<
+        (KeyType keyType, int id),
+        FrozenTimeManagerEvent
+    > _concurrencyEvents = new();
+
+    private readonly FrozenTimeManagerConfig _config;
+    private readonly IScenarioFlowTester _scenarioFlowTester;
+
     private readonly Thread? _tickingThread;
 
     private bool _disposing;
@@ -35,9 +45,9 @@ public class FrozenTimeManager : ITimeManager
                 while (!_disposing)
                 {
                     List<FrozenTimeManagerEvent> events;
-                    lock (_threadEvents)
+                    lock (_concurrencyEvents)
                     {
-                        events = _threadEvents.Values.ToList();
+                        events = _concurrencyEvents.Values.ToList();
                     }
 
                     if (events.Count == 0)
@@ -52,6 +62,7 @@ public class FrozenTimeManager : ITimeManager
                         Thread.Sleep(1);
                         continue;
                     }
+
                     var activeEvents = events
                         .Except(sleepingEvents)
                         .Where(x => (x.Thread.ThreadState & ThreadState.WaitSleepJoin) == 0)
@@ -84,9 +95,9 @@ public class FrozenTimeManager : ITimeManager
     {
         get
         {
-            lock (_threadEvents)
+            lock (_concurrencyEvents)
             {
-                return _threadEvents.Count;
+                return _concurrencyEvents.Count;
             }
         }
     }
@@ -103,21 +114,27 @@ public class FrozenTimeManager : ITimeManager
     public void Sleep(int millisecondsTimeout)
     {
         var startTime = CurrentMilliseconds;
+        var eventKey = GetEventKey();
 
         while (true)
         {
             if (startTime + millisecondsTimeout <= CurrentMilliseconds)
                 break;
             FrozenTimeManagerEvent threadEvent;
-            lock (_threadEvents)
+            lock (_concurrencyEvents)
             {
-                threadEvent = _threadEvents[Thread.CurrentThread];
+                if (!_concurrencyEvents.TryGetValue(eventKey, out var @event))
+                    throw new PlatformException(
+                        "No concurrency event found for this job. Please register it before use."
+                    );
+                threadEvent = @event;
             }
 
             threadEvent.IsSleeping = true;
             threadEvent.ResumeEvent.WaitOne();
             threadEvent.ResumedEvent.Set();
         }
+
         _scenarioFlowTester.OnCheckpoint();
     }
 
@@ -131,23 +148,23 @@ public class FrozenTimeManager : ITimeManager
 
     public void Register()
     {
-        var thread = Thread.CurrentThread;
-        lock (_threadEvents)
+        var eventKey = GetEventKey();
+        lock (_concurrencyEvents)
         {
-            if (_threadEvents.ContainsKey(thread))
+            if (_concurrencyEvents.ContainsKey(eventKey))
                 return;
-            _threadEvents[thread] = new FrozenTimeManagerEvent();
+            _concurrencyEvents[eventKey] = new FrozenTimeManagerEvent();
         }
     }
 
     public void Unregister()
     {
-        var thread = Thread.CurrentThread;
-        lock (_threadEvents)
+        var eventKey = GetEventKey();
+        lock (_concurrencyEvents)
         {
-            if (!_threadEvents.ContainsKey(thread))
+            if (!_concurrencyEvents.ContainsKey(eventKey))
                 return;
-            _threadEvents.Remove(thread);
+            _concurrencyEvents.Remove(eventKey);
         }
     }
 
@@ -178,6 +195,13 @@ public class FrozenTimeManager : ITimeManager
             return ret;
         });
         return task;
+    }
+
+    public static ValueTuple<KeyType, int> GetEventKey()
+    {
+        if (Task.CurrentId != null)
+            return ((KeyType, int))(KeyType.Task, Task.CurrentId);
+        return (KeyType.Thread, Thread.CurrentThread.ManagedThreadId);
     }
 
     private void _tick(int elapsedMilliseconds)
