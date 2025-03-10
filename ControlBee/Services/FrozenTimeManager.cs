@@ -10,7 +10,14 @@ public class FrozenTimeManager : ITimeManager
     private readonly IScenarioFlowTester _scenarioFlowTester;
     private readonly FrozenTimeManagerConfig _config;
 
-    private readonly Dictionary<int, FrozenTimeManagerEvent> _threadEvents = new();
+    private enum KeyType
+    {
+        Thread,
+        Task,
+    }
+
+    private readonly Dictionary<(KeyType keyType, int id), FrozenTimeManagerEvent> _threadEvents =
+        new();
     private readonly Thread? _tickingThread;
 
     private bool _disposing;
@@ -103,6 +110,7 @@ public class FrozenTimeManager : ITimeManager
     public void Sleep(int millisecondsTimeout)
     {
         var startTime = CurrentMilliseconds;
+        var eventKey = GetEventKey();
 
         while (true)
         {
@@ -111,9 +119,7 @@ public class FrozenTimeManager : ITimeManager
             FrozenTimeManagerEvent threadEvent;
             lock (_threadEvents)
             {
-                if (
-                    !_threadEvents.TryGetValue(Thread.CurrentThread.ManagedThreadId, out var @event)
-                )
+                if (!_threadEvents.TryGetValue(eventKey, out var @event))
                     throw new PlatformException(
                         $"Couldn't find the registered thread. Please register it before use. ({_threadEvents.Count})"
                     );
@@ -135,25 +141,34 @@ public class FrozenTimeManager : ITimeManager
     public int CurrentMilliseconds { get; private set; }
     public event EventHandler<int>? CurrentTimeChanged;
 
+    private ValueTuple<KeyType, int> GetEventKey()
+    {
+        if (Task.CurrentId != null)
+        {
+            return ((KeyType, int))(KeyType.Task, Task.CurrentId);
+        }
+        return (KeyType.Thread, Thread.CurrentThread.ManagedThreadId);
+    }
+
     public void Register()
     {
-        var thread = Thread.CurrentThread.ManagedThreadId;
+        var eventKey = GetEventKey();
         lock (_threadEvents)
         {
-            if (_threadEvents.ContainsKey(thread))
+            if (_threadEvents.ContainsKey(eventKey))
                 return;
-            _threadEvents[thread] = new FrozenTimeManagerEvent();
+            _threadEvents[eventKey] = new FrozenTimeManagerEvent();
         }
     }
 
     public void Unregister()
     {
-        var thread = Thread.CurrentThread.ManagedThreadId;
+        var eventKey = GetEventKey();
         lock (_threadEvents)
         {
-            if (!_threadEvents.ContainsKey(thread))
+            if (!_threadEvents.ContainsKey(eventKey))
                 return;
-            _threadEvents.Remove(thread);
+            _threadEvents.Remove(eventKey);
         }
     }
 
