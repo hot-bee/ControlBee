@@ -111,7 +111,11 @@ public class FrozenTimeManager : ITimeManager
             FrozenTimeManagerEvent threadEvent;
             lock (_threadEvents)
             {
-                threadEvent = _threadEvents[Thread.CurrentThread];
+                if (!_threadEvents.TryGetValue(Thread.CurrentThread, out var @event))
+                    throw new PlatformException(
+                        "Couldn't find the registered thread. Please register it before use."
+                    );
+                threadEvent = @event;
             }
 
             threadEvent.IsSleeping = true;
