@@ -1,13 +1,17 @@
-﻿using System.Text.Json;
+﻿using System.ComponentModel;
+using System.Text.Json;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
+using log4net;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Variables;
 
 public class Variable<T> : ActorItem, IVariable, IDisposable
     where T : new()
 {
+    private static readonly ILog Logger = LogManager.GetLogger("Variable");
     private T _value;
 
     public Variable(VariableScope scope, T initialValue)
@@ -87,7 +91,7 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
         {
             case "_itemMetaDataRead":
             {
-                var payload = new Dictionary<string, object?>
+                var payload = new Dict
                 {
                     [nameof(Name)] = Name,
                     [nameof(Unit)] = Unit,
@@ -100,7 +104,7 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
             }
             case "_itemDataRead":
             {
-                var payload = new Dictionary<string, object?>()
+                var payload = new Dict
                 {
                     ["Location"] = null,
                     ["OldValue"] = null,
@@ -115,6 +119,36 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
             {
                 var data = message.Payload!;
                 Value = (T)data;
+                return true;
+            }
+            case "_itemDataModify":
+            {
+                if (message.Payload! is not Dict data)
+                {
+                    Logger.Warn(
+                        "Invalid payload: Expected a dictionary in _itemDataModify, but received a different type."
+                    );
+                    return false;
+                }
+
+                if (Value == null)
+                {
+                    Logger.Warn("Value is null while processing _itemDataModify.");
+                    return false;
+                }
+                foreach (var (propertyName, propertyValue) in data)
+                {
+                    var propertyType = Value.GetType().GetProperty(propertyName);
+                    if (propertyType == null)
+                    {
+                        Logger.Warn(
+                            $"Property type couldn't be found by the name. ({propertyName})"
+                        );
+                        continue;
+                    }
+                    propertyType.SetValue(Value, propertyValue);
+                }
+
                 return true;
             }
             default:
@@ -159,17 +193,30 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
     {
         if (_value is IValueChanged arrayValue)
             arrayValue.ValueChanged += ArrayValue_ValueChanged;
+        if (_value is INotifyPropertyChanged notifyPropertyChanged)
+            notifyPropertyChanged.PropertyChanged += NotifyPropertyChangedOnPropertyChanged;
     }
 
     private void Unsubscribe()
     {
         if (_value is IValueChanged arrayValue)
             arrayValue.ValueChanged -= ArrayValue_ValueChanged;
+        if (_value is INotifyPropertyChanged notifyPropertyChanged)
+            notifyPropertyChanged.PropertyChanged -= NotifyPropertyChangedOnPropertyChanged;
     }
 
     private void ArrayValue_ValueChanged(object? sender, ValueChangedEventArgs e)
     {
         OnValueChanged(e);
+    }
+
+    private void NotifyPropertyChangedOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        var newValue =
+            e.PropertyName != null
+                ? sender?.GetType().GetProperty(e.PropertyName)?.GetValue(sender)
+                : null;
+        OnValueChanged(new ValueChangedEventArgs(e.PropertyName, null, newValue));
     }
 
     protected virtual void OnValueChanged(ValueChangedEventArgs e)
