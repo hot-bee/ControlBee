@@ -479,6 +479,11 @@ public class Actor : IActorInternal, IDisposable
         }
     }
 
+    public virtual IState CreateIdleState()
+    {
+        throw new UnimplementedByDesignError("This method must be implemented in a subclass.");
+    }
+
     protected virtual IState CreateFatalErrorState(FatalSequenceError fatalError)
     {
         return _initialState;
