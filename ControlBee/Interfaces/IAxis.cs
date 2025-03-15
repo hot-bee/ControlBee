@@ -31,4 +31,5 @@ public interface IAxis : IDeviceChannel
     SpeedProfile GetJogSpeed(JogSpeed jogSpeed);
     void RelativeMove(double distance);
     void RelativeMoveAndWait(double distance);
+    SpeedProfile GetNormalSpeed();
 }

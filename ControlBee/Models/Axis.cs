@@ -32,7 +32,7 @@ public class Axis : DeviceChannel, IAxis
         new SpeedProfile { Velocity = 10.0 }
     );
 
-    public Variable<SpeedProfile> OperationSpeed = new(
+    public Variable<SpeedProfile> NormalSpeed = new(
         VariableScope.Global,
         new SpeedProfile { Velocity = 10.0 }
     );
@@ -137,6 +137,11 @@ public class Axis : DeviceChannel, IAxis
     public SpeedProfile GetJogSpeed(JogSpeed jogSpeed)
     {
         return (SpeedProfile)JogSpeed.ValueObject!;
+    }
+
+    public SpeedProfile GetNormalSpeed()
+    {
+        return (SpeedProfile)NormalSpeed.ValueObject!;
     }
 
     public void Enable()
