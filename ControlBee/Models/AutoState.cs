@@ -36,6 +36,7 @@ public class AutoState<T>(T actor, IActor parent) : State<T>(actor)
         if (Actor.GetPeerStatus(parent, "_auto") is not true)
         {
             Logger.Debug("Parent actor is not in auto mode.");
+            Actor.SetStatus("_auto", false);
             Actor.State = Actor.CreateIdleState();
             return true;
         }

@@ -2,6 +2,7 @@
 using ControlBee.Models;
 using ControlBee.Tests.TestUtils;
 using JetBrains.Annotations;
+using Moq;
 using Xunit;
 
 namespace ControlBee.Tests.Models;
@@ -34,6 +35,21 @@ public class AutoStateTest : ActorFactoryBase
         actor.Start();
         ActorUtils.SendSignal(syncer, actor, "_auto");
         actor.Join();
+    }
+
+    [Fact]
+    public void StopAutoTest()
+    {
+        var syncer = MockActorFactory.Create("Syncer");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+        actor.SetPeers(syncer);
+
+        ActorUtils.TerminateWhenStateChanged(actor, typeof(IdleState));
+        actor.State = new AutoState(actor, syncer);
+
+        actor.Start();
+        actor.Join();
+        ActorUtils.VerifyGetMessage(actor, syncer, "AutoStatus", false, Times.Once);
     }
 
     private class TestActor : Actor
@@ -75,6 +91,18 @@ public class AutoStateTest : ActorFactoryBase
         }
     }
 
-    private class AutoState(TestActor actor, IActor parent)
-        : AutoState<TestActor>(actor, parent) { }
+    private class AutoState(TestActor actor, IActor parent) : AutoState<TestActor>(actor, parent)
+    {
+        public override bool ProcessMessage(Message message)
+        {
+            var ret = base.ProcessMessage(message);
+            switch (message.Name)
+            {
+                case StateEntryMessage.MessageName:
+                    Actor.Syncer.Send(new Message(Actor, "AutoStatus", Actor.GetStatus("_auto")));
+                    return true;
+            }
+            return ret;
+        }
+    }
 }
