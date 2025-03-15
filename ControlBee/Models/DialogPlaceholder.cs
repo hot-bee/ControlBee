@@ -27,6 +27,11 @@ public class DialogPlaceholder : IPlaceholder, IDialog
         throw new UnimplementedByDesignError();
     }
 
+    public void Init()
+    {
+        // Empty
+    }
+
     public Guid Show()
     {
         throw new UnimplementedByDesignError();

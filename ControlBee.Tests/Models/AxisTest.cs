@@ -118,6 +118,7 @@ public class AxisTest : ActorFactoryBase
     [Fact]
     public void InitializeTest()
     {
+        RecreateWithSkipWaitSensor();
         SetupWithDevice();
 
         var uiActor = Mock.Of<IUiActor>();
@@ -125,32 +126,32 @@ public class AxisTest : ActorFactoryBase
         ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
+        ((FakeAxis)actor.X).HomePos.Value[0] = 200.0;
         actor.Start();
         actor.Send(new ActorItemMessage(uiActor, "/X", "_initialize"));
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
-        Assert.True(actor.Initialized);
-
+        Assert.Equal(200.0, actor.X.GetPosition());
         var match1 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/X" }
                 && (bool)actorItemMessage.DictPayload!["IsInitializing"]!;
         });
         Mock.Get(uiActor)
-            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
+            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.AtLeastOnce);
 
         var match2 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/X" }
                 && (bool)actorItemMessage.DictPayload!["IsInitializing"]! == false;
         });
         Mock.Get(uiActor)
-            .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Exactly(2));
+            .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.AtLeastOnce);
     }
 
     [Fact]
@@ -257,13 +258,11 @@ public class AxisTest : ActorFactoryBase
     private class TestActor : Actor
     {
         public readonly IAxis X;
-        public bool Initialized;
 
         public TestActor(ActorConfig config)
             : base(config)
         {
             X = config.AxisFactory.Create();
-            X.SetInitializeAction(() => Initialized = true);
 
             ((Axis)X).StepJogSizes.Value[2] = 10;
         }

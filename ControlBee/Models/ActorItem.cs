@@ -47,6 +47,8 @@ public abstract class ActorItem : IActorItem
             Desc = desc;
     }
 
+    public virtual void Init() { }
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)

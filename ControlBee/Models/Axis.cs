@@ -1,6 +1,7 @@
 ﻿using ControlBee.Constants;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
+using ControlBee.Sequences;
 using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
 using log4net;
@@ -8,21 +9,23 @@ using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
-public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
-    : DeviceChannel(deviceManager),
-        IAxis
+public class Axis : DeviceChannel, IAxis
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(Axis));
 
-    private Action? _initializeAction;
+    private Action _initializeAction;
     private bool _initializing;
 
     public Variable<int> EnableDelay = new(VariableScope.Global, 200);
+
+    public Variable<Position1D> HomePos = new(VariableScope.Global);
 
     public Variable<SpeedProfile> HomingSpeed = new(
         VariableScope.Global,
         new SpeedProfile { Velocity = 10.0 }
     );
+
+    public InitializeSequence InitializeSequence;
 
     public Variable<SpeedProfile> JogSpeed = new(
         VariableScope.Global,
@@ -40,6 +43,23 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         VariableScope.Global,
         new Array1D<double>([0.01, 0.1, 1.0])
     );
+
+    public Axis(IDeviceManager deviceManager, ITimeManager timeManager)
+        : base(deviceManager)
+    {
+        _timeManager = timeManager;
+
+        InitializeSequence = new InitializeSequence(this, HomingSpeed, HomePos);
+        _initializeAction = () =>
+        {
+            InitializeSequence.Run();
+        };
+    }
+
+    public override void Init()
+    {
+        Actor.PositionAxesMap.Add(HomePos, [this]);
+    }
 
     // ReSharper disable once SuspiciousTypeConversion.Global
     protected virtual IMotionDevice? MotionDevice => Device as IMotionDevice;
@@ -185,7 +205,7 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
                 throw new SequenceError("Couldn't meet the condition.");
             }
 
-            timeManager.Sleep(1);
+            _timeManager.Sleep(1);
         }
     }
 
@@ -298,7 +318,7 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
             $"Monitoring task finished but axis is still moving. Fallback by spinning wait. ({ActorName}, {ItemPath})"
         );
         while (IsMoving()) // Fallback
-            timeManager.Sleep(1);
+            _timeManager.Sleep(1);
     }
 
     public virtual double GetPosition(PositionType type)
@@ -319,12 +339,12 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
 
     public virtual void WaitSensor(AxisSensorType type, bool waitingValue, int millisecondsTimeout)
     {
-        var watch = timeManager.CreateWatch();
+        var watch = _timeManager.CreateWatch();
         while (GetSensorValue(type) != waitingValue)
         {
             if (watch.ElapsedMilliseconds > millisecondsTimeout)
                 throw new TimeoutError();
-            timeManager.Sleep(1);
+            _timeManager.Sleep(1);
         }
     }
 
@@ -335,12 +355,6 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
 
     public void Initialize()
     {
-        if (_initializeAction == null)
-        {
-            Logger.Error("The initialize action must be set before it can be used.");
-            return;
-        }
-
         _initializing = true;
         RefreshCache();
 
@@ -442,6 +456,7 @@ public class Axis(IDeviceManager deviceManager, ITimeManager timeManager)
     private bool _isMovingCache;
     private bool _isNegativeLimitDetCache;
     private bool _isPositiveLimitDetCache;
+    private readonly ITimeManager _timeManager;
 
     #endregion
 }

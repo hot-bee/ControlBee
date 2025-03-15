@@ -345,9 +345,9 @@ public class Actor : IActorInternal, IDisposable
         actorItem.ItemPath = itemPath;
         actorItem.UpdateSubItem();
         _actorItems[itemPath] = actorItem;
-
         if (actorItem is IVariable variable)
             VariableManager.Add(variable);
+        actorItem.Init();
     }
 
     public virtual void Start()

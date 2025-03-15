@@ -29,6 +29,11 @@ public class DigitalOutputPlaceholder : IPlaceholder, IDigitalOutput
         throw new UnimplementedByDesignError();
     }
 
+    public void Init()
+    {
+        // Empty
+    }
+
     public void RefreshCache()
     {
         throw new UnimplementedByDesignError();
