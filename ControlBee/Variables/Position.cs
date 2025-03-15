@@ -3,12 +3,14 @@ using ControlBee.Constants;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
+using log4net;
 using MathNet.Numerics.LinearAlgebra.Double;
 
 namespace ControlBee.Variables;
 
-public abstract class Position : IValueChanged, IActorItemSub
+public abstract class Position : IValueChanged, IActorItemSub, IWriteData
 {
+    private static readonly ILog Logger = LogManager.GetLogger("Position");
     private DenseVector _duplicatedVector = new(0);
     private DenseVector _vector = new(0);
 
@@ -53,7 +55,7 @@ public abstract class Position : IValueChanged, IActorItemSub
             var oldValue = Vector;
             InternalVector = value;
             _duplicatedVector = value;
-            OnValueChanged(new ValueChangedEventArgs(nameof(Vector), oldValue, value));
+            OnValueChanged(new ValueChangedArgs([nameof(Vector)], oldValue, value));
         }
     }
 
@@ -72,7 +74,7 @@ public abstract class Position : IValueChanged, IActorItemSub
             var oldValue = newVector[i];
             newVector[i] = value;
             InternalVector = newVector;
-            OnValueChanged(new ValueChangedEventArgs(i, oldValue, value));
+            OnValueChanged(new ValueChangedArgs([i], oldValue, value));
         }
     }
 
@@ -84,7 +86,17 @@ public abstract class Position : IValueChanged, IActorItemSub
 
     public void UpdateSubItem() { }
 
-    public event EventHandler<ValueChangedEventArgs>? ValueChanged;
+    public virtual void OnDeserialized() { }
+
+    public event EventHandler<ValueChangedArgs>? ValueChanged;
+
+    public void WriteData(ItemDataWriteArgs args)
+    {
+        var index = (int)args.Location[0];
+        this[index] = (double)args.NewValue;
+        if (args.Location.Length > 1)
+            Logger.Warn("Location arguments too many.");
+    }
 
     public void Move()
     {
@@ -154,7 +166,7 @@ public abstract class Position : IValueChanged, IActorItemSub
         Wait(axes);
     }
 
-    protected virtual void OnValueChanged(ValueChangedEventArgs e)
+    protected virtual void OnValueChanged(ValueChangedArgs e)
     {
         ValueChanged?.Invoke(this, e);
     }

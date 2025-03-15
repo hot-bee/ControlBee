@@ -29,7 +29,7 @@ public class Array2D<T> : ArrayBase
         {
             var oldValue = _value[x, y];
             _value[x, y] = value;
-            OnArrayElementChanged(new ValueChangedEventArgs((x, y), oldValue, value));
+            OnArrayElementChanged(new ValueChangedArgs([(x, y)], oldValue, value));
         }
     }
 

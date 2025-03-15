@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+﻿using System;
+using System.Linq;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Tests.TestUtils;
@@ -9,12 +8,11 @@ using ControlBee.Variables;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
-using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Tests.Variables;
 
 [TestSubject(typeof(Variable<>))]
-public class ModelVariableTest : ActorFactoryBase
+public class PropertyVariableTest : ActorFactoryBase
 {
     [Fact]
     public void DataReadTest()
@@ -31,7 +29,8 @@ public class ModelVariableTest : ActorFactoryBase
             "_itemDataChanged",
             message =>
             {
-                var newValue = (Product)DictPath.Start(message.Payload)["NewValue"].Value!;
+                var valueChangedArgs = message.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
+                var newValue = (Product)valueChangedArgs!.NewValue!;
                 Assert.False(newValue.Exists);
                 actor.Send(new TerminateMessage());
             }
@@ -57,7 +56,8 @@ public class ModelVariableTest : ActorFactoryBase
             "_itemDataChanged",
             message =>
             {
-                var newValue = (Product)DictPath.Start(message.Payload)["NewValue"].Value!;
+                var valueChangedArgs = message.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
+                var newValue = (Product)valueChangedArgs!.NewValue!;
                 Assert.True(newValue.Exists);
                 actor.Send(new TerminateMessage());
             }
@@ -67,7 +67,7 @@ public class ModelVariableTest : ActorFactoryBase
                 uiActor,
                 "/Product",
                 "_itemDataWrite",
-                new Product { Exists = true }
+                new ItemDataWriteArgs([], new Product { Exists = true })
             )
         );
 
@@ -90,10 +90,9 @@ public class ModelVariableTest : ActorFactoryBase
             "_itemDataChanged",
             message =>
             {
-                var location = (string)DictPath.Start(message.Payload)["Location"].Value!;
-                var newValue = (bool)DictPath.Start(message.Payload)["NewValue"].Value!;
-                Assert.Equal("Exists", location);
-                Assert.True(newValue);
+                var valueChangedArgs = message.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
+                Assert.True(valueChangedArgs?.Location.SequenceEqual(["Exists"]));
+                Assert.True(valueChangedArgs?.NewValue is true);
                 actor.Send(new TerminateMessage());
             }
         );
@@ -104,7 +103,7 @@ public class ModelVariableTest : ActorFactoryBase
     }
 
     [Fact]
-    public void DataModifyTest()
+    public void ItemDataWriteTest()
     {
         var sendMock = new SendMock();
         var uiActor = Mock.Of<IUiActor>();
@@ -118,9 +117,10 @@ public class ModelVariableTest : ActorFactoryBase
             "_itemDataChanged",
             message =>
             {
-                var location = (string)DictPath.Start(message.Payload)["Location"].Value!;
-                var newValue = (bool)DictPath.Start(message.Payload)["NewValue"].Value!;
-                Assert.Equal("Exists", location);
+                var valueChangedArgs = message.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
+                var location = valueChangedArgs!.Location;
+                var newValue = (bool)valueChangedArgs.NewValue!;
+                Assert.True(location.SequenceEqual(["Exists"]));
                 Assert.True(newValue);
                 actor.Send(new TerminateMessage());
             }
@@ -129,8 +129,44 @@ public class ModelVariableTest : ActorFactoryBase
             new ActorItemMessage(
                 uiActor,
                 "/Product",
-                "_itemDataModify",
-                new Dict { ["Exists"] = true }
+                "_itemDataWrite",
+                new ItemDataWriteArgs(["Exists"], true)
+            )
+        );
+
+        actor.Start();
+        actor.Join();
+    }
+
+    [Fact]
+    public void DeepItemDataWriteTest()
+    {
+        var sendMock = new SendMock();
+        var uiActor = Mock.Of<IUiActor>();
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("Ui");
+        ActorRegistry.Add(uiActor);
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        sendMock.SetupActionOnMessage(
+            actor,
+            uiActor,
+            "_itemDataChanged",
+            message =>
+            {
+                var valueChangedArgs = message.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
+                var location = valueChangedArgs!.Location;
+                var newValue = (int)valueChangedArgs.NewValue!;
+                Assert.True(location.SequenceEqual(["Numbers", 0]));
+                Assert.Equal(10, newValue);
+                actor.Send(new TerminateMessage());
+            }
+        );
+        actor.Send(
+            new ActorItemMessage(
+                uiActor,
+                "/Product",
+                "_itemDataWrite",
+                new ItemDataWriteArgs(["Numbers", 0], 10)
             )
         );
 
@@ -143,7 +179,9 @@ public class ModelVariableTest : ActorFactoryBase
         public Variable<Product> Product = new(VariableScope.Temporary);
 
         public TestActor(ActorConfig config)
-            : base(config) { }
+            : base(config)
+        {
+        }
 
         protected override bool ProcessMessage(Message message)
         {
@@ -158,41 +196,45 @@ public class ModelVariableTest : ActorFactoryBase
         }
     }
 
-    public class Product : INotifyPropertyChanged
+    public class Product : PropertyVariable, IDisposable
     {
         private bool _exists;
         private bool _good;
 
+        public Product()
+        {
+            Numbers.ValueChanged += NumbersOnValueChanged;
+        }
+
+        public Array1D<int> Numbers { get; set; } = new(4);
+
         public bool Exists
         {
             get => _exists;
-            set => SetField(ref _exists, value);
+            set => ValueChangedUtils.SetField(ref _exists, value, OnValueChanged);
         }
 
         public bool Good
         {
             get => _good;
-            set => SetField(ref _good, value);
+            set => ValueChangedUtils.SetField(ref _good, value, OnValueChanged);
         }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        public void Dispose()
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            Numbers.ValueChanged -= NumbersOnValueChanged;
         }
 
-        protected bool SetField<T>(
-            ref T field,
-            T value,
-            [CallerMemberName] string? propertyName = null
-        )
+        private void NumbersOnValueChanged(object? sender, ValueChangedArgs e)
         {
-            if (EqualityComparer<T>.Default.Equals(field, value))
-                return false;
-            field = value;
-            OnPropertyChanged(propertyName);
-            return true;
+            OnValueChanged(new ValueChangedArgs(
+                ((object[])[nameof(Numbers)]).Concat(e.Location).ToArray(), e.OldValue, e.NewValue));
+        }
+
+        public override void OnDeserialized()
+        {
+            Numbers.ValueChanged += NumbersOnValueChanged;
+            Numbers.OnDeserialized();
         }
     }
 }

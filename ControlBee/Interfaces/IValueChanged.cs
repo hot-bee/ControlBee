@@ -4,5 +4,5 @@ namespace ControlBee.Interfaces;
 
 public interface IValueChanged
 {
-    public event EventHandler<ValueChangedEventArgs> ValueChanged;
+    public event EventHandler<ValueChangedArgs> ValueChanged;
 }

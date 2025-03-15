@@ -60,9 +60,9 @@ public class Array3DTest : ActorFactoryBase
         var called = false;
         array.ValueChanged += (sender, e) =>
         {
-            e.Location.Should().Be((0, 1, 2));
-            e.OldValue.Should().Be(0);
-            e.NewValue.Should().Be(10);
+            Assert.Equal([(0, 1, 2)], e.Location);
+            Assert.Equal(0, e.OldValue);
+            Assert.Equal(10, e.NewValue);
             called = true;
         };
         array[0, 1, 2] = 10;

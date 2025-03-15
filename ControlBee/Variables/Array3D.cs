@@ -29,7 +29,7 @@ public class Array3D<T> : ArrayBase
         {
             var oldValue = _value[x, y, z];
             _value[x, y, z] = value;
-            OnArrayElementChanged(new ValueChangedEventArgs((x, y, z), oldValue, value));
+            OnArrayElementChanged(new ValueChangedArgs([(x, y, z)], oldValue, value));
         }
     }
 

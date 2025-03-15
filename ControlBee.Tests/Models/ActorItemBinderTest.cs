@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
-using ControlBee.Interfaces;
+﻿using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
+using Message = ControlBee.Models.Message;
 
 namespace ControlBee.Tests.Models;
 
@@ -24,9 +25,10 @@ public class ActorItemBinderTest : ActorFactoryBase
         var called = false;
         binder.DataChanged += (sender, args) =>
         {
-            Assert.Null(args["Location"]);
-            Assert.Null(args["OldValue"]);
-            Assert.Equal(1, args["NewValue"]);
+            var valueChangedArgs = args[nameof(ValueChangedArgs)] as ValueChangedArgs;
+            Assert.Equal([], valueChangedArgs?.Location);
+            Assert.Null(valueChangedArgs?.OldValue);
+            Assert.Equal(1, valueChangedArgs?.NewValue);
             called = true;
         };
         Mock.Get(uiActor)
@@ -37,12 +39,7 @@ public class ActorItemBinderTest : ActorFactoryBase
                     actor,
                     "/MyVar",
                     "_itemDataChanged",
-                    new Dictionary<string, object?>
-                    {
-                        ["Location"] = null,
-                        ["OldValue"] = null,
-                        ["NewValue"] = 1,
-                    }
+                    new Dict { [nameof(ValueChangedArgs)] = new ValueChangedArgs([], null, 1) }
                 )
             );
         Assert.True(called);
@@ -81,20 +78,21 @@ public class ActorItemBinderTest : ActorFactoryBase
         var callCount = 0;
         binder.DataChanged += (sender, args) =>
         {
+            var valueChangedArgs = args[nameof(ValueChangedArgs)] as ValueChangedArgs;
             switch (callCount)
             {
                 case 0:
                     callCount++;
-                    Assert.Null(args["Location"]);
-                    Assert.Null(args["OldValue"]);
-                    Assert.Equal(1, args["NewValue"]);
+                    Assert.Equal([], valueChangedArgs?.Location);
+                    Assert.Null(valueChangedArgs?.OldValue);
+                    Assert.Equal(1, valueChangedArgs?.NewValue);
                     variable.Value = 2;
                     break;
                 case 1:
                     callCount++;
-                    Assert.Null(args["Location"]);
-                    Assert.Equal(1, args["OldValue"]);
-                    Assert.Equal(2, args["NewValue"]);
+                    Assert.Equal([], valueChangedArgs?.Location);
+                    Assert.Equal(1, valueChangedArgs?.OldValue);
+                    Assert.Equal(2, valueChangedArgs?.NewValue);
                     actor.Send(new Message(EmptyActor.Instance, "_terminate"));
                     break;
             }
@@ -116,9 +114,9 @@ public class ActorItemBinderTest : ActorFactoryBase
 
     private class TestActor : Actor
     {
-        public Variable<Position2D> PositionXY = new();
-        public IAxis X;
-        public IAxis Y;
+        public readonly Variable<Position2D> PositionXY = new();
+        public readonly IAxis X;
+        public readonly IAxis Y;
 
         public TestActor(ActorConfig config)
             : base(config)

@@ -34,9 +34,9 @@ public class SpeedProfile : IValueChanged, ICloneable
         set => ValueChangedUtils.SetField(ref _jerk, value, OnValueChanged);
     }
 
-    public event EventHandler<ValueChangedEventArgs>? ValueChanged;
+    public event EventHandler<ValueChangedArgs>? ValueChanged;
 
-    protected virtual void OnValueChanged(ValueChangedEventArgs e)
+    protected virtual void OnValueChanged(ValueChangedArgs e)
     {
         ValueChanged?.Invoke(this, e);
     }

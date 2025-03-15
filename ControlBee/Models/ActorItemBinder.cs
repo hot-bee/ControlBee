@@ -1,6 +1,7 @@
-﻿using System.Reflection;
-using ControlBee.Interfaces;
+﻿using ControlBee.Interfaces;
+using ControlBee.Variables;
 using log4net;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
@@ -34,28 +35,28 @@ public class ActorItemBinder : IDisposable
         _instanceCount--;
     }
 
-    public event EventHandler<Dictionary<string, object?>>? MetaDataChanged;
-    public event EventHandler<Dictionary<string, object?>>? DataChanged;
+    public event EventHandler<Dict>? MetaDataChanged;
+    public event EventHandler<Dict>? DataChanged;
 
     private void _uiActor_MessageArrived(object? sender, Message e)
     {
         if (e.RequestId == _itemMetaDataReadMessageId && e.Name == "_itemMetaData")
-            OnMetaDataChanged((Dictionary<string, object?>)e.Payload!);
+            OnMetaDataChanged((Dict)e.Payload!);
 
         if (e.Name == "_itemDataChanged")
         {
             var actorItemMessage = (ActorItemMessage)e;
             if (actorItemMessage.ActorName == _actorName && actorItemMessage.ItemPath == _itemPath)
-                OnDataChanged((Dictionary<string, object?>)e.Payload!);
+                OnDataChanged((Dict)e.Payload!);
         }
     }
 
-    protected virtual void OnDataChanged(Dictionary<string, object?> e)
+    protected virtual void OnDataChanged(Dict e)
     {
         DataChanged?.Invoke(this, e);
     }
 
-    protected virtual void OnMetaDataChanged(Dictionary<string, object?> e)
+    protected virtual void OnMetaDataChanged(Dict e)
     {
         MetaDataChanged?.Invoke(this, e);
     }

@@ -24,7 +24,7 @@ public class VariableTest : ActorFactoryBase
         var called = false;
         intVariable.ValueChanged += (s, e) =>
         {
-            Assert.Null(e.Location);
+            Assert.Equal([], e.Location);
             Assert.Equal(1, e.OldValue);
             Assert.Equal(2, e.NewValue);
             called = true;
@@ -44,7 +44,7 @@ public class VariableTest : ActorFactoryBase
         var called = false;
         intVariable.ValueChanged += (s, e) =>
         {
-            Assert.Null(e.Location);
+            Assert.Equal([], e.Location);
             Assert.Equal(1, e.OldValue);
             Assert.Equal(2, e.NewValue);
             called = true;
@@ -70,9 +70,9 @@ public class VariableTest : ActorFactoryBase
         var called = false;
         stringVariable.ValueChanged += (s, e) =>
         {
-            e.Location.Should().BeNull();
-            e.OldValue.Should().BeOfType<String>();
-            e.NewValue.Should().BeOfType<String>();
+            Assert.Equal([], e.Location);
+            Assert.IsType<String>(e.OldValue);
+            Assert.IsType<String>(e.NewValue);
             called = true;
         };
         stringVariable.Value = new String("World");
@@ -94,9 +94,9 @@ public class VariableTest : ActorFactoryBase
         var called = false;
         arrayVariable.ValueChanged += (s, e) =>
         {
-            e.Location.Should().BeNull();
-            e.OldValue.Should().BeOfType<Array1D<int>>();
-            e.NewValue.Should().BeOfType<Array1D<int>>();
+            Assert.Equal([], e.Location);
+            Assert.IsType<Array1D<int>>(e.OldValue);
+            Assert.IsType<Array1D<int>>(e.NewValue);
             called = true;
         };
         arrayVariable.Value = new Array1D<int>(10);
@@ -118,9 +118,9 @@ public class VariableTest : ActorFactoryBase
         var called = false;
         arrayVariable.ValueChanged += (s, e) =>
         {
-            e.Location.Should().BeNull();
-            e.OldValue.Should().BeOfType<Array2D<int>>();
-            e.NewValue.Should().BeOfType<Array2D<int>>();
+            Assert.Equal([], e.Location);
+            Assert.IsType<Array2D<int>>(e.OldValue);
+            Assert.IsType<Array2D<int>>(e.NewValue);
             called = true;
         };
         arrayVariable.Value = new Array2D<int>(10, 20);
@@ -142,9 +142,9 @@ public class VariableTest : ActorFactoryBase
         var called = false;
         arrayVariable.ValueChanged += (s, e) =>
         {
-            e.Location.Should().BeNull();
-            e.OldValue.Should().BeOfType<Array3D<int>>();
-            e.NewValue.Should().BeOfType<Array3D<int>>();
+            Assert.Equal([], e.Location);
+            Assert.IsType<Array3D<int>>(e.OldValue);
+            Assert.IsType<Array3D<int>>(e.NewValue);
             called = true;
         };
         arrayVariable.Value = new Array3D<int>(10, 20, 30);
@@ -170,10 +170,12 @@ public class VariableTest : ActorFactoryBase
         var match = new Func<Message, bool>(message =>
         {
             var actorItemMessage = (ActorItemMessage)message;
+            var valueChangedArgs =
+                actorItemMessage.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
             return actorItemMessage.Name == "_itemDataChanged"
-                && actorItemMessage.DictPayload!["Location"] == null
-                && actorItemMessage.DictPayload!["OldValue"] == null
-                && (int)actorItemMessage.DictPayload["NewValue"]! == 1
+                && valueChangedArgs?.Location == (object[])[]
+                && valueChangedArgs.OldValue == null
+                && valueChangedArgs.NewValue as int? == 1
                 && actorItemMessage.ActorName == "MyActor"
                 && actorItemMessage.ItemPath == "/myVar";
         });
@@ -233,7 +235,12 @@ public class VariableTest : ActorFactoryBase
             1
         );
         var uiActor = Mock.Of<IActor>();
-        var reqMessage = new ActorItemMessage(uiActor, "/myVar", "_itemDataWrite", 2);
+        var reqMessage = new ActorItemMessage(
+            uiActor,
+            "/myVar",
+            "_itemDataWrite",
+            new ItemDataWriteArgs([], 2)
+        );
 
         intVariable.ProcessMessage(reqMessage);
         Assert.Equal(2, intVariable.Value);

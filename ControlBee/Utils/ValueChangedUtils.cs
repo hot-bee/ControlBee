@@ -8,7 +8,7 @@ public class ValueChangedUtils
     public static bool SetField<T>(
         ref T field,
         T value,
-        Action<ValueChangedEventArgs> onValueChanged,
+        Action<ValueChangedArgs> onValueChanged,
         [CallerMemberName] string? propertyName = null
     )
     {
@@ -16,7 +16,7 @@ public class ValueChangedUtils
             return false;
         var oldValue = field;
         field = value;
-        onValueChanged(new ValueChangedEventArgs(propertyName, oldValue, value));
+        onValueChanged(new ValueChangedArgs([propertyName!], oldValue, value));
         return true;
     }
 }

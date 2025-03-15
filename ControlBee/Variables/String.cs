@@ -1,9 +1,8 @@
-﻿using ControlBee.Interfaces;
-using ControlBee.Utils;
+﻿using ControlBee.Utils;
 
 namespace ControlBee.Variables;
 
-public class String : IValueChanged
+public class String : PropertyVariable
 {
     private string _value = string.Empty;
 
@@ -21,15 +20,13 @@ public class String : IValueChanged
         set => ValueChangedUtils.SetField(ref _value, value, OnValueChanged);
     }
 
-    public event EventHandler<ValueChangedEventArgs>? ValueChanged;
-
     public override string ToString()
     {
         return Value;
     }
 
-    protected virtual void OnValueChanged(ValueChangedEventArgs e)
+    public override void OnDeserialized()
     {
-        ValueChanged?.Invoke(this, e);
+        // Empty
     }
 }

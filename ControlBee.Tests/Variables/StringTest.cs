@@ -17,9 +17,9 @@ public class StringTest
         var called = false;
         stringData.ValueChanged += (s, e) =>
         {
-            e.Location.Should().Be("Value");
-            e.OldValue.Should().Be("Hello");
-            e.NewValue.Should().Be("World");
+            Assert.Equal(["Value"], e.Location);
+            Assert.Equal("Hello", e.OldValue);
+            Assert.Equal("World", e.NewValue);
             called = true;
         };
         stringData.Value = "World";

@@ -1,12 +1,16 @@
-﻿using System.Text.Json;
+﻿using System.Linq;
+using System.Text.Json;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Tests.TestUtils;
+using ControlBee.Utils;
 using ControlBee.Variables;
 using FluentAssertions;
 using JetBrains.Annotations;
+using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using static ControlBee.Tests.Variables.PropertyVariableTest;
 
 namespace ControlBee.Tests.Variables;
 
@@ -55,9 +59,9 @@ public class Array1DTest : ActorFactoryBase
         var called = false;
         array.ValueChanged += (sender, e) =>
         {
-            e.Location.Should().Be(1);
-            e.OldValue.Should().Be(0);
-            e.NewValue.Should().Be(10);
+            Assert.Equal([1], e.Location);
+            Assert.Equal(0, e.OldValue);
+            Assert.Equal(10, e.NewValue);
             called = true;
         };
         array[1] = 10;
@@ -83,5 +87,53 @@ public class Array1DTest : ActorFactoryBase
         var itemSub = (IActorItemSub)array[0];
         itemSub.Actor.Should().Be(actor);
         itemSub.ItemPath.Should().Be("myItem");
+    }
+
+    [Fact]
+    public void ItemDataWriteTest()
+    {
+        var sendMock = new SendMock();
+        var uiActor = Mock.Of<IUiActor>();
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("Ui");
+        ActorRegistry.Add(uiActor);
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        sendMock.SetupActionOnMessage(
+            actor,
+            uiActor,
+            "_itemDataChanged",
+            message =>
+            {
+                var valueChangedArgs =
+                    message.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
+                var location = valueChangedArgs!.Location;
+                var newValue = (int)valueChangedArgs.NewValue!;
+                Assert.True(location.SequenceEqual([0]));
+                Assert.Equal(10, newValue);
+                actor.Send(new TerminateMessage());
+            }
+        );
+        actor.Send(
+            new ActorItemMessage(
+                uiActor,
+                "/MyVariable",
+                "_itemDataWrite",
+                new ItemDataWriteArgs([0], 10)
+            )
+        );
+
+        actor.Start();
+        actor.Join();
+    }
+
+    private class TestActor : Actor
+    {
+        public Variable<Array1D<int>> MyVariable = new(
+            VariableScope.Temporary,
+            new Array1D<int>(10)
+        );
+
+        public TestActor(ActorConfig config)
+            : base(config) { }
     }
 }

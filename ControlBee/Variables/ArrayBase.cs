@@ -6,7 +6,7 @@ namespace ControlBee.Variables;
 
 public abstract class ArrayBase : IValueChanged, IActorItemSub
 {
-    public event EventHandler<ValueChangedEventArgs>? ValueChanged;
+    public event EventHandler<ValueChangedArgs>? ValueChanged;
     public abstract void ReadJson(JsonDocument jsonDoc);
     public abstract void WriteJson(
         Utf8JsonWriter writer,
@@ -14,7 +14,7 @@ public abstract class ArrayBase : IValueChanged, IActorItemSub
         JsonSerializerOptions options
     );
 
-    protected virtual void OnArrayElementChanged(ValueChangedEventArgs e)
+    protected virtual void OnArrayElementChanged(ValueChangedArgs e)
     {
         ValueChanged?.Invoke(this, e);
     }
@@ -34,4 +34,6 @@ public abstract class ArrayBase : IValueChanged, IActorItemSub
             itemSub.UpdateSubItem();
         }
     }
+
+    public virtual void OnDeserialized() { }
 }

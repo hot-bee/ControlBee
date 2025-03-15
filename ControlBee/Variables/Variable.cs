@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.Text.Json;
+﻿using System.Text.Json;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
@@ -8,7 +7,7 @@ using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Variables;
 
-public class Variable<T> : ActorItem, IVariable, IDisposable
+public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
     where T : new()
 {
     private static readonly ILog Logger = LogManager.GetLogger("Variable");
@@ -60,7 +59,7 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
             Unsubscribe();
             _value = value;
             OnAfterValueChange();
-            OnValueChanged(new ValueChangedEventArgs(null, oldValue, value));
+            OnValueChanged(new ValueChangedArgs([], oldValue, value));
         }
     }
 
@@ -69,7 +68,7 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
         Unsubscribe();
     }
 
-    public event EventHandler<ValueChangedEventArgs>? ValueChanged;
+    public event EventHandler<ValueChangedArgs>? ValueChanged;
 
     public object? ValueObject => Value;
     public VariableScope Scope { get; }
@@ -82,7 +81,10 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
 
     public void FromJson(string data)
     {
-        Value = JsonSerializer.Deserialize<T>(data)!;
+        var value = JsonSerializer.Deserialize<T>(data)!;
+        if (value is IActorItemSub actorItemSub)
+            actorItemSub.OnDeserialized();
+        Value = value;
     }
 
     public override bool ProcessMessage(ActorItemMessage message)
@@ -106,9 +108,7 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
             {
                 var payload = new Dict
                 {
-                    ["Location"] = null,
-                    ["OldValue"] = null,
-                    ["NewValue"] = _value,
+                    [nameof(ValueChangedArgs)] = new ValueChangedArgs([], null, _value),
                 };
                 message.Sender.Send(
                     new ActorItemMessage(message.Id, Actor, ItemPath, "_itemDataChanged", payload)
@@ -117,38 +117,7 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
             }
             case "_itemDataWrite":
             {
-                var data = message.Payload!;
-                Value = (T)data;
-                return true;
-            }
-            case "_itemDataModify":
-            {
-                if (message.Payload! is not Dict data)
-                {
-                    Logger.Warn(
-                        "Invalid payload: Expected a dictionary in _itemDataModify, but received a different type."
-                    );
-                    return false;
-                }
-
-                if (Value == null)
-                {
-                    Logger.Warn("Value is null while processing _itemDataModify.");
-                    return false;
-                }
-                foreach (var (propertyName, propertyValue) in data)
-                {
-                    var propertyType = Value.GetType().GetProperty(propertyName);
-                    if (propertyType == null)
-                    {
-                        Logger.Warn(
-                            $"Property type couldn't be found by the name. ({propertyName})"
-                        );
-                        continue;
-                    }
-                    propertyType.SetValue(Value, propertyValue);
-                }
-
+                WriteData((ItemDataWriteArgs)message.Payload!);
                 return true;
             }
             default:
@@ -177,6 +146,14 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
             Unit = unit;
     }
 
+    public void WriteData(ItemDataWriteArgs args)
+    {
+        if (args.Location.Length == 0)
+            Value = (T)args.NewValue;
+        else
+            (Value as IWriteData)?.WriteData(args);
+    }
+
     private void OnAfterValueChange()
     {
         UpdateSubItem();
@@ -193,33 +170,20 @@ public class Variable<T> : ActorItem, IVariable, IDisposable
     {
         if (_value is IValueChanged arrayValue)
             arrayValue.ValueChanged += ArrayValue_ValueChanged;
-        if (_value is INotifyPropertyChanged notifyPropertyChanged)
-            notifyPropertyChanged.PropertyChanged += NotifyPropertyChangedOnPropertyChanged;
     }
 
     private void Unsubscribe()
     {
         if (_value is IValueChanged arrayValue)
             arrayValue.ValueChanged -= ArrayValue_ValueChanged;
-        if (_value is INotifyPropertyChanged notifyPropertyChanged)
-            notifyPropertyChanged.PropertyChanged -= NotifyPropertyChangedOnPropertyChanged;
     }
 
-    private void ArrayValue_ValueChanged(object? sender, ValueChangedEventArgs e)
+    private void ArrayValue_ValueChanged(object? sender, ValueChangedArgs e)
     {
         OnValueChanged(e);
     }
 
-    private void NotifyPropertyChangedOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        var newValue =
-            e.PropertyName != null
-                ? sender?.GetType().GetProperty(e.PropertyName)?.GetValue(sender)
-                : null;
-        OnValueChanged(new ValueChangedEventArgs(e.PropertyName, null, newValue));
-    }
-
-    protected virtual void OnValueChanged(ValueChangedEventArgs e)
+    protected virtual void OnValueChanged(ValueChangedArgs e)
     {
         ValueChanged?.Invoke(this, e);
     }

@@ -1,9 +1,8 @@
-﻿using System.Reflection;
-using ControlBee.Exceptions;
-using ControlBee.Interfaces;
+﻿using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Variables;
 using log4net;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Services;
 
@@ -32,9 +31,18 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry)
                 Logger.Warn("Skip getting UI Actor.");
                 return _uiActor;
             }
+
             _uiActor = actorRegistry.Get("Ui");
             return _uiActor;
         }
+    }
+
+    public int Count => _variables.Count;
+
+    public void Dispose()
+    {
+        foreach (var variable in _variables.Values)
+            variable.ValueChanged -= Variable_ValueChanged;
     }
 
     public string LocalName
@@ -48,14 +56,6 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry)
                 );
             _localName = value;
         }
-    }
-
-    public int Count => _variables.Count;
-
-    public void Dispose()
-    {
-        foreach (var variable in _variables.Values)
-            variable.ValueChanged -= Variable_ValueChanged;
     }
 
     public void Add(IVariable variable)
@@ -97,15 +97,10 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry)
         }
     }
 
-    private void Variable_ValueChanged(object? sender, ValueChangedEventArgs e)
+    private void Variable_ValueChanged(object? sender, ValueChangedArgs e)
     {
         var variable = (IVariable)sender!;
-        var payload = new Dictionary<string, object?>
-        {
-            ["Location"] = e.Location,
-            ["OldValue"] = e.OldValue,
-            ["NewValue"] = e.NewValue,
-        };
+        var payload = new Dict { [nameof(ValueChangedArgs)] = e };
         UiActor?.Send(
             new ActorItemMessage(variable.Actor, variable.ItemPath, "_itemDataChanged", payload)
         );
