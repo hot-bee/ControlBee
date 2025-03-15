@@ -32,4 +32,5 @@ public interface IAxis : IDeviceChannel
     void RelativeMove(double distance);
     void RelativeMoveAndWait(double distance);
     SpeedProfile GetNormalSpeed();
+    Position1D GetHomePos();
 }

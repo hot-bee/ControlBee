@@ -56,13 +56,13 @@ public class Axis : DeviceChannel, IAxis
         };
     }
 
+    // ReSharper disable once SuspiciousTypeConversion.Global
+    protected virtual IMotionDevice? MotionDevice => Device as IMotionDevice;
+
     public override void Init()
     {
         Actor.PositionAxesMap.Add(HomePos, [this]);
     }
-
-    // ReSharper disable once SuspiciousTypeConversion.Global
-    protected virtual IMotionDevice? MotionDevice => Device as IMotionDevice;
 
     public override void RefreshCache()
     {
@@ -142,6 +142,11 @@ public class Axis : DeviceChannel, IAxis
     public SpeedProfile GetNormalSpeed()
     {
         return (SpeedProfile)NormalSpeed.ValueObject!;
+    }
+
+    public Position1D GetHomePos()
+    {
+        return (Position1D)HomePos.ValueObject!;
     }
 
     public void Enable()
