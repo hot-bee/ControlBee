@@ -2,7 +2,8 @@
 
 namespace ControlBee.Models;
 
-public class FatalErrorState(Actor actor, SequenceError error) : ErrorState(actor, error)
+public class FatalErrorState<T>(T actor, SequenceError error) : ErrorState<T>(actor, error)
+    where T : Actor
 {
     public override bool ProcessMessage(Message message)
     {

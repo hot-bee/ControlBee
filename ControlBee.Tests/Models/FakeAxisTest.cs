@@ -365,12 +365,12 @@ public class FakeAxisTest : ActorFactoryBase
         actor.Join();
         if (skipWaitSensor)
         {
-            Assert.IsNotType<ErrorState>(actor.State);
+            Assert.IsNotType<ErrorState<TestActor>>(actor.State);
         }
         else
         {
-            Assert.IsType<ErrorState>(actor.State);
-            Assert.IsType<TimeoutError>(((ErrorState)actor.State).Error);
+            Assert.IsType<ErrorState<TestActor>>(actor.State);
+            Assert.IsType<TimeoutError>(((ErrorState<TestActor>)actor.State).Error);
         }
     }
 
@@ -495,7 +495,7 @@ public class FakeAxisTest : ActorFactoryBase
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
-        Assert.IsNotType<FatalErrorState>(actor.State);
+        Assert.IsNotType<FatalErrorState<TestActor>>(actor.State);
     }
 
     private class TestActor : Actor
@@ -506,6 +506,11 @@ public class FakeAxisTest : ActorFactoryBase
             : base(config)
         {
             X = config.AxisFactory.Create();
+        }
+
+        protected override IState CreateErrorState(SequenceError error)
+        {
+            return new ErrorState<TestActor>(this, error);
         }
 
         protected override bool ProcessMessage(Message message)

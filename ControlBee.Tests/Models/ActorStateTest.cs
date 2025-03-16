@@ -1,5 +1,6 @@
 ﻿using System;
 using ControlBee.Exceptions;
+using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBeeTest.Utils;
 using JetBrains.Annotations;
@@ -55,7 +56,7 @@ public class ActorStateTest : ActorFactoryBase
         {
             var (oldState, newState) = tuple;
             Assert.IsType<StateA>(oldState);
-            Assert.IsType<ErrorState>(newState);
+            Assert.IsType<ErrorState<TestActor>>(newState);
             called = true;
         };
         ScenarioFlowTester.Setup(
@@ -64,7 +65,7 @@ public class ActorStateTest : ActorFactoryBase
                     new BehaviorStep(
                         () => actor.Send(new Message(EmptyActor.Instance, "RaiseError"))
                     ),
-                    new ConditionStep(() => actor.State.GetType() == typeof(ErrorState)),
+                    new ConditionStep(() => actor.State.GetType() == typeof(ErrorState<TestActor>)),
                     new BehaviorStep(() => actor.Send(new TerminateMessage())),
                 ],
             ]
@@ -129,7 +130,7 @@ public class ActorStateTest : ActorFactoryBase
         ActorRegistry.Add(ui);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
-        ActorUtils.TerminateWhenStateChanged(actor, typeof(ErrorState));
+        ActorUtils.TerminateWhenStateChanged(actor, typeof(ErrorState<TestActor>));
         actor.StateChanged += (sender, tuple) =>
         {
             var (oldState, newState) = tuple;
@@ -159,6 +160,11 @@ public class ActorStateTest : ActorFactoryBase
             : base(config)
         {
             State = new StateA(this);
+        }
+
+        protected override IState CreateErrorState(SequenceError error)
+        {
+            return new ErrorState<TestActor>(this, error);
         }
     }
 

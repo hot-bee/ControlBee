@@ -8,6 +8,7 @@ using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
+using static ControlBee.Tests.Variables.PropertyVariableTest;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Tests.Models;
@@ -135,17 +136,17 @@ public class ActorTest : ActorFactoryBase
         {
             var (message, oldState, newState, result) = tuple;
             if (
-                newState.GetType() == typeof(ErrorState)
+                newState.GetType() == typeof(ErrorState<TestActor>)
                 && message.GetType() == typeof(StateEntryMessage)
             )
-                Assert.True(actor.GetStatus("Error") is true);
+                Assert.True(actor.GetStatus("_error") is true);
         };
         actor.Start();
         actor.Send(new Message(EmptyActor.Instance, "DoSomethingWrong"));
         actor.Send(new TerminateMessage());
         actor.Join();
-        Assert.IsType<ErrorState>(actor.State);
-        Assert.True(actor.GetStatus("Error") is false);
+        Assert.IsType<ErrorState<TestActorC>>(actor.State);
+        Assert.True(actor.GetStatus("_error") is false);
     }
 
     [Fact]
@@ -250,6 +251,11 @@ public class ActorTest : ActorFactoryBase
             : base(config)
         {
             X = config.AxisFactory.Create();
+        }
+
+        protected override IState CreateErrorState(SequenceError error)
+        {
+            return new ErrorState<TestActorC>(this, error);
         }
     }
 

@@ -252,7 +252,7 @@ public class AxisTest : ActorFactoryBase
 
         Assert.Equal(200, TimeManager.CurrentMilliseconds);
         Mock.Get(device).Verify(m => m.Enable(0, true));
-        Assert.IsNotType<FatalErrorState>(actor.State);
+        Assert.IsNotType<FatalErrorState<TestActor>>(actor.State);
     }
 
     [Fact]
@@ -282,7 +282,7 @@ public class AxisTest : ActorFactoryBase
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
-        Assert.IsNotType<FatalErrorState>(actor.State);
+        Assert.IsNotType<FatalErrorState<TestActor>>(actor.State);
     }
 
     private class TestActor : Actor
@@ -299,12 +299,12 @@ public class AxisTest : ActorFactoryBase
 
         protected override IState CreateErrorState(SequenceError error)
         {
-            return new ErrorState(this, error);
+            return new ErrorState<TestActor>(this, error);
         }
 
         protected override IState CreateFatalErrorState(FatalSequenceError fatalError)
         {
-            return new FatalErrorState(this, fatalError);
+            return new FatalErrorState<TestActor>(this, fatalError);
         }
 
         protected override bool ProcessMessage(Message message)

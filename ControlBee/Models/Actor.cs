@@ -4,6 +4,7 @@ using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Utils;
 using log4net;
+using static ControlBee.Services.FrozenTimeManager;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
@@ -479,6 +480,11 @@ public class Actor : IActorInternal, IDisposable
         }
     }
 
+    public virtual IState CreateIdleState()
+    {
+        throw new UnimplementedByDesignError("This method must be implemented in a subclass.");
+    }
+
     protected virtual IState CreateFatalErrorState(FatalSequenceError fatalError)
     {
         return _initialState;
@@ -486,7 +492,7 @@ public class Actor : IActorInternal, IDisposable
 
     protected virtual IState CreateErrorState(SequenceError error)
     {
-        return new ErrorState(this, error);
+        throw new UnimplementedByDesignError("This method must be implemented in a subclass.");
     }
 
     public void Join()

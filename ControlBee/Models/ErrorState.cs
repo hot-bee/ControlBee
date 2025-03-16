@@ -2,7 +2,8 @@
 
 namespace ControlBee.Models;
 
-public class ErrorState(Actor actor, SequenceError error) : State<Actor>(actor)
+public class ErrorState<T>(T actor, SequenceError error) : State<T>(actor)
+    where T : Actor
 {
     public SequenceError Error { get; } = error;
 
@@ -11,7 +12,10 @@ public class ErrorState(Actor actor, SequenceError error) : State<Actor>(actor)
         switch (message.Name)
         {
             case StateEntryMessage.MessageName:
-                Actor.SetStatus("Error", true);
+                Actor.SetStatus("_error", true);
+                return true;
+            case "_resetError":
+                Actor.State = Actor.CreateIdleState();
                 return true;
         }
 
@@ -20,6 +24,6 @@ public class ErrorState(Actor actor, SequenceError error) : State<Actor>(actor)
 
     public override void Dispose()
     {
-        Actor.SetStatus("Error", false);
+        Actor.SetStatus("_error", false);
     }
 }
