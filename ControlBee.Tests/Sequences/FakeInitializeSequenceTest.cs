@@ -1,14 +1,10 @@
-﻿using System.IO;
-using ControlBee.Constants;
-using ControlBee.Interfaces;
+﻿using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Sequences;
-using ControlBee.Services;
-using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
+using ControlBeeTest.Utils;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
-using Moq;
 using Xunit;
 
 namespace ControlBee.Tests.Sequences;
@@ -30,16 +26,18 @@ public class FakeInitializeSequenceTest : ActorFactoryBase
 
     private class TestActor : Actor
     {
-        public Variable<Position1D> HomePositionX = new(
+        public readonly Variable<Position1D> HomePositionX = new(
             VariableScope.Global,
             new Position1D(DenseVector.OfArray([100.0]))
         );
-        public Variable<SpeedProfile> HomeSpeedX = new(
+
+        public readonly Variable<SpeedProfile> HomeSpeedX = new(
             VariableScope.Global,
-            new SpeedProfile() { Velocity = 10.0 }
+            new SpeedProfile { Velocity = 10.0 }
         );
-        public IInitializeSequence InitializeSequenceX;
-        public IAxis X;
+
+        public readonly IInitializeSequence InitializeSequenceX;
+        public readonly IAxis X;
 
         public TestActor(ActorConfig config)
             : base(config)
@@ -57,9 +55,7 @@ public class FakeInitializeSequenceTest : ActorFactoryBase
         {
             base.MessageHandler(message);
             if (message.Name == "Go")
-            {
                 InitializeSequenceX.Run();
-            }
         }
     }
 }

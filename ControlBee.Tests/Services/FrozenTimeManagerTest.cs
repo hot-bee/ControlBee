@@ -7,13 +7,14 @@ using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Sequences;
 using ControlBee.Services;
-using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
+using ControlBeeTest.Utils;
 using FluentAssertions;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
 using Moq;
 using Xunit;
+
 #pragma warning disable xUnit1031
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
@@ -144,6 +145,25 @@ public class FrozenTimeManagerTest : ActorFactoryBase
         testActor.Join();
     }
 
+    [Fact]
+    public void GetEventKeyTest()
+    {
+        var thread = new Thread(() =>
+        {
+            var key = FrozenTimeManager.GetEventKey();
+            Assert.Equal(FrozenTimeManager.KeyType.Thread, key.Item1);
+        });
+        thread.Start();
+        thread.Join();
+
+        var task = Task.Run(() =>
+        {
+            var key = FrozenTimeManager.GetEventKey();
+            Assert.Equal(FrozenTimeManager.KeyType.Task, key.Item1);
+        });
+        task.Wait();
+    }
+
     // ReSharper disable once ClassNeverInstantiated.Local
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Local")]
     private class TestActor : Actor
@@ -211,24 +231,5 @@ public class FrozenTimeManagerTest : ActorFactoryBase
 
             return false;
         }
-    }
-
-    [Fact]
-    public void GetEventKeyTest()
-    {
-        var thread = new Thread(() =>
-        {
-            var key = FrozenTimeManager.GetEventKey();
-            Assert.Equal(FrozenTimeManager.KeyType.Thread, key.Item1);
-        });
-        thread.Start();
-        thread.Join();
-
-        var task = Task.Run(() =>
-        {
-            var key = FrozenTimeManager.GetEventKey();
-            Assert.Equal(FrozenTimeManager.KeyType.Task, key.Item1);
-        });
-        task.Wait();
     }
 }

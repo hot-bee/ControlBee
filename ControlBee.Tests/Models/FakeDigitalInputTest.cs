@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Tests.TestUtils;
+using ControlBeeTest.Utils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -155,7 +155,7 @@ MyActor:
 
     private class TestActor : Actor
     {
-        public IDigitalInput MySensor = new DigitalInputPlaceholder();
+        public readonly IDigitalInput MySensor = new DigitalInputPlaceholder();
 
         public TestActor(ActorConfig config)
             : base(config) { }

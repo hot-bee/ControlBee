@@ -1,8 +1,8 @@
 ﻿using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
+using ControlBeeTest.Utils;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
 using Xunit;
@@ -42,17 +42,18 @@ public class PositionTest : ActorFactoryBase
 
     private class TestActor : Actor
     {
-        public Variable<Position2D> MyPosition = new(
+        public readonly Variable<Position2D> MyPosition = new(
             VariableScope.Global,
             new Position2D(DenseVector.OfArray([10, 20]))
         );
 
-        public Variable<SpeedProfile> Speed = new(
+        public readonly Variable<SpeedProfile> Speed = new(
             VariableScope.Global,
             new SpeedProfile { Velocity = 10 }
         );
-        public IAxis X;
-        public IAxis Y;
+
+        public readonly IAxis X;
+        public readonly IAxis Y;
 
         public TestActor(ActorConfig config)
             : base(config)

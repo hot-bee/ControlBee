@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Tests.TestUtils;
+using ControlBeeTest.Utils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -75,7 +75,7 @@ MyActor:
 
     private class TestActor(ActorConfig config) : Actor(config)
     {
-        public IAnalogInput MySensor = new AnalogInputPlaceholder();
+        public readonly IAnalogInput MySensor = new AnalogInputPlaceholder();
 
         protected override void MessageHandler(Message message)
         {

@@ -2,18 +2,15 @@
 using System.Collections.Generic;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Services;
-using ControlBee.Tests.TestUtils;
-using ControlBee.Variables;
+using ControlBeeTest.Utils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
-using Xunit.Sdk;
 
 namespace ControlBee.Tests.Models;
 
 [TestSubject(typeof(EmptyActorItem))]
-public class EmptyActorItemTest() : ActorFactoryBase
+public class EmptyActorItemTest : ActorFactoryBase
 {
     [Fact]
     public void GetMetaDataTest()
@@ -53,6 +50,6 @@ MyActor:
 
     private class TestActor(ActorConfig config) : Actor(config)
     {
-        public EmptyActorItem EmptyItem = new();
+        public readonly EmptyActorItem EmptyItem = new();
     }
 }

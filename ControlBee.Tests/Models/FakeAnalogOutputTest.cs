@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Tests.TestUtils;
+using ControlBeeTest.Utils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -57,7 +56,7 @@ public class FakeAnalogOutputTest : ActorFactoryBase
         var match1 = new Func<Message, bool>(message =>
         {
             var actorItemMessage = (ActorItemMessage)message;
-            var payload = (Dictionary<string, object?>)actorItemMessage.Payload!;
+            var payload = (Dict)actorItemMessage.Payload!;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/MyActuator" }
                 && (long)payload["Data"]! == 0;
@@ -121,7 +120,7 @@ public class FakeAnalogOutputTest : ActorFactoryBase
 
     private class TestActor(ActorConfig config) : Actor(config)
     {
-        public IAnalogOutput MyActuator = new AnalogOutputPlaceholder();
+        public readonly IAnalogOutput MyActuator = new AnalogOutputPlaceholder();
 
         protected override void MessageHandler(Message message)
         {

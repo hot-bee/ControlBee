@@ -3,8 +3,8 @@ using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Sequences;
-using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
+using ControlBeeTest.Utils;
 using FluentAssertions;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
@@ -139,6 +139,7 @@ public class InitializeSequenceTest : ActorFactoryBase
                 );
                 return true;
             }
+
             return base.ProcessMessage(message);
         }
     }

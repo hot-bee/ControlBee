@@ -1,9 +1,8 @@
 ﻿using System.Linq;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Tests.TestUtils;
-using ControlBee.Utils;
 using ControlBee.Variables;
+using ControlBeeTest.Utils;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
 using Moq;
@@ -120,7 +119,7 @@ public class Position1DTest : ActorFactoryBase
 
     private class TestActor : Actor
     {
-        public Variable<Position1D> MyVariable = new(
+        public readonly Variable<Position1D> MyVariable = new(
             VariableScope.Temporary,
             new Position1D(DenseVector.OfArray([1.0]))
         );
@@ -136,6 +135,7 @@ public class Position1DTest : ActorFactoryBase
                     MyVariable.Value[0] = 2.0;
                     return true;
             }
+
             return base.ProcessMessage(message);
         }
     }

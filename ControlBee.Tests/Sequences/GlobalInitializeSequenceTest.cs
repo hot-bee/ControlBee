@@ -4,7 +4,7 @@ using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Sequences;
-using ControlBee.Tests.TestUtils;
+using ControlBeeTest.Utils;
 using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
@@ -272,6 +272,7 @@ public class GlobalInitializeSequenceTest : ActorFactoryBase
                 Actor.State = new IdleState(Actor);
                 return true;
             }
+
             return false;
         }
     }

@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Tests.TestUtils;
+using ControlBeeTest.Utils;
 using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
@@ -212,11 +212,13 @@ public class ActorMessageTest : ActorFactoryBase
                         Send(new TerminateMessage());
                         return true;
                     }
+
                     listener.Enqueue(Name);
                     message.Sender.Send(new Message(this, "ping", count));
                     return true;
                 }
             }
+
             return false;
         }
     }

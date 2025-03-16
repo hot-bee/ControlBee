@@ -1,8 +1,8 @@
 ﻿using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
-using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
+using ControlBeeTest.Utils;
 using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
@@ -27,7 +27,7 @@ public class TestTest()
     public void InitVariablesTest()
     {
         var variableManager = Mock.Of<IVariableManager>();
-        Recreate(new ActorFactoryBaseConfig() { VariableManager = variableManager });
+        Recreate(new ActorFactoryBaseConfig { VariableManager = variableManager });
 
         var actor = ActorFactory.Create<ActorWithVariables>("testActor");
         Mock.Get(variableManager).Verify(m => m.Add(actor.Foo), Times.Once);

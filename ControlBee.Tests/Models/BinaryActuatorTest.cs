@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Services;
-using ControlBee.Tests.TestUtils;
+using ControlBeeTest.Utils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -12,7 +11,7 @@ using Xunit;
 namespace ControlBee.Tests.Models;
 
 [TestSubject(typeof(BinaryActuator))]
-public class BinaryActuatorTest()
+public class BinaryActuatorTest
     //: ActorFactoryBase(new SystemConfigurations { FakeMode = true, SkipWaitSensor = true })
     : ActorFactoryBase
 {
@@ -132,7 +131,7 @@ public class BinaryActuatorTest()
     [Fact]
     public void DataChangedTest()
     {
-        var config = new ActorFactoryBaseConfig()
+        var config = new ActorFactoryBaseConfig
         {
             SystemConfigurations = new SystemConfigurations
             {
@@ -196,7 +195,7 @@ public class BinaryActuatorTest()
     [Fact]
     public void DataWriteTest()
     {
-        var config = new ActorFactoryBaseConfig()
+        var config = new ActorFactoryBaseConfig
         {
             SystemConfigurations = new SystemConfigurations
             {
@@ -254,7 +253,7 @@ public class BinaryActuatorTest()
     [Fact]
     public void OnAndOffTest()
     {
-        var config = new ActorFactoryBaseConfig()
+        var config = new ActorFactoryBaseConfig
         {
             SystemConfigurations = new SystemConfigurations
             {
@@ -282,17 +281,17 @@ public class BinaryActuatorTest()
 
     private class TestActor : Actor
     {
-        public IBinaryActuator Cyl1;
+        public readonly IBinaryActuator Cyl1;
 
-        public IBinaryActuator Cyl2;
-        public IDigitalOutput CylBwd1 = new DigitalOutputPlaceholder();
-        public IDigitalOutput CylBwd2 = new DigitalOutputPlaceholder();
-        public IDigitalInput CylBwdDet1 = new DigitalInputPlaceholder();
-        public IDigitalInput CylBwdDet2 = new DigitalInputPlaceholder();
-        public IDigitalOutput CylFwd1 = new DigitalOutputPlaceholder();
-        public IDigitalOutput CylFwd2 = new DigitalOutputPlaceholder();
-        public IDigitalInput CylFwdDet1 = new DigitalInputPlaceholder();
-        public IDigitalInput CylFwdDet2 = new DigitalInputPlaceholder();
+        public readonly IBinaryActuator Cyl2;
+        public readonly IDigitalOutput CylBwd1 = new DigitalOutputPlaceholder();
+        public readonly IDigitalOutput CylBwd2 = new DigitalOutputPlaceholder();
+        public readonly IDigitalInput CylBwdDet1 = new DigitalInputPlaceholder();
+        public readonly IDigitalInput CylBwdDet2 = new DigitalInputPlaceholder();
+        public readonly IDigitalOutput CylFwd1 = new DigitalOutputPlaceholder();
+        public readonly IDigitalOutput CylFwd2 = new DigitalOutputPlaceholder();
+        public readonly IDigitalInput CylFwdDet1 = new DigitalInputPlaceholder();
+        public readonly IDigitalInput CylFwdDet2 = new DigitalInputPlaceholder();
 
         public TestActor(ActorConfig config)
             : base(config)
@@ -340,6 +339,7 @@ public class BinaryActuatorTest()
                     Cyl2.Wait();
                     return true;
             }
+
             return false;
         }
     }

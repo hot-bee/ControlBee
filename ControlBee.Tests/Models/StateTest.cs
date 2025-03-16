@@ -1,6 +1,6 @@
 ﻿using ControlBee.Models;
-using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
+using ControlBeeTest.Utils;
 using FluentAssertions;
 using JetBrains.Annotations;
 using Xunit;
@@ -25,6 +25,7 @@ public class StateTest : ActorFactoryBase
 
     public class TestPickerActor : Actor
     {
+        public int DisposeCount;
         public Variable<int> PickupCount = new(VariableScope.Local);
 
         public TestPickerActor(ActorConfig config)
@@ -32,8 +33,6 @@ public class StateTest : ActorFactoryBase
         {
             State = new IdleState(this);
         }
-
-        public int DisposeCount;
     }
 
     public class IdleState(TestPickerActor actor) : State<TestPickerActor>(actor)
@@ -46,6 +45,7 @@ public class StateTest : ActorFactoryBase
                     Actor.State = new PickupState(Actor);
                     return true;
             }
+
             return false;
         }
 

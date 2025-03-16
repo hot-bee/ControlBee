@@ -2,8 +2,8 @@
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
+using ControlBeeTest.Utils;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
 using Moq;
@@ -154,8 +154,8 @@ MyActor:
         );
 
         public readonly Variable<SpeedProfile> HomeSpeedX = new();
-        public IInitializeSequence InitializeSequenceX;
         public readonly IAxis X;
+        public IInitializeSequence InitializeSequenceX;
 
         public TestActor(ActorConfig config)
             : base(config)

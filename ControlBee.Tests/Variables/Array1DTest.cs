@@ -2,15 +2,13 @@
 using System.Text.Json;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Tests.TestUtils;
-using ControlBee.Utils;
 using ControlBee.Variables;
+using ControlBeeTest.Utils;
 using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
-using static ControlBee.Tests.Variables.PropertyVariableTest;
 
 namespace ControlBee.Tests.Variables;
 

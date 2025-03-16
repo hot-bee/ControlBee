@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
-using ControlBee.Exceptions;
+﻿using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Tests.TestUtils;
 using ControlBee.Utils;
 using ControlBee.Variables;
+using ControlBeeTest.Utils;
 using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
@@ -139,9 +138,7 @@ public class ActorTest : ActorFactoryBase
                 newState.GetType() == typeof(ErrorState)
                 && message.GetType() == typeof(StateEntryMessage)
             )
-            {
                 Assert.True(actor.GetStatus("Error") is true);
-            }
         };
         actor.Start();
         actor.Send(new Message(EmptyActor.Instance, "DoSomethingWrong"));
@@ -247,7 +244,7 @@ public class ActorTest : ActorFactoryBase
 
     private class TestActorC : Actor
     {
-        public IAxis X;
+        public readonly IAxis X;
 
         public TestActorC(ActorConfig config)
             : base(config)

@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Tests.TestUtils;
+using ControlBeeTest.Utils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -108,12 +107,7 @@ public class FakeDigitalOutputTest : ActorFactoryBase
         actor.Start();
         actor.Send(new ActorItemMessage(uiActor, "/Vacuum", "_itemDataRead"));
         actor.Send(
-            new ActorItemMessage(
-                uiActor,
-                "/Vacuum",
-                "_itemDataWrite",
-                new Dictionary<string, object?> { ["On"] = true }
-            )
+            new ActorItemMessage(uiActor, "/Vacuum", "_itemDataWrite", new Dict { ["On"] = true })
         );
         actor.Send(new Message(uiActor, "Wait"));
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
@@ -154,7 +148,7 @@ public class FakeDigitalOutputTest : ActorFactoryBase
 
     private class TestActor : Actor
     {
-        public IDigitalOutput Vacuum;
+        public readonly IDigitalOutput Vacuum;
 
         public TestActor(ActorConfig config)
             : base(config)

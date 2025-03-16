@@ -2,8 +2,8 @@
 using ControlBee.Models;
 using ControlBee.Sequences;
 using ControlBee.Services;
-using ControlBee.Tests.TestUtils;
 using ControlBee.Variables;
+using ControlBeeTest.Utils;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
 using Moq;
@@ -52,14 +52,14 @@ public class InitializeSequenceFactoryTest : ActorFactoryBase
 
     private class TestActor : Actor
     {
-        public Variable<Position1D> HomePositionX = new(
+        public readonly Variable<Position1D> HomePositionX = new(
             VariableScope.Global,
             new Position1D(DenseVector.OfArray([10.0]))
         );
 
-        public Variable<SpeedProfile> HomeSpeedX = new();
-        public IInitializeSequence InitializeSequenceX;
-        public IAxis X;
+        public readonly Variable<SpeedProfile> HomeSpeedX = new();
+        public readonly IInitializeSequence InitializeSequenceX;
+        public readonly IAxis X;
 
         public TestActor(ActorConfig config)
             : base(config)

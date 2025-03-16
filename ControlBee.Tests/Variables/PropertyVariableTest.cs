@@ -2,9 +2,9 @@
 using System.Linq;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Tests.TestUtils;
 using ControlBee.Utils;
 using ControlBee.Variables;
+using ControlBeeTest.Utils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -29,7 +29,8 @@ public class PropertyVariableTest : ActorFactoryBase
             "_itemDataChanged",
             message =>
             {
-                var valueChangedArgs = message.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
+                var valueChangedArgs =
+                    message.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
                 var newValue = (Product)valueChangedArgs!.NewValue!;
                 Assert.False(newValue.Exists);
                 actor.Send(new TerminateMessage());
@@ -56,7 +57,8 @@ public class PropertyVariableTest : ActorFactoryBase
             "_itemDataChanged",
             message =>
             {
-                var valueChangedArgs = message.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
+                var valueChangedArgs =
+                    message.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
                 var newValue = (Product)valueChangedArgs!.NewValue!;
                 Assert.True(newValue.Exists);
                 actor.Send(new TerminateMessage());
@@ -90,7 +92,8 @@ public class PropertyVariableTest : ActorFactoryBase
             "_itemDataChanged",
             message =>
             {
-                var valueChangedArgs = message.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
+                var valueChangedArgs =
+                    message.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
                 Assert.True(valueChangedArgs?.Location.SequenceEqual(["Exists"]));
                 Assert.True(valueChangedArgs?.NewValue is true);
                 actor.Send(new TerminateMessage());
@@ -117,7 +120,8 @@ public class PropertyVariableTest : ActorFactoryBase
             "_itemDataChanged",
             message =>
             {
-                var valueChangedArgs = message.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
+                var valueChangedArgs =
+                    message.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
                 var location = valueChangedArgs!.Location;
                 var newValue = (bool)valueChangedArgs.NewValue!;
                 Assert.True(location.SequenceEqual(["Exists"]));
@@ -153,7 +157,8 @@ public class PropertyVariableTest : ActorFactoryBase
             "_itemDataChanged",
             message =>
             {
-                var valueChangedArgs = message.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
+                var valueChangedArgs =
+                    message.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
                 var location = valueChangedArgs!.Location;
                 var newValue = (int)valueChangedArgs.NewValue!;
                 Assert.True(location.SequenceEqual(["Numbers", 0]));
@@ -179,9 +184,7 @@ public class PropertyVariableTest : ActorFactoryBase
         public Variable<Product> Product = new(VariableScope.Temporary);
 
         public TestActor(ActorConfig config)
-            : base(config)
-        {
-        }
+            : base(config) { }
 
         protected override bool ProcessMessage(Message message)
         {
@@ -227,8 +230,13 @@ public class PropertyVariableTest : ActorFactoryBase
 
         private void NumbersOnValueChanged(object? sender, ValueChangedArgs e)
         {
-            OnValueChanged(new ValueChangedArgs(
-                ((object[])[nameof(Numbers)]).Concat(e.Location).ToArray(), e.OldValue, e.NewValue));
+            OnValueChanged(
+                new ValueChangedArgs(
+                    ((object[])[nameof(Numbers)]).Concat(e.Location).ToArray(),
+                    e.OldValue,
+                    e.NewValue
+                )
+            );
         }
 
         public override void OnDeserialized()
