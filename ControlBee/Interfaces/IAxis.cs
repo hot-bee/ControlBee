@@ -15,6 +15,7 @@ public interface IAxis : IDeviceChannel
     void WaitForPosition(PositionComparisonType type, double position);
     bool IsMoving();
     void Move(double position);
+    void Move(double position, bool @override);
     void MoveAndWait(double position);
     void SetSpeed(IVariable speedProfileVariable);
     void SetSpeed(SpeedProfile speedProfile);

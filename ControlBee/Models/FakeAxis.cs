@@ -67,9 +67,9 @@ public class FakeAxis : Axis, IDisposable
         };
     }
 
-    public override void Move(double position)
+    public override void Move(double position, bool @override)
     {
-        ValidateBeforeMove();
+        ValidateBeforeMove(@override);
         _targetPosition = position;
         _isMoving = true;
         _flowTester.OnCheckpoint();
@@ -79,7 +79,7 @@ public class FakeAxis : Axis, IDisposable
 
     public override void VelocityMove(AxisDirection direction)
     {
-        ValidateBeforeMove();
+        ValidateBeforeMove(false);
         switch (direction)
         {
             case AxisDirection.Positive:
@@ -217,10 +217,12 @@ public class FakeAxis : Axis, IDisposable
         RefreshCacheImpl();
     }
 
-    protected override void MonitorMoving()
+    protected override void MonitorMoving(bool @override = false)
     {
         if (_movingTask != null)
         {
+            if (@override)
+                return;
             Logger.Error("`_movingTask` should be null here.");
             _movingTask.Wait();
             _movingTask = null;

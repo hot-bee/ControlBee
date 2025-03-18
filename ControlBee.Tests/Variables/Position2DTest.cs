@@ -115,8 +115,8 @@ public class Position2DTest : ActorFactoryBase
 
         var act = () => variable.Value.Move();
         act.Should().NotThrow();
-        axisXMock.Verify(m => m.Move(1.2), Times.Once);
-        axisYMock.Verify(m => m.Move(3.4), Times.Once);
+        axisXMock.Verify(m => m.Move(1.2, false), Times.Once);
+        axisYMock.Verify(m => m.Move(3.4, false), Times.Once);
     }
 
     [Fact]

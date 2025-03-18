@@ -23,8 +23,8 @@ public class PositionAxesMapTest : ActorFactoryBase
         var actor = ActorFactory.Create<TestActor>("testActor", axisX, axisY);
 
         actor.Position.Value.Move();
-        axisXMock.Verify(m => m.Move(It.IsAny<double>()), Times.Once);
-        axisYMock.Verify(m => m.Move(It.IsAny<double>()), Times.Once);
+        axisXMock.Verify(m => m.Move(It.IsAny<double>(), false), Times.Once);
+        axisYMock.Verify(m => m.Move(It.IsAny<double>(), false), Times.Once);
     }
 
     // ReSharper disable once ClassNeverInstantiated.Local

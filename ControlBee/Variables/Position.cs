@@ -100,9 +100,14 @@ public abstract class Position : IValueChanged, IActorItemSub, IWriteData
 
     public void Move()
     {
+        Move(Axes, false);
+    }
+
+    public void Move(bool @override)
+    {
         if (Axes == null)
             throw new ApplicationException();
-        Move(Axes);
+        Move(Axes, @override);
     }
 
     public void Stop()
@@ -140,6 +145,11 @@ public abstract class Position : IValueChanged, IActorItemSub, IWriteData
 
     public void Move(IAxis[] axes)
     {
+        Move(axes, false);
+    }
+
+    public void Move(IAxis[] axes, bool @override)
+    {
         if (Axes.Length == 0)
             throw new ApplicationException("No axis information is defined.");
 
@@ -150,7 +160,7 @@ public abstract class Position : IValueChanged, IActorItemSub, IWriteData
 
         for (var i = 0; i < Rank; i++)
             if (axes.Contains(Axes[i]))
-                Axes[i].Move(Vector.Values[i]);
+                Axes[i].Move(Vector.Values[i], @override);
     }
 
     public void Wait(IAxis[] axes)

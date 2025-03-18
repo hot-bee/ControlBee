@@ -230,7 +230,12 @@ public class Axis : DeviceChannel, IAxis
         return MotionDevice.IsMoving(Channel);
     }
 
-    public virtual void Move(double position)
+    public void Move(double position)
+    {
+        Move(position, false);
+    }
+
+    public virtual void Move(double position, bool @override)
     {
         if (MotionDevice == null)
         {
@@ -238,7 +243,7 @@ public class Axis : DeviceChannel, IAxis
             return;
         }
 
-        ValidateBeforeMove();
+        ValidateBeforeMove(@override);
         MotionDevice.TrapezoidalMove(0, (int)position, 10000, 10000, 10000);
         MonitorMoving();
     }
@@ -408,7 +413,7 @@ public class Axis : DeviceChannel, IAxis
             SendDataToUi(Guid.Empty);
     }
 
-    protected virtual void MonitorMoving()
+    protected virtual void MonitorMoving(bool @override = false)
     {
         // Empty
     }
@@ -445,19 +450,22 @@ public class Axis : DeviceChannel, IAxis
         return true;
     }
 
-    protected void ValidateBeforeMove()
+    protected void ValidateBeforeMove(bool @override)
     {
         if (SpeedProfile == null)
             throw new ValueError("You need to provide a SpeedProfile to move the axis.");
         if (SpeedProfile!.Velocity == 0)
             throw new ValueError("You must provide a speed greater than 0 to move the axis.");
-        if (!IsMoving())
-            return;
-        Logger.Warn(
-            $"Motion is still moving when it's trying to start move. ({ActorName}:{ItemPath})"
-        );
-        Stop();
-        Wait();
+        if (!@override)
+        {
+            if (!IsMoving())
+                return;
+            Logger.Warn(
+                $"Motion is still moving when it's trying to start move. ({ActorName}:{ItemPath})"
+            );
+            Stop();
+            Wait();
+        }
     }
 
     #region Cache
