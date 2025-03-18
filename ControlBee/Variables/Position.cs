@@ -8,7 +8,7 @@ using MathNet.Numerics.LinearAlgebra.Double;
 
 namespace ControlBee.Variables;
 
-public abstract class Position : IValueChanged, IActorItemSub, IWriteData
+public abstract class Position : IValueChanged, IActorItemSub, IWriteData, IIndex1D
 {
     private static readonly ILog Logger = LogManager.GetLogger("Position");
     private DenseVector _duplicatedVector = new(0);
@@ -179,5 +179,10 @@ public abstract class Position : IValueChanged, IActorItemSub, IWriteData
     protected virtual void OnValueChanged(ValueChangedArgs e)
     {
         ValueChanged?.Invoke(this, e);
+    }
+
+    public object? GetValue(int index)
+    {
+        return this[index];
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace ControlBee.Interfaces;
 
-public interface IArray1D
+public interface IIndex1D
 {
     object? GetValue(int index);
 }

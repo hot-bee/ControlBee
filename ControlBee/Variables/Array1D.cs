@@ -6,7 +6,7 @@ using log4net;
 namespace ControlBee.Variables;
 
 [JsonConverter(typeof(ArrayBaseConverter))]
-public class Array1D<T> : ArrayBase, IArray1D, IDisposable, IWriteData
+public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
     where T : new()
 {
     private static readonly ILog Logger = LogManager.GetLogger("Array1D");
