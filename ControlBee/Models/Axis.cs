@@ -336,6 +336,11 @@ public class Axis : DeviceChannel, IAxis
         return 0; // TODO
     }
 
+    public virtual double GetVelocity(VelocityType type)
+    {
+        return 0;
+    }
+
     public virtual bool GetSensorValue(AxisSensorType type)
     {
         return type switch
