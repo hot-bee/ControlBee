@@ -106,9 +106,12 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
             }
             case "_itemDataRead":
             {
+                var newValue = _value;
+                if (_value is ICloneable cloneable)
+                    newValue = (T)cloneable.Clone();
                 var payload = new Dict
                 {
-                    [nameof(ValueChangedArgs)] = new ValueChangedArgs([], null, _value),
+                    [nameof(ValueChangedArgs)] = new ValueChangedArgs([], null, newValue),
                 };
                 message.Sender.Send(
                     new ActorItemMessage(message.Id, Actor, ItemPath, "_itemDataChanged", payload)
