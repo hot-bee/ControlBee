@@ -58,8 +58,11 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
                 return;
             Unsubscribe();
             _value = value;
+            var newValue = _value;
+            if (_value is ICloneable cloneable)
+                newValue = (T)cloneable.Clone();
             OnAfterValueChange();
-            OnValueChanged(new ValueChangedArgs([], oldValue, value));
+            OnValueChanged(new ValueChangedArgs([], oldValue, newValue));
         }
     }
 

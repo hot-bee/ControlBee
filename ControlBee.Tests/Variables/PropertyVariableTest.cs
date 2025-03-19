@@ -86,23 +86,38 @@ public class PropertyVariableTest : ActorFactoryBase
         ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
+        var count = 0;
         sendMock.SetupActionOnMessage(
             actor,
             uiActor,
             "_itemDataChanged",
             message =>
             {
+                var actorItemMessage = message as ActorItemMessage;
                 var valueChangedArgs =
                     message.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
-                Assert.True(valueChangedArgs?.Location.SequenceEqual(["Exists"]));
-                Assert.True(valueChangedArgs?.NewValue is true);
-                actor.Send(new TerminateMessage());
+                if (actorItemMessage.ItemPath == "/Product")
+                {
+                    Assert.True(valueChangedArgs?.Location.SequenceEqual(["Exists"]));
+                    Assert.True(valueChangedArgs?.NewValue is true);
+                    count++;
+                }
+                if (actorItemMessage.ItemPath == "/ArrProduct")
+                {
+                    var arrayProduct = (ArrayProduct)valueChangedArgs!.NewValue!;
+                    arrayProduct.Values[0] = 1;
+                    count++;
+                }
+                if (count == 2)
+                    actor.Send(new TerminateMessage());
             }
         );
         actor.Send(new Message(uiActor, "ChangeData"));
 
         actor.Start();
         actor.Join();
+
+        Assert.Equal(0, actor.ArrProduct.Value.Values[0]);
     }
 
     [Fact]
@@ -182,6 +197,7 @@ public class PropertyVariableTest : ActorFactoryBase
     public class TestActor : Actor
     {
         public Variable<Product> Product = new(VariableScope.Temporary);
+        public Variable<ArrayProduct> ArrProduct = new(VariableScope.Temporary);
 
         public TestActor(ActorConfig config)
             : base(config) { }
@@ -192,10 +208,21 @@ public class PropertyVariableTest : ActorFactoryBase
             {
                 case "ChangeData":
                     Product.Value.Exists = true;
+                    ArrProduct.Value = new ArrayProduct();
                     return true;
             }
 
             return base.ProcessMessage(message);
+        }
+    }
+
+    public class ArrayProduct : ICloneable
+    {
+        public int[] Values = new int[10];
+
+        public object Clone()
+        {
+            return new ArrayProduct() { Values = (int[])Values.Clone() };
         }
     }
 
