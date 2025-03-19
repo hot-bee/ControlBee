@@ -67,9 +67,12 @@ public class Actor : IActorInternal, IDisposable
         set
         {
             if (_stateStack.Count > 1)
+            {
                 Logger.Warn(
-                    "State Stack Count is greater than 1. However, it's setting an state over it."
+                    "State Stack Count is greater than 1, but a new state is being set after clearing all existing states"
                 );
+                Logger.Warn(LoggerUtils.CurrentStackDefaultLog());
+            }
             _stateStack.Clear();
             _stateStack.Push(value);
         }
