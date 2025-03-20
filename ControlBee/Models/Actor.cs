@@ -4,7 +4,6 @@ using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Utils;
 using log4net;
-using static ControlBee.Services.FrozenTimeManager;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
@@ -31,6 +30,8 @@ public class Actor : IActorInternal, IDisposable
     private bool _init;
 
     private IState _initialState;
+
+    private int _publishStep;
 
     private string _title = string.Empty;
 
@@ -73,6 +74,7 @@ public class Actor : IActorInternal, IDisposable
                 );
                 Logger.Warn(LoggerUtils.CurrentStackDefaultLog());
             }
+
             _stateStack.Clear();
             _stateStack.Push(value);
         }
@@ -194,8 +196,22 @@ public class Actor : IActorInternal, IDisposable
             SetTitle(title);
     }
 
+    public void PublishStepIn()
+    {
+        _publishStep++;
+    }
+
+    public void PublishStepOut()
+    {
+        _publishStep--;
+        if (_publishStep == 0)
+            PublishStatus();
+    }
+
     public void PublishStatus()
     {
+        if (_publishStep > 0)
+            return;
         var clonedStatus = DictCopy.Copy(Status);
         foreach (var peer in PeerDict.Values)
             peer.Send(new Message(this, "_status", clonedStatus));
