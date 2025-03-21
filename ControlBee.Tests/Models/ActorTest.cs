@@ -241,6 +241,11 @@ public class ActorTest : ActorFactoryBase
                     ),
                 Times.Once
             );
+
+        Assert.Equal("Trump", actor.GetStatus("Name"));
+        Assert.Null(actor.GetStatus("Not-existing-name"));
+        Assert.Equal("KTWorld", actor.GetStatusByActor("Peer", "WifiId"));
+        Assert.Null(actor.GetStatusByActor("Peer", "Not-existing-name"));
     }
 
     private class TestActorC : Actor

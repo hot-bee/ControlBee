@@ -249,6 +249,18 @@ public class Actor : IActorInternal, IDisposable
         SetStatusByActor(actor.Name, keyName, value);
     }
 
+    public object? GetStatusByActor(string actorName, string keyName)
+    {
+        var statusByActor = Status.GetValueOrDefault(actorName) as Dict ?? new Dict();
+        statusByActor.TryGetValue(keyName, out var value);
+        return value;
+    }
+
+    public object? GetStatusByActor(IActor actor, string keyName)
+    {
+        return GetStatusByActor(actor.Name, keyName);
+    }
+
     public object? GetPeerStatus(IActor actor, string keyName)
     {
         return PeerStatus[actor].GetValueOrDefault(keyName);
