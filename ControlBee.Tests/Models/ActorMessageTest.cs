@@ -126,7 +126,7 @@ public class ActorMessageTest : ActorFactoryBase
         actor.Start();
         actor.Send(new Message(EmptyActor.Instance, "qoo"));
         actor.Join();
-        Assert.NotNull(actor.LastPlatformException);
+        Assert.NotNull(actor.ExitError);
     }
 
     [Theory]

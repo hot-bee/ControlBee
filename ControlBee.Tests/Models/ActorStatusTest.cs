@@ -1,4 +1,5 @@
-﻿using ControlBee.Interfaces;
+﻿using ControlBee.Exceptions;
+using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Utils;
 using ControlBeeTest.Utils;
@@ -45,6 +46,21 @@ public class ActorStatusTest : ActorFactoryBase
         ActorUtils.VerifyGetMessage(actor, client, "_status", Times.Once);
     }
 
+    [Fact]
+    public void HasPeerErrorTest()
+    {
+        var sendMock = new SendMock();
+        var client = MockActorFactory.Create("Client");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+        actor.SetPeer(client);
+
+        ActorUtils.TerminateWhenStateChanged(actor, typeof(ErrorState<TestActor>));
+
+        actor.Start();
+        ActorUtils.SendErrorSignal(client, actor);
+        actor.Join();
+    }
+
     public class TestActor : Actor
     {
         public IActor Client;
@@ -60,6 +76,7 @@ public class ActorStatusTest : ActorFactoryBase
 
         protected override bool ProcessMessage(Message message)
         {
+            base.ProcessMessage(message);
             switch (message.Name)
             {
                 case "ChangeStatus":
@@ -71,9 +88,18 @@ public class ActorStatusTest : ActorFactoryBase
                     SetStatusByActor(Client, "HomeAddress", "WhiteHouse");
                     return true;
                 }
+                case "_status":
+                    if (HasPeerError(Client))
+                        throw new SequenceError();
+                    return false;
             }
 
-            return base.ProcessMessage(message);
+            return false;
+        }
+
+        protected override IState CreateErrorState(SequenceError error)
+        {
+            return new ErrorState<TestActor>(this, error);
         }
     }
 }

@@ -35,7 +35,7 @@ public class Actor : IActorInternal, IDisposable
 
     private string _title = string.Empty;
 
-    public PlatformException? LastPlatformException;
+    public PlatformException? ExitError;
 
     public Dictionary<string, IActor> PeerDict = [];
     public Dictionary<IActor, Dict> PeerStatus = new();
@@ -281,6 +281,11 @@ public class Actor : IActorInternal, IDisposable
         return GetPeerStatusByActor(PeerDict[actorName], keyName);
     }
 
+    public bool HasPeerError(IActor peer)
+    {
+        return GetPeerStatus(peer, "_error") is true;
+    }
+
     public void ResetState()
     {
         State = _initialState;
@@ -425,7 +430,7 @@ public class Actor : IActorInternal, IDisposable
         catch (PlatformException e)
         {
             Logger.Fatal("PlatformException occured in thread.", e);
-            LastPlatformException = e;
+            ExitError = e;
         }
         finally
         {
