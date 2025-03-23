@@ -4,7 +4,7 @@ using ControlBee.Models;
 
 namespace ControlBee.Variables;
 
-public abstract class ArrayBase : IValueChanged, IActorItemSub
+public abstract class ArrayBase : IValueChanged, IActorItemSub, ICloneable
 {
     public event EventHandler<ValueChangedArgs>? ValueChanged;
     public abstract void ReadJson(JsonDocument jsonDoc);
@@ -36,4 +36,6 @@ public abstract class ArrayBase : IValueChanged, IActorItemSub
     }
 
     public virtual void OnDeserialized() { }
+
+    public abstract object Clone();
 }

@@ -22,6 +22,22 @@ public class Array3D<T> : ArrayBase
         UpdateSubItem();
     }
 
+    public Array3D(Array3D<T> other)
+    {
+        _value = (T[,,])other._value.Clone();
+        for (var i = 0; i < Size.Item1; i++)
+        for (var j = 0; j < Size.Item2; j++)
+        for (var k = 0; k < Size.Item3; k++)
+        {
+            var otherValue = other[i, j, k];
+            if (otherValue is ICloneable cloneable)
+                otherValue = (T)cloneable.Clone();
+            _value[i, j, k] = otherValue;
+        }
+
+        UpdateSubItem();
+    }
+
     public T this[int x, int y, int z]
     {
         get => _value[x, y, z];
@@ -45,6 +61,11 @@ public class Array3D<T> : ArrayBase
             for (var k = 0; k < Size.Item3; k++)
                 yield return _value[i, j, k];
         }
+    }
+
+    public override object Clone()
+    {
+        return new Array3D<T>(this);
     }
 
     public override void ReadJson(JsonDocument jsonDoc)

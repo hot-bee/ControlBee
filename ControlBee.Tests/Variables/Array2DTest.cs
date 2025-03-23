@@ -85,4 +85,19 @@ public class Array2DTest : ActorFactoryBase
         itemSub.Actor.Should().Be(actor);
         itemSub.ItemPath.Should().Be("myItem");
     }
+
+    [Fact]
+    public void CloneTest()
+    {
+        var array = new Array2D<int>(2, 2);
+        var cloned = (Array2D<int>)array.Clone();
+        array[0, 0] = 1;
+        array[1, 1] = 2;
+        cloned[0, 0] = 3;
+        cloned[1, 1] = 4;
+        Assert.Equal(1, array[0, 0]);
+        Assert.Equal(2, array[1, 1]);
+        Assert.Equal(3, cloned[0, 0]);
+        Assert.Equal(4, cloned[1, 1]);
+    }
 }

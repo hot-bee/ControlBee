@@ -23,7 +23,20 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
             _value[i] = new T();
             Subscribe(i);
         }
+        UpdateSubItem();
+    }
 
+    public Array1D(Array1D<T> other)
+    {
+        _value = (T[])other._value.Clone();
+        for (var i = 0; i < Size; i++)
+        {
+            var otherValue = other[i];
+            if (otherValue is ICloneable cloneable)
+                otherValue = (T)cloneable.Clone();
+            _value[i] = otherValue;
+            Subscribe(i);
+        }
         UpdateSubItem();
     }
 
@@ -88,6 +101,11 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
                 actorItemSub.OnDeserialized();
             Subscribe(i);
         }
+    }
+
+    public override object Clone()
+    {
+        return new Array1D<T>(this);
     }
 
     private void Subscribe(int index)

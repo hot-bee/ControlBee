@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using ControlBee.Interfaces;
 
 namespace ControlBee.Variables;
 
@@ -19,6 +18,20 @@ public class Array2D<T> : ArrayBase
         for (var i = 0; i < Size.Item1; i++)
         for (var j = 0; j < Size.Item2; j++)
             _value[i, j] = new T();
+        UpdateSubItem();
+    }
+
+    public Array2D(Array2D<T> other)
+    {
+        _value = (T[,])other._value.Clone();
+        for (var i = 0; i < Size.Item1; i++)
+        for (var j = 0; j < Size.Item2; j++)
+        {
+            var otherValue = other[i, j];
+            if (otherValue is ICloneable cloneable)
+                otherValue = (T)cloneable.Clone();
+            _value[i, j] = otherValue;
+        }
         UpdateSubItem();
     }
 
@@ -84,5 +97,10 @@ public class Array2D<T> : ArrayBase
             for (var j = 0; j < Size.Item2; j++)
                 yield return _value[i, j];
         }
+    }
+
+    public override object Clone()
+    {
+        return new Array2D<T>(this);
     }
 }
