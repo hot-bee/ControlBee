@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Nodes;
 using ControlBee.Interfaces;
 using ControlBeeAbstract.Devices;
+using ControlBeeAbstract.Exceptions;
 using log4net;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
@@ -14,6 +15,9 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
     private static readonly ILog Logger = LogManager.GetLogger(nameof(Vision));
     protected virtual IVisionDevice? VisionDevice => Device as IVisionDevice;
 
+    public IDialog ConnectionError = new DialogPlaceholder();
+    public IDialog TimeoutError = new DialogPlaceholder();
+
     public virtual void Trigger(int inspectionIndex)
     {
         if (VisionDevice == null)
@@ -22,7 +26,15 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
             return;
         }
 
-        VisionDevice.Trigger(Channel, inspectionIndex);
+        try
+        {
+            VisionDevice.Trigger(Channel, inspectionIndex);
+        }
+        catch (ConnectionError)
+        {
+            ConnectionError.Show();
+            throw;
+        }
     }
 
     public virtual void Wait(int inspectionIndex, int timeout)
@@ -33,7 +45,15 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
             return;
         }
 
-        VisionDevice.Wait(Channel, inspectionIndex, timeout);
+        try
+        {
+            VisionDevice.Wait(Channel, inspectionIndex, timeout);
+        }
+        catch (TimeoutError)
+        {
+            TimeoutError.Show();
+            throw;
+        }
     }
 
     public virtual JsonObject? GetResult(int inspectionIndex)
