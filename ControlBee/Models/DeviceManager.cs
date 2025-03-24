@@ -7,9 +7,9 @@ public class DeviceManager : IDeviceManager, IDisposable
 {
     private readonly Dictionary<string, IDevice> _devices = [];
 
-    public IDevice Get(string name)
+    public IDevice? Get(string name)
     {
-        return _devices[name];
+        return _devices.GetValueOrDefault(name);
     }
 
     public void Add(string name, IDevice device)

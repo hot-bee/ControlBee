@@ -10,7 +10,7 @@ public class EmptyDeviceManager : IDeviceManager
 
     public static EmptyDeviceManager Instance { get; } = new();
 
-    public IDevice Get(string name)
+    public IDevice? Get(string name)
     {
         throw new UnimplementedByDesignError();
     }
