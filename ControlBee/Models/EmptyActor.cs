@@ -17,6 +17,7 @@ public class EmptyActor : Actor
             null!,
             EmptyInitializeSequenceFactory.Instance,
             EmptyBinaryActuatorFactory.Instance,
+            null!,
             EmptyVariableManager.Instance,
             EmptyTimeManager.Instance,
             EmptyScenarioFlowTester.Instance,

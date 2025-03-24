@@ -346,6 +346,8 @@ public class Actor : IActorInternal, IDisposable
                 newItem = config.AnalogOutputFactory.Create();
             else if (fieldInfo.FieldType.IsAssignableTo(typeof(IDialog)))
                 newItem = config.DialogFactory.Create();
+            else if (fieldInfo.FieldType.IsAssignableTo(typeof(IVision)))
+                newItem = config.VisionFactory.Create();
             else
                 throw new ValueError();
             _placeholderManager.Add(placeHolder, newItem);

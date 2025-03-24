@@ -13,6 +13,7 @@ public class ActorConfig(
     IDialogFactory dialogFactory,
     IInitializeSequenceFactory initializeSequenceFactory,
     IBinaryActuatorFactory binaryActuatorFactory,
+    IVisionFactory visionFactory,
     IVariableManager variableManager,
     ITimeManager timeManager,
     IScenarioFlowTester scenarioFlowTester,
@@ -22,6 +23,7 @@ public class ActorConfig(
 {
     public SystemConfigurations SystemConfigurations { get; } = systemConfigurations;
     public IBinaryActuatorFactory BinaryActuatorFactory { get; } = binaryActuatorFactory;
+    public IVisionFactory VisionFactory { get; } = visionFactory;
     public IScenarioFlowTester ScenarioFlowTester { get; } = scenarioFlowTester;
     public string ActorName => actorName;
     public IVariableManager VariableManager => variableManager;
@@ -32,6 +34,7 @@ public class ActorConfig(
     public IAnalogInputFactory AnalogInputFactory { get; } = analogInputFactory;
     public IAnalogOutputFactory AnalogOutputFactory { get; } = analogOutputFactory;
     public IDialogFactory DialogFactory { get; } = dialogFactory;
+
     public IInitializeSequenceFactory InitializeSequenceFactory => initializeSequenceFactory;
 
     public ISystemPropertiesDataSource SystemPropertiesDataSource => systemPropertiesDataSource;
