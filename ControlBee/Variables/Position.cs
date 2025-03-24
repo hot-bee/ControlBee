@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 using ControlBee.Constants;
-using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
+using ControlBeeAbstract.Exceptions;
 using log4net;
 using MathNet.Numerics.LinearAlgebra.Double;
 

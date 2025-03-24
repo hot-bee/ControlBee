@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
-using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Variables;
+using ControlBeeAbstract.Exceptions;
 
 namespace ControlBee.Models;
 

@@ -1,9 +1,9 @@
 ﻿using System;
 using ControlBee.Constants;
-using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBeeAbstract.Devices;
+using ControlBeeAbstract.Exceptions;
 using ControlBeeTest.Utils;
 using JetBrains.Annotations;
 using Moq;

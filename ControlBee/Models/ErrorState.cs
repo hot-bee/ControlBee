@@ -1,4 +1,4 @@
-﻿using ControlBee.Exceptions;
+﻿using ControlBeeAbstract.Exceptions;
 
 namespace ControlBee.Models;
 

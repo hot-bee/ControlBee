@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Variables;
+using ControlBeeAbstract.Exceptions;
 using ControlBeeTest.Utils;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;

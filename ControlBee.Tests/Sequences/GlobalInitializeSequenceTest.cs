@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using ControlBee.Constants;
-using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Sequences;
+using ControlBeeAbstract.Exceptions;
 using ControlBeeTest.Utils;
 using FluentAssertions;
 using JetBrains.Annotations;

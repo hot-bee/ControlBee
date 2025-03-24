@@ -1,9 +1,9 @@
 ﻿using ControlBee.Constants;
-using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Sequences;
 using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
+using ControlBeeAbstract.Exceptions;
 using log4net;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 

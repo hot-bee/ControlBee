@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
-using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
+using ControlBeeAbstract.Exceptions;
 using log4net;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 

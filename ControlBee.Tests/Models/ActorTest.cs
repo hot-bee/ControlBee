@@ -1,8 +1,8 @@
-﻿using ControlBee.Exceptions;
-using ControlBee.Interfaces;
+﻿using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Utils;
 using ControlBee.Variables;
+using ControlBeeAbstract.Exceptions;
 using ControlBeeTest.Utils;
 using FluentAssertions;
 using JetBrains.Annotations;

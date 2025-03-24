@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
-using ControlBee.Exceptions;
 using ControlBee.Interfaces;
+using ControlBeeAbstract.Exceptions;
 
 namespace ControlBee.Models;
 

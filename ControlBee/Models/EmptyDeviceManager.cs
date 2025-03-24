@@ -1,6 +1,6 @@
-﻿using ControlBee.Exceptions;
-using ControlBee.Interfaces;
+﻿using ControlBee.Interfaces;
 using ControlBeeAbstract.Devices;
+using ControlBeeAbstract.Exceptions;
 
 namespace ControlBee.Models;
 

@@ -1,10 +1,10 @@
 ﻿using System;
 using ControlBee.Constants;
-using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
 using ControlBee.Variables;
+using ControlBeeAbstract.Exceptions;
 using ControlBeeTest.Utils;
 using FluentAssertions;
 using JetBrains.Annotations;

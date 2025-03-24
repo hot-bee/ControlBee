@@ -1,6 +1,6 @@
 ﻿using ControlBee.Constants;
-using ControlBee.Exceptions;
 using ControlBee.Interfaces;
+using ControlBeeAbstract.Exceptions;
 using log4net;
 
 namespace ControlBee.Models;

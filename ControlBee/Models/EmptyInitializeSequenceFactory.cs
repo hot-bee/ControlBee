@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ControlBee.Exceptions;
-using ControlBee.Interfaces;
+﻿using ControlBee.Interfaces;
 using ControlBee.Variables;
+using ControlBeeAbstract.Exceptions;
 
 namespace ControlBee.Models
 {
