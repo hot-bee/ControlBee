@@ -20,7 +20,7 @@ public class ErrorStateTest : ActorFactoryBase
         ActorUtils.SetupActionOnStateChanged(
             actor,
             typeof(IdleState),
-            () =>
+            _ =>
             {
                 Assert.True(actor.GetStatus("_error") is false);
                 actor.Send(new TerminateMessage());
