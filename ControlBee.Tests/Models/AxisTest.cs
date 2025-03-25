@@ -215,6 +215,7 @@ public class AxisTest : ActorFactoryBase
                 "_jogStart",
                 new Dict
                 {
+                    ["Type"] = "Continuous",
                     ["Direction"] = AxisDirection.Positive,
                     ["JogSpeed"] = JogSpeedLevel.Medium,
                 }

@@ -102,13 +102,34 @@ public class Axis : DeviceChannel, IAxis
 
             case "_jogStart":
             {
-                Logger.Debug("Continuous Jog Start");
+                var type = (string)message.DictPayload!["Type"]!;
                 var direction = (AxisDirection)message.DictPayload!["Direction"]!;
-                var jogSpeed = (JogSpeedLevel)message.DictPayload!["JogSpeed"]!;
-                var speed = GetJogSpeed(jogSpeed);
-                SetSpeed(speed);
-                VelocityMove(direction);
-                message.Sender.Send(new Message(message, Actor, "_jogStarted"));
+                switch (type)
+                {
+                    case "Continuous":
+                    {
+                        Logger.Debug("Continuous Jog Start");
+                        var jogSpeed = (JogSpeedLevel)message.DictPayload!["JogSpeed"]!;
+                        var speed = GetJogSpeed(jogSpeed);
+                        SetSpeed(speed);
+                        VelocityMove(direction);
+                        message.Sender.Send(new Message(message, Actor, "_jogStarted"));
+                        break;
+                    }
+                    case "Step":
+                    {
+                        Logger.Debug("Step Jog Start");
+                        if (IsMoving())
+                            Logger.Warn("Cancel jog. It's already moving now.");
+                        var jogStep = (JogStep)message.DictPayload!["JogStep"]!;
+                        var step = StepJogSizes.Value[(int)jogStep] * (int)direction;
+                        var speed = GetJogSpeed(JogSpeedLevel.Medium);
+                        SetSpeed(speed);
+                        RelativeMove(step);
+                        message.Sender.Send(new Message(message, Actor, "_jogStarted"));
+                        break;
+                    }
+                }
                 return true;
             }
             case "_jogStop":
