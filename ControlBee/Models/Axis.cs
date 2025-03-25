@@ -32,6 +32,11 @@ public class Axis : DeviceChannel, IAxis
         new SpeedProfile { Velocity = 10.0 }
     );
 
+    public Variable<Array1D<double>> JogSpeedLevelFactors = new(
+        VariableScope.Global,
+        new Array1D<double>([0.04, 0.2, 1.0])
+    );
+
     public Variable<SpeedProfile> NormalSpeed = new(
         VariableScope.Global,
         new SpeedProfile { Velocity = 10.0 }
@@ -99,7 +104,7 @@ public class Axis : DeviceChannel, IAxis
             {
                 Logger.Debug("Continuous Jog Start");
                 var direction = (AxisDirection)message.DictPayload!["Direction"]!;
-                var jogSpeed = (JogSpeed)message.DictPayload!["JogSpeed"]!;
+                var jogSpeed = (JogSpeedLevel)message.DictPayload!["JogSpeed"]!;
                 var speed = GetJogSpeed(jogSpeed);
                 SetSpeed(speed);
                 VelocityMove(direction);
@@ -134,9 +139,24 @@ public class Axis : DeviceChannel, IAxis
         RefreshCache();
     }
 
-    public SpeedProfile GetJogSpeed(JogSpeed jogSpeed)
+    public SpeedProfile GetJogSpeed(JogSpeedLevel jogSpeedLevel)
     {
-        return (SpeedProfile)JogSpeed.ValueObject!;
+        var jogSpeed = (SpeedProfile)JogSpeed.ValueObject!;
+        jogSpeed = (SpeedProfile)jogSpeed.Clone();
+        switch (jogSpeedLevel)
+        {
+            case JogSpeedLevel.Slow:
+                jogSpeed.Velocity *= JogSpeedLevelFactors.Value[0];
+                break;
+            case JogSpeedLevel.Medium:
+                jogSpeed.Velocity *= JogSpeedLevelFactors.Value[1];
+                break;
+            case JogSpeedLevel.Fast:
+                jogSpeed.Velocity *= JogSpeedLevelFactors.Value[2];
+                break;
+        }
+
+        return jogSpeed;
     }
 
     public SpeedProfile GetNormalSpeed()

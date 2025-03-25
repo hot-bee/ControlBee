@@ -1,6 +1,6 @@
 ﻿namespace ControlBee.Constants;
 
-public enum JogSpeed
+public enum JogSpeedLevel
 {
     Slow,
     Medium,

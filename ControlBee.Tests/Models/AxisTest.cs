@@ -213,7 +213,11 @@ public class AxisTest : ActorFactoryBase
                 client,
                 "/X",
                 "_jogStart",
-                new Dict { ["Direction"] = AxisDirection.Positive, ["JogSpeed"] = JogSpeed.Medium }
+                new Dict
+                {
+                    ["Direction"] = AxisDirection.Positive,
+                    ["JogSpeed"] = JogSpeedLevel.Medium,
+                }
             )
         );
         actor.Join();

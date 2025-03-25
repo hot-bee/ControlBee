@@ -30,7 +30,7 @@ public interface IAxis : IDeviceChannel
     void Initialize();
     void SetInitializeAction(Action initializeAction);
     void Enable(bool value);
-    SpeedProfile GetJogSpeed(JogSpeed jogSpeed);
+    SpeedProfile GetJogSpeed(JogSpeedLevel jogSpeedLevel);
     void RelativeMove(double distance);
     void RelativeMoveAndWait(double distance);
     SpeedProfile GetNormalSpeed();
