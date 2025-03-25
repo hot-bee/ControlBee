@@ -1,10 +1,11 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using ControlBee.Interfaces;
 
 namespace ControlBee.Variables;
 
 [JsonConverter(typeof(ArrayBaseConverter))]
-public class Array3D<T> : ArrayBase
+public class Array3D<T> : ArrayBase, IIndex3D
     where T : new()
 {
     private T[,,] _value;
@@ -61,6 +62,11 @@ public class Array3D<T> : ArrayBase
             for (var k = 0; k < Size.Item3; k++)
                 yield return _value[i, j, k];
         }
+    }
+
+    public object? GetValue(int index1, int index2, int index3)
+    {
+        return _value[index1, index2, index3];
     }
 
     public override object Clone()

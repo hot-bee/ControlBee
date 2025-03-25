@@ -1,10 +1,12 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Text.Json;
 using System.Text.Json.Serialization;
+using ControlBee.Interfaces;
 
 namespace ControlBee.Variables;
 
 [JsonConverter(typeof(ArrayBaseConverter))]
-public class Array2D<T> : ArrayBase
+public class Array2D<T> : ArrayBase, IIndex2D
     where T : new()
 {
     private T[,] _value;
@@ -102,5 +104,10 @@ public class Array2D<T> : ArrayBase
     public override object Clone()
     {
         return new Array2D<T>(this);
+    }
+
+    public object? GetValue(int index1, int index2)
+    {
+        return _value[index1, index2];
     }
 }
