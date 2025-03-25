@@ -126,13 +126,13 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
                 WriteData((ItemDataWriteArgs)message.Payload!);
                 return true;
             }
-            default:
-                if (!base.ProcessMessage(message))
-                    throw new ValueError();
-                break;
         }
 
-        return false;
+        var ret = base.ProcessMessage(message);
+        if (_value is IActorItemSub actorItemSub)
+            actorItemSub.ProcessMessage(message);
+
+        return ret;
     }
 
     public override void UpdateSubItem()

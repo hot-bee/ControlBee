@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using ControlBee.Interfaces;
+using ControlBee.Models;
 using log4net;
 
 namespace ControlBee.Variables;
@@ -44,4 +45,10 @@ public abstract class PropertyVariable : IActorItemSub, IValueChanged, IWriteDat
     }
 
     public abstract void OnDeserialized();
+
+    public bool ProcessMessage(ActorItemMessage message)
+    {
+        // Empty
+        return false;
+    }
 }

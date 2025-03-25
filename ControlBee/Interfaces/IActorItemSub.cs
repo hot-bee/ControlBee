@@ -1,4 +1,6 @@
-﻿namespace ControlBee.Interfaces;
+﻿using ControlBee.Models;
+
+namespace ControlBee.Interfaces;
 
 public interface IActorItemSub
 {
@@ -6,4 +8,5 @@ public interface IActorItemSub
     string ItemPath { get; set; }
     void UpdateSubItem();
     void OnDeserialized();
+    bool ProcessMessage(ActorItemMessage message);
 }

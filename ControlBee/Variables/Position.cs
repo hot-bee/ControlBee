@@ -88,6 +88,24 @@ public abstract class Position : IValueChanged, IActorItemSub, IWriteData, IInde
 
     public virtual void OnDeserialized() { }
 
+    public bool ProcessMessage(ActorItemMessage message)
+    {
+        switch (message.Name)
+        {
+            case "MoveToSavedPos":
+                MoveToSavedPos();
+                return true;
+            case "MoveToHomePos":
+                MoveToHomePos();
+                return true;
+            case "SavePos":
+                SavePos();
+                return true;
+        }
+
+        return false;
+    }
+
     public event EventHandler<ValueChangedArgs>? ValueChanged;
 
     public void WriteData(ItemDataWriteArgs args)
@@ -184,5 +202,34 @@ public abstract class Position : IValueChanged, IActorItemSub, IWriteData, IInde
     public object? GetValue(int index)
     {
         return this[index];
+    }
+
+    public void MoveToHomePos()
+    {
+        foreach (var axis in Axes)
+        {
+            axis.SetSpeed(axis.GetJogSpeed(JogSpeed.Slow));
+            axis.GetHomePos().Move();
+        }
+        foreach (var axis in Axes)
+        {
+            axis.GetHomePos().Wait();
+        }
+    }
+
+    public void MoveToSavedPos()
+    {
+        foreach (var axis in Axes)
+            axis.SetSpeed(axis.GetJogSpeed(JogSpeed.Slow));
+        MoveAndWait();
+    }
+
+    public void SavePos()
+    {
+        for (var i = 0; i < Axes.Length; i++)
+        {
+            var pos = Axes[i].GetPosition();
+            this[i] = pos;
+        }
     }
 }
