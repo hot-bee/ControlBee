@@ -206,22 +206,20 @@ public abstract class Position : IValueChanged, IActorItemSub, IWriteData, IInde
 
     public void MoveToHomePos()
     {
-        foreach (var axis in Axes)
+        for (var i = Axes.Length - 1; i >= 0; i--)
         {
-            axis.SetSpeed(axis.GetJogSpeed(JogSpeed.Slow));
-            axis.GetHomePos().Move();
-        }
-        foreach (var axis in Axes)
-        {
-            axis.GetHomePos().Wait();
+            Axes[i].SetSpeed(Axes[i].GetJogSpeed(JogSpeed.Slow));
+            Axes[i].GetHomePos().MoveAndWait();
         }
     }
 
     public void MoveToSavedPos()
     {
-        foreach (var axis in Axes)
-            axis.SetSpeed(axis.GetJogSpeed(JogSpeed.Slow));
-        MoveAndWait();
+        for (var i = 0; i < Axes.Length; i++)
+        {
+            Axes[i].SetSpeed(Axes[i].GetJogSpeed(JogSpeed.Slow));
+            Axes[i].MoveAndWait(this[i]);
+        }
     }
 
     public void SavePos()
