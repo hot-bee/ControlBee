@@ -18,6 +18,7 @@ public class ActorConfig(
     ITimeManager timeManager,
     IScenarioFlowTester scenarioFlowTester,
     ISystemPropertiesDataSource systemPropertiesDataSource,
+    IDeviceManager deviceManager,
     IActor? uiActor
 )
 {
@@ -25,6 +26,7 @@ public class ActorConfig(
     public IBinaryActuatorFactory BinaryActuatorFactory { get; } = binaryActuatorFactory;
     public IVisionFactory VisionFactory { get; } = visionFactory;
     public IScenarioFlowTester ScenarioFlowTester { get; } = scenarioFlowTester;
+    public IDeviceManager DeviceManager { get; } = deviceManager;
     public string ActorName => actorName;
     public IVariableManager VariableManager => variableManager;
     public ITimeManager TimeManager => timeManager;

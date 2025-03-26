@@ -49,6 +49,7 @@ public class Actor : IActorInternal, IDisposable
 
         SkipWaitSensor = config.SystemConfigurations.SkipWaitSensor;
         VariableManager = config.VariableManager;
+        DeviceManager = config.DeviceManager;
         TimeManager = config.TimeManager;
         ScenarioFlowTester = config.ScenarioFlowTester;
         _systemPropertiesDataSource = config.SystemPropertiesDataSource;
@@ -123,6 +124,7 @@ public class Actor : IActorInternal, IDisposable
 
     public IPositionAxesMap PositionAxesMap { get; }
     public IVariableManager VariableManager { get; }
+    public IDeviceManager DeviceManager { get; }
 
     public virtual void Init(ActorConfig config)
     {

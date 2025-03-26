@@ -22,6 +22,7 @@ public class EmptyActor : Actor
             EmptyTimeManager.Instance,
             EmptyScenarioFlowTester.Instance,
             EmptySystemPropertiesDataSource.Instance,
+            null!,
             null
         )
     );

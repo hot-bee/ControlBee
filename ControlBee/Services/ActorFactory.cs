@@ -18,7 +18,8 @@ public class ActorFactory(
     ITimeManager timeManager,
     IScenarioFlowTester scenarioFlowTester,
     ISystemPropertiesDataSource systemPropertiesDataSource,
-    IActorRegistry actorRegistry
+    IActorRegistry actorRegistry,
+    IDeviceManager deviceManager
 ) : IActorFactory
 {
     public T Create<T>(string actorName, params object?[]? args)
@@ -45,6 +46,7 @@ public class ActorFactory(
             timeManager,
             scenarioFlowTester,
             systemPropertiesDataSource,
+            deviceManager,
             uiActor
         );
         var actorArgs = new List<object?> { actorConfig };
