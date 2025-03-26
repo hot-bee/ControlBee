@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Text.Json.Nodes;
 using ControlBee.Interfaces;
+using ControlBeeAbstract.Devices;
 
 namespace ControlBee.Models;
 
@@ -33,6 +34,16 @@ public class VisionPlaceholder : IPlaceholder, IVision
     }
 
     public void RefreshCache()
+    {
+        throw new NotImplementedException();
+    }
+
+    public IDevice? GetDevice()
+    {
+        throw new NotImplementedException();
+    }
+
+    public int GetChannel()
     {
         throw new NotImplementedException();
     }

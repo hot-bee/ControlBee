@@ -16,18 +16,25 @@ public abstract class DeviceChannel(IDeviceManager deviceManager) : ActorItem, I
         // Implement this on override functions
     }
 
+    public IDevice? GetDevice()
+    {
+        return Device;
+    }
+
+    public int GetChannel()
+    {
+        return Channel;
+    }
+
     public override void InjectProperties(ISystemPropertiesDataSource dataSource)
     {
         base.InjectProperties(dataSource);
         if (dataSource.GetValue(ActorName, ItemPath, nameof(DeviceName)) is string deviceName)
             DeviceName = deviceName;
         if (dataSource.GetValue(ActorName, ItemPath, nameof(Channel)) is string channelIdValue)
-        {
             if (int.TryParse(channelIdValue, out var channel))
-            {
                 Channel = channel;
-            }
-        }
+
         if (string.IsNullOrEmpty(DeviceName))
         {
             Logger.Warn($"DeviceName is empty. ({ActorName}, {ItemPath})");

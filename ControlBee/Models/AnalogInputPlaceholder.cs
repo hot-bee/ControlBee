@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using ControlBee.Interfaces;
+using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
 
 namespace ControlBee.Models;
@@ -35,6 +36,16 @@ public class AnalogInputPlaceholder : IPlaceholder, IAnalogInput
     public void RefreshCache()
     {
         throw new UnimplementedByDesignError();
+    }
+
+    public IDevice? GetDevice()
+    {
+        throw new NotImplementedException();
+    }
+
+    public int GetChannel()
+    {
+        throw new NotImplementedException();
     }
 
     public long Read()
