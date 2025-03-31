@@ -21,6 +21,7 @@ public interface IAxis : IDeviceChannel
     void SetSpeed(SpeedProfile speedProfile);
     void VelocityMove(AxisDirection direction);
     void Stop();
+    void EStop();
     void SetPosition(double position, PositionType type = PositionType.CommandAndActual);
     void Wait();
     double GetPosition(PositionType type = PositionType.Command);
@@ -34,5 +35,5 @@ public interface IAxis : IDeviceChannel
     void RelativeMove(double distance);
     void RelativeMoveAndWait(double distance);
     SpeedProfile GetNormalSpeed();
-    Position1D GetHomePos();
+    Position1D GetInitPos();
 }

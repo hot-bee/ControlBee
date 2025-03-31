@@ -1,13 +1,15 @@
-﻿using ControlBee.Interfaces;
-using ControlBee.Utils;
+﻿using ControlBee.Utils;
+using log4net;
 
 namespace ControlBee.Variables;
 
-public class SpeedProfile : IValueChanged, ICloneable
+public class SpeedProfile : PropertyVariable, ICloneable
 {
+    private static readonly ILog Logger = LogManager.GetLogger(nameof(SpeedProfile));
     private double _accel;
+    private double _accelJerkRatio;
     private double _decel;
-    private double _jerk;
+    private double _decelJerkRatio;
     private double _velocity;
 
     public double Velocity
@@ -28,21 +30,25 @@ public class SpeedProfile : IValueChanged, ICloneable
         set => ValueChangedUtils.SetField(ref _decel, value, OnValueChanged);
     }
 
-    public double Jerk
+    public double AccelJerkRatio
     {
-        get => _jerk;
-        set => ValueChangedUtils.SetField(ref _jerk, value, OnValueChanged);
+        get => _accelJerkRatio;
+        set => ValueChangedUtils.SetField(ref _accelJerkRatio, value, OnValueChanged);
     }
 
-    public event EventHandler<ValueChangedArgs>? ValueChanged;
-
-    protected virtual void OnValueChanged(ValueChangedArgs e)
+    public double DecelJerkRatio
     {
-        ValueChanged?.Invoke(this, e);
+        get => _decelJerkRatio;
+        set => ValueChangedUtils.SetField(ref _decelJerkRatio, value, OnValueChanged);
     }
 
     public object Clone()
     {
         return MemberwiseClone();
+    }
+
+    public override void OnDeserialized()
+    {
+        // Empty
     }
 }

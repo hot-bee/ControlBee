@@ -1,6 +1,7 @@
 ﻿using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Sequences;
+using ControlBee.Utils;
 using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
@@ -16,16 +17,22 @@ public class Axis : DeviceChannel, IAxis
     private Action _initializeAction;
     private bool _initializing;
 
+    protected SpeedProfile? CurrentSpeedProfile;
+
     public Variable<int> EnableDelay = new(VariableScope.Global, 200);
 
-    public Variable<Position1D> HomePos = new(VariableScope.Global);
+    public Variable<Position1D> InitPos = new(VariableScope.Global);
 
-    public Variable<SpeedProfile> HomingSpeed = new(
+    public Variable<SpeedProfile> InitSpeed = new(
         VariableScope.Global,
         new SpeedProfile { Velocity = 10.0 }
     );
 
+    public AxisDirection InitDirection;
+
     public InitializeSequence InitializeSequence;
+
+    public AxisSensorType InitSensorType;
 
     public Variable<SpeedProfile> JogSpeed = new(
         VariableScope.Global,
@@ -42,8 +49,6 @@ public class Axis : DeviceChannel, IAxis
         new SpeedProfile { Velocity = 10.0 }
     );
 
-    protected SpeedProfile? SpeedProfile;
-
     public Variable<Array1D<double>> StepJogSizes = new(
         VariableScope.Global,
         new Array1D<double>([0.01, 0.1, 1.0])
@@ -53,12 +58,6 @@ public class Axis : DeviceChannel, IAxis
         : base(deviceManager)
     {
         _timeManager = timeManager;
-
-        InitializeSequence = new InitializeSequence(this, HomingSpeed, HomePos);
-        _initializeAction = () =>
-        {
-            InitializeSequence.Run();
-        };
     }
 
     // ReSharper disable once SuspiciousTypeConversion.Global
@@ -66,7 +65,19 @@ public class Axis : DeviceChannel, IAxis
 
     public override void Init()
     {
-        Actor.PositionAxesMap.Add(HomePos, [this]);
+        Actor.PositionAxesMap.Add(InitPos, [this]);
+    }
+
+    public override void InjectProperties(ISystemPropertiesDataSource dataSource)
+    {
+        base.InjectProperties(dataSource);
+        if (dataSource.GetValue(ActorName, ItemPath, nameof(InitSensorType)) is string initSensorType)
+            Enum.TryParse(initSensorType, out InitSensorType);
+        if (dataSource.GetValue(ActorName, ItemPath, nameof(InitDirection)) is string initDirection)
+            Enum.TryParse(initDirection, out InitDirection);
+
+        InitializeSequence = new InitializeSequence(this, InitSpeed, InitPos, InitSensorType, InitDirection);
+        _initializeAction = () => { InitializeSequence.Run(); };
     }
 
     public override void RefreshCache()
@@ -130,6 +141,7 @@ public class Axis : DeviceChannel, IAxis
                         break;
                     }
                 }
+
                 return true;
             }
             case "_jogStop":
@@ -153,10 +165,17 @@ public class Axis : DeviceChannel, IAxis
         }
 
         MotionDevice.Enable(Channel, value);
+        TimeManager.Sleep(1000);
+        Stopwatch sw = new();
+        sw.Restart();
+        while (IsEnabled() != value)
+        {
+            if (sw.ElapsedMilliseconds > 5000) throw new TimeoutError($"Failed to enable or disable axis. ({Channel})");
+            Thread.Sleep(1);
+        }
+
         if (value)
             TimeManager.Sleep(EnableDelay.Value);
-        if (IsEnabled() != value)
-            throw new FatalSequenceError("Enabling axis has been failed.");
         RefreshCache();
     }
 
@@ -185,9 +204,9 @@ public class Axis : DeviceChannel, IAxis
         return (SpeedProfile)NormalSpeed.ValueObject!;
     }
 
-    public Position1D GetHomePos()
+    public Position1D GetInitPos()
     {
-        return (Position1D)HomePos.ValueObject!;
+        return (Position1D)InitPos.ValueObject!;
     }
 
     public void Enable()
@@ -285,7 +304,8 @@ public class Axis : DeviceChannel, IAxis
         }
 
         ValidateBeforeMove(@override);
-        MotionDevice.TrapezoidalMove(0, (int)position, 10000, 10000, 10000);
+        MotionDevice.JerkRatioSCurveMove(Channel, position, CurrentSpeedProfile.Velocity, CurrentSpeedProfile.Accel,
+            CurrentSpeedProfile.Decel, CurrentSpeedProfile.AccelJerkRatio, CurrentSpeedProfile.DecelJerkRatio);
         MonitorMoving();
     }
 
@@ -309,22 +329,48 @@ public class Axis : DeviceChannel, IAxis
 
     public void SetSpeed(IVariable speedProfileVariable)
     {
-        SpeedProfile = (SpeedProfile)speedProfileVariable.ValueObject!;
+        CurrentSpeedProfile = (SpeedProfile)speedProfileVariable.ValueObject!;
     }
 
     public void SetSpeed(SpeedProfile speedProfile)
     {
-        SpeedProfile = speedProfile;
+        CurrentSpeedProfile = speedProfile;
     }
 
     public virtual void VelocityMove(AxisDirection direction)
     {
-        // TODO
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        ValidateBeforeMove(false);
+        var velocity = CurrentSpeedProfile.Velocity * (double)direction;
+        MotionDevice.VelocityMove(Channel, velocity, CurrentSpeedProfile.Accel,
+            CurrentSpeedProfile.Decel, CurrentSpeedProfile.AccelJerkRatio, CurrentSpeedProfile.DecelJerkRatio);
     }
 
     public virtual void Stop()
     {
-        throw new NotImplementedException();
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        MotionDevice.Stop(Channel);
+    }
+
+    public void EStop()
+    {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        MotionDevice.EStop(Channel);
     }
 
     public virtual void SetPosition(
@@ -341,14 +387,14 @@ public class Axis : DeviceChannel, IAxis
         switch (type)
         {
             case PositionType.Command:
-                MotionDevice.SetCommandPosition(position);
+                MotionDevice.SetCommandPosition(Channel, position);
                 break;
             case PositionType.Actual:
-                MotionDevice.SetActualPosition(position);
+                MotionDevice.SetActualPosition(Channel, position);
                 break;
             case PositionType.CommandAndActual:
-                MotionDevice.SetCommandPosition(position);
-                MotionDevice.SetActualPosition(position);
+                MotionDevice.SetCommandPosition(Channel, position);
+                MotionDevice.SetActualPosition(Channel, position);
                 break;
             case PositionType.Target:
                 throw new ValueError();
@@ -379,7 +425,25 @@ public class Axis : DeviceChannel, IAxis
 
     public virtual double GetPosition(PositionType type)
     {
-        return 0; // TODO
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return 0;
+        }
+
+        switch (type)
+        {
+            case PositionType.Command:
+                return MotionDevice.GetCommandPosition(Channel);
+            case PositionType.Actual:
+                return MotionDevice.GetActualPosition(Channel);
+            case PositionType.CommandAndActual:
+                throw new ValueError();
+            case PositionType.Target:
+                throw new NotImplementedException();
+            default:
+                throw new ValueError();
+        }
     }
 
     public virtual double GetVelocity(VelocityType type)
@@ -389,12 +453,18 @@ public class Axis : DeviceChannel, IAxis
 
     public virtual bool GetSensorValue(AxisSensorType type)
     {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return false;
+        }
+
         return type switch
         {
-            AxisSensorType.Home => false,
-            AxisSensorType.PositiveLimit => false,
-            AxisSensorType.NegativeLimit => false,
-            _ => throw new ValueError(),
+            AxisSensorType.Home => MotionDevice.GetHomeSensor(Channel),
+            AxisSensorType.PositiveLimit => MotionDevice.GetPositiveLimitSensor(Channel),
+            AxisSensorType.NegativeLimit => MotionDevice.GetNegativeLimitSensor(Channel),
+            _ => throw new ValueError()
         };
     }
 
@@ -474,7 +544,7 @@ public class Axis : DeviceChannel, IAxis
                 ["IsInitializing"] = _isInitializingCache,
                 ["IsHomeDet"] = _isHomeDetCache,
                 ["IsNegativeLimitDet"] = _isNegativeLimitDetCache,
-                ["IsPositiveLimitDet"] = _isPositiveLimitDetCache,
+                ["IsPositiveLimitDet"] = _isPositiveLimitDetCache
             };
         }
 
@@ -493,9 +563,9 @@ public class Axis : DeviceChannel, IAxis
 
     protected void ValidateBeforeMove(bool @override)
     {
-        if (SpeedProfile == null)
+        if (CurrentSpeedProfile == null)
             throw new ValueError("You need to provide a SpeedProfile to move the axis.");
-        if (SpeedProfile!.Velocity == 0)
+        if (CurrentSpeedProfile!.Velocity == 0)
             throw new ValueError("You must provide a speed greater than 0 to move the axis.");
         if (!@override)
         {

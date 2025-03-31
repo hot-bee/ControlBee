@@ -159,7 +159,7 @@ public class FakeAxis : Axis, IDisposable
         var elapsedSeconds = elapsedMilliSeconds / 1000.0;
         var remainDistance = _targetPosition - _commandPosition;
         var movingDirection = double.Sign(remainDistance);
-        var movingDistance = movingDirection * SpeedProfile!.Velocity * elapsedSeconds;
+        var movingDistance = movingDirection * CurrentSpeedProfile!.Velocity * elapsedSeconds;
         if (Math.Abs(remainDistance) < Math.Abs(movingDistance))
             movingDistance = remainDistance;
         _commandPosition += movingDistance;

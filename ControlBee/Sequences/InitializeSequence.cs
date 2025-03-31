@@ -6,28 +6,41 @@ using ControlBeeAbstract.Exceptions;
 
 namespace ControlBee.Sequences;
 
-public class InitializeSequence(IAxis axis, SpeedProfile homingSpeed, Position1D homePosition)
-    : ActorItem,
+public class InitializeSequence : ActorItem,
         IInitializeSequence
 {
     public IDialog SensorEntryTimeout = new DialogPlaceholder();
     public IDialog SensorExitTimeout = new DialogPlaceholder();
     public IDialog SensorReentryTimeout = new DialogPlaceholder();
+    private readonly AxisSensorType _sensorType;
+    private readonly AxisDirection _direction;
+    private readonly IAxis _axis;
+    private readonly Variable<SpeedProfile> _initSpeed;
+    private readonly Variable<Position1D> _homePosition;
 
     public InitializeSequence(
         IAxis axis,
-        Variable<SpeedProfile> homingSpeed,
-        Variable<Position1D> homePosition
+        Variable<SpeedProfile> initSpeed,
+        Variable<Position1D> homePosition,
+        AxisSensorType sensorType,
+        AxisDirection direction
     )
-        : this(axis, homingSpeed.Value, homePosition.Value) { }
+    {
+        _axis = axis;
+        _initSpeed = initSpeed;
+        _homePosition = homePosition;
+        _sensorType = sensorType;
+        _direction = direction;
+    }
+
 
     public void Run()
     {
         try
         {
-            axis.SetSpeed(homingSpeed);
-            axis.VelocityMove(AxisDirection.Negative);
-            axis.WaitSensor(AxisSensorType.Home, true, 5000);
+            _axis.SetSpeed(_initSpeed);
+            _axis.VelocityMove(_direction);
+            _axis.WaitSensor(_sensorType, true, 30000);
         }
         catch (TimeoutError)
         {
@@ -36,16 +49,16 @@ public class InitializeSequence(IAxis axis, SpeedProfile homingSpeed, Position1D
         }
         finally
         {
-            axis.Stop();
+            _axis.EStop();
         }
 
         try
         {
-            var halfHomingSpeed = (SpeedProfile)homingSpeed.Clone();
+            var halfHomingSpeed = (SpeedProfile)_initSpeed.Value.Clone();
             halfHomingSpeed.Velocity /= 10;
-            axis.SetSpeed(halfHomingSpeed);
-            axis.VelocityMove(AxisDirection.Positive);
-            axis.WaitSensor(AxisSensorType.Home, false, 5000);
+            _axis.SetSpeed(halfHomingSpeed);
+            _axis.VelocityMove((AxisDirection)((int)_direction * -1));
+            _axis.WaitSensor(_sensorType, false, 30000);
         }
         catch (TimeoutError)
         {
@@ -54,13 +67,13 @@ public class InitializeSequence(IAxis axis, SpeedProfile homingSpeed, Position1D
         }
         finally
         {
-            axis.Stop();
+            _axis.EStop();
         }
 
         try
         {
-            axis.VelocityMove(AxisDirection.Negative);
-            axis.WaitSensor(AxisSensorType.Home, true, 5000);
+            _axis.VelocityMove(_direction);
+            _axis.WaitSensor(_sensorType, true, 30000);
         }
         catch (TimeoutError)
         {
@@ -69,12 +82,12 @@ public class InitializeSequence(IAxis axis, SpeedProfile homingSpeed, Position1D
         }
         finally
         {
-            axis.Stop();
+            _axis.EStop();
         }
 
-        axis.SetPosition(0.0);
-        axis.SetSpeed(homingSpeed);
-        homePosition.MoveAndWait();
+        _axis.SetPosition(0.0);
+        _axis.SetSpeed(_initSpeed);
+        _homePosition.Value.MoveAndWait();
     }
 
     public override void InjectProperties(ISystemPropertiesDataSource dataSource)

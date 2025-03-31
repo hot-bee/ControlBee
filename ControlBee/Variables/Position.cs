@@ -209,7 +209,7 @@ public abstract class Position : IValueChanged, IActorItemSub, IWriteData, IInde
         for (var i = Axes.Length - 1; i >= 0; i--)
         {
             Axes[i].SetSpeed(Axes[i].GetJogSpeed(JogSpeedLevel.Slow));
-            Axes[i].GetHomePos().MoveAndWait();
+            Axes[i].GetInitPos().MoveAndWait();
         }
     }
 
