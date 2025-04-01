@@ -110,4 +110,9 @@ public class Array2D<T> : ArrayBase, IIndex2D
     {
         return _value[index1, index2];
     }
+
+    public void SetValue(int index1, int index2, object value)
+    {
+        this[index1, index2] = (T)value;
+    }
 }

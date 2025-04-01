@@ -49,6 +49,10 @@ public class InitializeSequence : ActorItem,
             default:
                 throw new ValueError();
         }
+
+        _axis.SetPosition(0.0);
+        _axis.SetSpeed(_initSpeed);
+        _homePosition.Value.MoveAndWait();
     }
 
     public void RunZPhase()
@@ -106,10 +110,6 @@ public class InitializeSequence : ActorItem,
         {
             _axis.EStop();
         }
-
-        _axis.SetPosition(0.0);
-        _axis.SetSpeed(_initSpeed);
-        _homePosition.Value.MoveAndWait();
     }
 
     public override void InjectProperties(ISystemPropertiesDataSource dataSource)

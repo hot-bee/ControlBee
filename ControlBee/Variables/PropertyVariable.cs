@@ -20,6 +20,14 @@ public abstract class PropertyVariable : IActorItemSub, IValueChanged, IWriteDat
             return;
         }
 
+        if (propertyType.PropertyType.IsAssignableTo(typeof(IIndex2D)))
+        {
+            var location = (ValueTuple<int, int>)args.Location[1];
+            var propertyValue = (IIndex2D)propertyType.GetValue(this)!;
+            propertyValue.SetValue(location.Item1, location.Item2, args.NewValue);
+            return;
+        }
+
         if (args.Location.Length == 1)
             propertyType.SetValue(this, args.NewValue);
         else

@@ -208,7 +208,7 @@ public abstract class Position : IValueChanged, IActorItemSub, IWriteData, IInde
     {
         for (var i = Axes.Length - 1; i >= 0; i--)
         {
-            Axes[i].SetSpeed(Axes[i].GetJogSpeed(JogSpeedLevel.Slow));
+            Axes[i].SetSpeed(Axes[i].GetJogSpeed(JogSpeedLevel.Medium));
             Axes[i].GetInitPos().MoveAndWait();
         }
     }
@@ -217,7 +217,7 @@ public abstract class Position : IValueChanged, IActorItemSub, IWriteData, IInde
     {
         for (var i = 0; i < Axes.Length; i++)
         {
-            Axes[i].SetSpeed(Axes[i].GetJogSpeed(JogSpeedLevel.Slow));
+            Axes[i].SetSpeed(Axes[i].GetJogSpeed(JogSpeedLevel.Medium));
             Axes[i].MoveAndWait(this[i]);
         }
     }
