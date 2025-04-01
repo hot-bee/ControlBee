@@ -5,4 +5,5 @@ public enum AxisSensorType
     Home,
     PositiveLimit,
     NegativeLimit,
+    ZPhase,
 }

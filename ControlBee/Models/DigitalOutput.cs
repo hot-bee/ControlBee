@@ -1,5 +1,8 @@
 ﻿using ControlBee.Interfaces;
 using ControlBee.Variables;
+using ControlBeeAbstract.Devices;
+using log4net;
+using log4net.Repository.Hierarchy;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
@@ -8,11 +11,14 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
     : DigitalIO(deviceManager),
         IDigitalOutput
 {
+    private static readonly ILog Logger = LogManager.GetLogger(nameof(DigitalOutput));
     private bool? _isOn;
     private Task? _task;
     protected bool InternalOn;
-    public Variable<int> OffDelay = new(VariableScope.Global, 100);
-    public Variable<int> OnDelay = new(VariableScope.Global, 100);
+    public Variable<int> OffDelay = new(VariableScope.Global, 0);
+    public Variable<int> OnDelay = new(VariableScope.Global, 0);
+
+    protected virtual IDigitalIoDevice? DigitalIoDevice => Device as IDigitalIoDevice;
 
     public override bool ProcessMessage(ActorItemMessage message)
     {
@@ -34,10 +40,16 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
 
     public virtual void SetOn(bool on)
     {
+        if (DigitalIoDevice == null)
+        {
+            Logger.Warn("DigitalIoDevice is null.");
+            return;
+        }
         if (InternalOn == on)
             return;
         InternalOn = on;
-        WriteToDevice();
+
+        DigitalIoDevice.SetDigitalOutputBit(Channel, on);
         var delay = on ? OnDelay.Value : OffDelay.Value;
         _task = TimeManager.RunTask(() =>
         {
@@ -116,9 +128,15 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         );
     }
 
-    public virtual void WriteToDevice()
+    public override void PostInit()
     {
-        // TODO
-        // throw new NotImplementedException();
+        base.PostInit();
+        if (DigitalIoDevice == null)
+        {   
+            Logger.Warn("DigitalIoDevice is null.");
+            return;
+        }
+        InternalOn = DigitalIoDevice.GetDigitalOutputBit(Channel);
+        _isOn = InternalOn;
     }
 }

@@ -290,6 +290,16 @@ public class Axis : DeviceChannel, IAxis
         return MotionDevice.IsMoving(Channel);
     }
 
+    public void SearchZPhase(double distance)
+    {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+        MotionDevice.SearchZPhase(Channel, InitSpeed.Value.Velocity, InitSpeed.Value.Accel, distance);
+    }
+
     public void Move(double position)
     {
         Move(position, false);

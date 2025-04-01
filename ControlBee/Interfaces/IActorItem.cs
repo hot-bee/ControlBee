@@ -13,4 +13,5 @@ public interface IActorItem : INotifyPropertyChanged
     void UpdateSubItem();
     void InjectProperties(ISystemPropertiesDataSource dataSource);
     void Init();
+    void PostInit();
 }

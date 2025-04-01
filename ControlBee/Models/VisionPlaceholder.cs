@@ -33,6 +33,11 @@ public class VisionPlaceholder : IPlaceholder, IVision
         throw new NotImplementedException();
     }
 
+    public void PostInit()
+    {
+        throw new NotImplementedException();
+    }
+
     public void RefreshCache()
     {
         throw new NotImplementedException();

@@ -32,6 +32,11 @@ public class DialogPlaceholder : IPlaceholder, IDialog
         // Empty
     }
 
+    public void PostInit()
+    {
+        throw new NotImplementedException();
+    }
+
     public Guid Show()
     {
         throw new UnimplementedByDesignError();

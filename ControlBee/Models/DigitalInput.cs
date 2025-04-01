@@ -1,12 +1,22 @@
 ﻿using ControlBee.Interfaces;
 using ControlBee.Variables;
+using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
+using log4net;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
 public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManager), IDigitalInput
 {
+    private static readonly ILog Logger = LogManager.GetLogger(nameof(DigitalInput));
+
+    #region Cache
+
+    private bool _isDetected;
+
+    #endregion
+
     private bool _isOn;
 
     protected bool InternalIsOn
@@ -19,9 +29,17 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         }
     }
 
+    protected virtual IDigitalIoDevice? DigitalIoDevice => Device as IDigitalIoDevice;
+
     public bool IsOn()
     {
-        ReadFromDevice();
+        if (DigitalIoDevice == null)
+        {
+            Logger.Warn("DigitalIoDevice is null.");
+            return InternalIsOn;
+        }
+
+        InternalIsOn = DigitalIoDevice.GetDigitalInputBit(Channel);
         return InternalIsOn;
     }
 
@@ -72,6 +90,15 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         }
 
         return base.ProcessMessage(message);
+    }
+
+    public override void RefreshCache()
+    {
+        base.RefreshCache();
+
+        if (DigitalIoDevice == null)
+            return;
+        RefreshCacheImpl();
     }
 
     protected virtual bool IsOnOffOrValue(bool on)
@@ -132,10 +159,26 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         );
     }
 
-    protected virtual void ReadFromDevice()
+    protected void RefreshCacheImpl()
     {
-        // TODO
-        // throw new NotImplementedException();
+        var isOn = IsOn();
+
+        var updated = false;
+        lock (this)
+        {
+            updated |= UpdateCache(ref _isDetected, isOn);
+        }
+
+        if (updated)
+            SendDataToUi(Guid.Empty);
+    }
+
+    private static bool UpdateCache<T>(ref T field, T value)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value))
+            return false;
+        field = value;
+        return true;
     }
 
     #region Timeouts

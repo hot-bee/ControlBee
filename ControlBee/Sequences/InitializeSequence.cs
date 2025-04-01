@@ -7,16 +7,16 @@ using ControlBeeAbstract.Exceptions;
 namespace ControlBee.Sequences;
 
 public class InitializeSequence : ActorItem,
-        IInitializeSequence
+    IInitializeSequence
 {
+    private readonly IAxis _axis;
+    private readonly AxisDirection _direction;
+    private readonly Variable<Position1D> _homePosition;
+    private readonly Variable<SpeedProfile> _initSpeed;
+    private readonly AxisSensorType _sensorType;
     public IDialog SensorEntryTimeout = new DialogPlaceholder();
     public IDialog SensorExitTimeout = new DialogPlaceholder();
     public IDialog SensorReentryTimeout = new DialogPlaceholder();
-    private readonly AxisSensorType _sensorType;
-    private readonly AxisDirection _direction;
-    private readonly IAxis _axis;
-    private readonly Variable<SpeedProfile> _initSpeed;
-    private readonly Variable<Position1D> _homePosition;
 
     public InitializeSequence(
         IAxis axis,
@@ -33,14 +33,36 @@ public class InitializeSequence : ActorItem,
         _direction = direction;
     }
 
-
     public void Run()
+    {
+        _axis.Enable(true);
+        switch (_sensorType)
+        {
+            case AxisSensorType.Home:
+            case AxisSensorType.NegativeLimit:
+            case AxisSensorType.PositiveLimit:
+                RunNormal();
+                break;
+            case AxisSensorType.ZPhase:
+                RunZPhase();
+                break;
+            default:
+                throw new ValueError();
+        }
+    }
+
+    public void RunZPhase()
+    {
+        _axis.SearchZPhase(0);
+    }
+
+    public void RunNormal()
     {
         try
         {
             _axis.SetSpeed(_initSpeed);
             _axis.VelocityMove(_direction);
-            _axis.WaitSensor(_sensorType, true, 30000);
+            _axis.WaitSensor(_sensorType, true, 3 * 60 * 1000);
         }
         catch (TimeoutError)
         {
@@ -58,7 +80,7 @@ public class InitializeSequence : ActorItem,
             halfHomingSpeed.Velocity /= 10;
             _axis.SetSpeed(halfHomingSpeed);
             _axis.VelocityMove((AxisDirection)((int)_direction * -1));
-            _axis.WaitSensor(_sensorType, false, 30000);
+            _axis.WaitSensor(_sensorType, false, 3 * 60 * 1000);
         }
         catch (TimeoutError)
         {
@@ -73,7 +95,7 @@ public class InitializeSequence : ActorItem,
         try
         {
             _axis.VelocityMove(_direction);
-            _axis.WaitSensor(_sensorType, true, 30000);
+            _axis.WaitSensor(_sensorType, true, 3 * 60 * 1000);
         }
         catch (TimeoutError)
         {

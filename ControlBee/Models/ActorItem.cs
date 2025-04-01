@@ -48,6 +48,10 @@ public abstract class ActorItem : IActorItem
     }
 
     public virtual void Init() { }
+    public virtual void PostInit()
+    {
+        // Empty
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

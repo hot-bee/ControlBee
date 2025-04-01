@@ -139,6 +139,7 @@ public class Actor : IActorInternal, IDisposable
         _initialState = State;
         IterateItems(string.Empty, this, InitItem, config);
         IterateItems(string.Empty, this, ReplacePlaceholder, config);
+        IterateItems(string.Empty, this, PostInitItem, config);
         PositionAxesMap.UpdateMap();
 
         UpdateTitle();
@@ -359,6 +360,18 @@ public class Actor : IActorInternal, IDisposable
 
         AddItem(actorItem, itemPath);
         actorItem.InjectProperties(_systemPropertiesDataSource);
+        return actorItem;
+    }
+
+    private IActorItem PostInitItem(
+        object actorItemHolder,
+        IActorItem actorItem,
+        FieldInfo fieldInfo,
+        string itemPath,
+        ActorConfig config
+    )
+    {
+        actorItem.PostInit();
         return actorItem;
     }
 

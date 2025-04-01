@@ -33,6 +33,11 @@ public class AnalogInputPlaceholder : IPlaceholder, IAnalogInput
         // Empty
     }
 
+    public void PostInit()
+    {
+        throw new NotImplementedException();
+    }
+
     public void RefreshCache()
     {
         throw new UnimplementedByDesignError();

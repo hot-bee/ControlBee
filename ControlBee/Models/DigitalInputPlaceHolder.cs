@@ -34,6 +34,11 @@ public class DigitalInputPlaceholder : IPlaceholder, IDigitalInput
         // Empty
     }
 
+    public void PostInit()
+    {
+        throw new NotImplementedException();
+    }
+
     public void RefreshCache()
     {
         throw new UnimplementedByDesignError();

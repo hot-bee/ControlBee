@@ -36,4 +36,5 @@ public interface IAxis : IDeviceChannel
     void RelativeMoveAndWait(double distance);
     SpeedProfile GetNormalSpeed();
     Position1D GetInitPos();
+    void SearchZPhase(double distance);
 }
