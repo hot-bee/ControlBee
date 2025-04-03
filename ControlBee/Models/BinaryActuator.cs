@@ -124,6 +124,10 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         _outputOff = manager.TryGet(_outputOff);
         _inputOn = manager.TryGet(_inputOn);
         _inputOff = manager.TryGet(_inputOff);
+
+        if (_inputOn?.GetDevice() == null) _inputOn = null;
+        if (_inputOff?.GetDevice() == null) _inputOff = null;
+        if (_outputOff?.GetDevice() == null) _outputOff = null;
         Subscribe();
     }
 
@@ -166,6 +170,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
                 if (_on && OnDetect())
                     break;
                 if (!_on && OffDetect())
+                    break;
+                if (_inputOn == null && _inputOff == null)
                     break;
                 if (watch.ElapsedMilliseconds >= delay)
                     return false;
