@@ -12,7 +12,7 @@ public class EmptyDeviceManager : IDeviceManager
 
     public IDevice? Get(string name)
     {
-        throw new UnimplementedByDesignError();
+        return null;
     }
 
     public void Add(string name, IDevice device)

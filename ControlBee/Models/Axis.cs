@@ -290,7 +290,7 @@ public class Axis : DeviceChannel, IAxis
         return MotionDevice.IsMoving(Channel);
     }
 
-    public void SearchZPhase(double distance)
+    public virtual void SearchZPhase(double distance)
     {
         if (MotionDevice == null)
         {

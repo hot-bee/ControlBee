@@ -258,4 +258,9 @@ public class FakeAxis : Axis, IDisposable
         while (IsMoving()) // Fallback
             _timeManager.Sleep(1);
     }
+
+    public override void SearchZPhase(double distance)
+    {
+        // Empty
+    }
 }
