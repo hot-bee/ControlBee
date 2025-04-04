@@ -17,7 +17,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
 
     private bool _on;
     private IDigitalOutput? _outputOff;
-    private IDigitalOutput _outputOn;
+    private IDigitalOutput? _outputOn;
 
     private Task<bool>? _task;
     public IDialog TimeoutError = new DialogPlaceholder();
@@ -26,7 +26,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         SystemConfigurations systemConfigurations,
         ITimeManager timeManager,
         IScenarioFlowTester scenarioFlowTester,
-        IDigitalOutput outputOn,
+        IDigitalOutput? outputOn,
         IDigitalOutput? outputOff,
         IDigitalInput? inputOn,
         IDigitalInput? inputOff
@@ -127,6 +127,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
 
         if (_inputOn?.GetDevice() == null) _inputOn = null;
         if (_inputOff?.GetDevice() == null) _inputOff = null;
+        if (_outputOn?.GetDevice() == null) _outputOn = null;
         if (_outputOff?.GetDevice() == null) _outputOff = null;
         Subscribe();
     }
@@ -149,10 +150,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         Wait();
         _isOn = null;
         _on = on;
-        _outputOn.SetOn(_on);
-
-        if (_outputOff != null)
-            _outputOff.SetOn(!_on);
+        _outputOn?.SetOn(_on);
+        _outputOff?.SetOn(!_on);
         if (_systemConfigurations.SkipWaitSensor)
         {
             if (_inputOn is FakeDigitalInput fakeInputOn)
