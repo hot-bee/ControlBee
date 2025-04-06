@@ -21,18 +21,18 @@ public class Axis : DeviceChannel, IAxis
 
     public Variable<int> EnableDelay = new(VariableScope.Global, 200);
 
+    public AxisDirection InitDirection;
+
+    public InitializeSequence InitializeSequence;
+
     public Variable<Position1D> InitPos = new(VariableScope.Global);
+
+    public AxisSensorType InitSensorType;
 
     public Variable<SpeedProfile> InitSpeed = new(
         VariableScope.Global,
         new SpeedProfile { Velocity = 10.0 }
     );
-
-    public AxisDirection InitDirection;
-
-    public InitializeSequence InitializeSequence;
-
-    public AxisSensorType InitSensorType;
 
     public Variable<SpeedProfile> JogSpeed = new(
         VariableScope.Global,
@@ -279,6 +279,28 @@ public class Axis : DeviceChannel, IAxis
         }
     }
 
+    public bool IsFar(double position, double range)
+    {
+        return Math.Abs(GetPosition(PositionType.Command) - position) > range;
+    }
+
+    public void WaitFar(double position, double range)
+    {
+        while (true)
+        {
+            if (IsFar(position, range))
+                return;
+            if (!IsMoving())
+            {
+                if (IsFar(position, range))
+                    return;
+                throw new SequenceError("Couldn't meet the condition.");
+            }
+
+            _timeManager.Sleep(1);
+        }
+    }
+
     public virtual bool IsMoving()
     {
         if (MotionDevice == null)
@@ -297,6 +319,7 @@ public class Axis : DeviceChannel, IAxis
             Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
             return;
         }
+
         MotionDevice.SearchZPhase(Channel, InitSpeed.Value.Velocity, InitSpeed.Value.Accel, distance);
     }
 
