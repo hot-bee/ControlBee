@@ -160,7 +160,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
                 fakeInputOff.On = !on;
         }
 
-        var delay = on ? OnTimeout.Value : OffTimeout.Value;
+        var delay = on ? OnDelay.Value : OffDelay.Value;
+        var timeout = on ? OnTimeout.Value : OffTimeout.Value;
         _task = TimeManager.RunTask(() =>
         {
             var watch = _timeManager.CreateWatch();
@@ -172,12 +173,13 @@ public class BinaryActuator : ActorItem, IBinaryActuator
                     break;
                 if (_inputOn == null && _inputOff == null)
                     break;
-                if (watch.ElapsedMilliseconds >= delay)
+                if (watch.ElapsedMilliseconds >= timeout)
                     return false;
 
                 _timeManager.Sleep(1);
                 _scenarioFlowTester.OnCheckpoint();
             }
+            _timeManager.Sleep(delay);
 
             _isOn = _on;
             SendDataToUi(Guid.Empty);
@@ -226,6 +228,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
 
     public Variable<int> OffTimeout = new(VariableScope.Global, 5000);
     public Variable<int> OnTimeout = new(VariableScope.Global, 5000);
+    public Variable<int> OffDelay = new(VariableScope.Global);
+    public Variable<int> OnDelay = new(VariableScope.Global);
 
     #endregion
 }
