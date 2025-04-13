@@ -82,6 +82,8 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
         return JsonSerializer.Serialize(Value);
     }
 
+    public bool Dirty { get; set; }
+
     public void FromJson(string data)
     {
         var value = JsonSerializer.Deserialize<T>(data)!;
@@ -191,6 +193,7 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
 
     protected virtual void OnValueChanged(ValueChangedArgs e)
     {
+        Dirty = true;
         ValueChanged?.Invoke(this, e);
     }
 }

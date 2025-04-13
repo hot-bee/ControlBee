@@ -78,9 +78,11 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry)
             LocalName = localName;
         foreach (var ((groupName, uid), variable) in _variables)
         {
+            if (!variable.Dirty) continue;
             var jsonString = variable.ToJson();
             var dbLocalName = variable.Scope == VariableScope.Local ? LocalName : "";
             database.Write(variable.Scope, dbLocalName, groupName, uid, jsonString);
+            variable.Dirty = false;
         }
     }
 
@@ -93,7 +95,10 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry)
             var dbLocalName = variable.Scope == VariableScope.Local ? LocalName : "";
             var jsonString = database.Read(dbLocalName, groupName, uid);
             if (jsonString != null)
+            {
                 variable.FromJson(jsonString);
+                variable.Dirty = false;
+            }
         }
     }
 
