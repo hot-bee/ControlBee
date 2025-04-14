@@ -51,7 +51,7 @@ public class InitializeSequence : ActorItem,
         }
 
         _axis.SetPosition(0.0);
-        _axis.SetSpeed(_axis.GetNormalSpeed());
+        _axis.SetSpeed(_axis.GetJogSpeed(JogSpeedLevel.Fast));
         _homePosition.Value.MoveAndWait();
     }
 
