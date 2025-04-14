@@ -27,7 +27,7 @@ public abstract class Position : IValueChanged, IActorItemSub, IWriteData, IInde
 
     protected abstract int Rank { get; }
 
-    private IAxis[] Axes => Actor.PositionAxesMap.Get(ItemPath);
+    public IAxis[] Axes => Actor.PositionAxesMap.Get(ItemPath);
 
     protected DenseVector InternalVector
     {

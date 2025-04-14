@@ -221,7 +221,13 @@ public class Axis : DeviceChannel, IAxis
 
     public bool IsAlarmed()
     {
-        return false;
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return false;
+        }
+
+        return MotionDevice.IsAlarmed(Channel);
     }
 
     public virtual bool IsEnabled()
@@ -454,6 +460,8 @@ public class Axis : DeviceChannel, IAxis
         );
         while (IsMoving()) // Fallback
             _timeManager.Sleep(1);
+        if (IsAlarmed())
+            throw new FatalSequenceError("Servo alarm");
     }
 
     public virtual double GetPosition(PositionType type)
@@ -600,6 +608,8 @@ public class Axis : DeviceChannel, IAxis
             throw new ValueError("You need to provide a SpeedProfile to move the axis.");
         if (CurrentSpeedProfile!.Velocity == 0)
             throw new ValueError("You must provide a speed greater than 0 to move the axis.");
+        if (IsAlarmed())
+            throw new FatalSequenceError("Servo alarm");
         if (!@override)
         {
             if (!IsMoving())

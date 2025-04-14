@@ -459,6 +459,11 @@ public class Actor : IActorInternal, IDisposable
     {
         var result = ActorBuiltinMessageHandler.ProcessMessage(message);
         result |= State.ProcessMessage(message);
+        if (message is ActorItemMessage actorItemMessage)
+        {
+            var item = GetItem(actorItemMessage.ItemPath);
+            result |= item?.ProcessMessage(actorItemMessage) ?? false;
+        }
         return result;
     }
 
@@ -466,15 +471,6 @@ public class Actor : IActorInternal, IDisposable
     {
         try
         {
-            if (message is ActorItemMessage actorItemMessage)
-            {
-                var item = GetItem(actorItemMessage.ItemPath);
-                var result = item?.ProcessMessage(actorItemMessage) ?? false;
-                if (!result)
-                    actorItemMessage.Sender.Send(new DroppedMessage(message.Id, this));
-                return;
-            }
-
             while (true)
             {
                 var oldState = State;
