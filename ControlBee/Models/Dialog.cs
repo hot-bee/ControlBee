@@ -12,6 +12,11 @@ public class Dialog(DialogContextFactory dialogContextFactory) : ActorItem, IDia
 
     protected IDialogContext Context = dialogContextFactory.Create();
 
+    public virtual void Init()
+    {
+        Context.ActorName = ActorName;
+    }
+
     public Guid Show()
     {
         return Show([]);
