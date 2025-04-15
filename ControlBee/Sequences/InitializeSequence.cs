@@ -35,6 +35,7 @@ public class InitializeSequence : ActorItem,
 
     public void Run()
     {
+        _axis.ClearAlarm();
         _axis.Enable(true);
         switch (_sensorType)
         {
@@ -76,6 +77,7 @@ public class InitializeSequence : ActorItem,
         finally
         {
             _axis.EStop();
+            _axis.Wait();
         }
 
         try
@@ -94,6 +96,7 @@ public class InitializeSequence : ActorItem,
         finally
         {
             _axis.EStop();
+            _axis.Wait();
         }
 
         try
@@ -109,6 +112,7 @@ public class InitializeSequence : ActorItem,
         finally
         {
             _axis.EStop();
+            _axis.Wait();
         }
     }
 

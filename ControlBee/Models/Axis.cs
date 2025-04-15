@@ -6,6 +6,7 @@ using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
 using log4net;
+using YamlDotNet.Core.Tokens;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
@@ -165,7 +166,6 @@ public class Axis : DeviceChannel, IAxis
         }
 
         MotionDevice.Enable(Channel, value);
-        TimeManager.Sleep(1000);
         Stopwatch sw = new();
         sw.Restart();
         while (IsEnabled() != value)
@@ -228,6 +228,24 @@ public class Axis : DeviceChannel, IAxis
         }
 
         return MotionDevice.IsAlarmed(Channel);
+    }
+
+    public void ClearAlarm()
+    {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        MotionDevice.ClearAlarm(Channel);
+        Stopwatch sw = new();
+        sw.Restart();
+        while (IsAlarmed())
+        {
+            if (sw.ElapsedMilliseconds > 5000) throw new TimeoutError($"Failed to clear alarm of axis. ({Channel})");
+            Thread.Sleep(1);
+        }
     }
 
     public virtual bool IsEnabled()
@@ -432,8 +450,7 @@ public class Axis : DeviceChannel, IAxis
                 MotionDevice.SetActualPosition(Channel, position);
                 break;
             case PositionType.CommandAndActual:
-                MotionDevice.SetCommandPosition(Channel, position);
-                MotionDevice.SetActualPosition(Channel, position);
+                MotionDevice.SetCommandAndActualPosition(Channel, position);
                 break;
             case PositionType.Target:
                 throw new ValueError();

@@ -8,6 +8,7 @@ public interface IAxis : IDeviceChannel
     void Enable();
     void Disable();
     bool IsAlarmed();
+    void ClearAlarm();
     bool IsEnabled();
     bool IsInitializing();
     bool IsNear(double position, double range);
