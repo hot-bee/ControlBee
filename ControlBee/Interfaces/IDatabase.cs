@@ -11,5 +11,14 @@ public interface IDatabase
         string itemPath,
         string value
     );
+
+    void Write(
+        string actorName,
+        string code,
+        string name,
+        string desc,
+        string severity
+        );
+
     string? Read(string localName, string actorName, string itemPath);
 }
