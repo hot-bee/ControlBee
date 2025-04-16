@@ -66,7 +66,7 @@ public class InitializeSequence : ActorItem,
         try
         {
             _axis.SetSpeed(_initSpeed);
-            _axis.VelocityMove(_direction);
+            if(_axis.GetSensorValue(_sensorType) != true) _axis.VelocityMove(_direction);
             _axis.WaitSensor(_sensorType, true, 3 * 60 * 1000);
         }
         catch (TimeoutError)
