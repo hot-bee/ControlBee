@@ -37,6 +37,28 @@ public class SqliteDatabase : IDatabase, IDisposable
         command.ExecuteNonQuery();
     }
 
+    public void Write(
+        string actorName,
+        string code,
+        string name,
+        string desc,
+        string severity
+    )
+    {
+        var sql =
+            "INSERT OR REPLACE INTO log (actor_name, code, name, desc, severity) "
+            + "VALUES (@actor_name, @code, @name, @desc, @severity)";
+
+        using var command = new SqliteCommand(sql, _connection);
+        command.Parameters.AddWithValue("@actor_name", actorName);
+        command.Parameters.AddWithValue("@code", code);
+        command.Parameters.AddWithValue("@name", name);
+        command.Parameters.AddWithValue("@desc", desc);
+        command.Parameters.AddWithValue("@severity", severity);
+
+        command.ExecuteNonQuery();
+    }
+
     public string? Read(string localName, string actorName, string itemPath)
     {
         var sql =
@@ -80,6 +102,15 @@ public class SqliteDatabase : IDatabase, IDisposable
                     value BLOB,
                     updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
                     UNIQUE (local_name, actor_name, item_path)
+                );
+            CREATE TABLE IF NOT EXISTS log(
+                    id INTEGER PRIMARY KEY,
+                    updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+                    actor_name TEXT NOT NULL,
+                    code TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    desc TEXT NOT NULL,
+                    severity TEXT NOT NULL
                 );
             """;
         using var command = new SqliteCommand(sql, _connection);
