@@ -26,6 +26,7 @@ public interface IAxis : IDeviceChannel
     void Stop();
     void EStop();
     void SetPosition(double position, PositionType type = PositionType.CommandAndActual);
+    void SetTorque(double torque);
     void Wait();
     double GetPosition(PositionType type = PositionType.Command);
     double GetVelocity(VelocityType type);

@@ -461,6 +461,17 @@ public class Axis : DeviceChannel, IAxis
         RefreshCache();
     }
 
+    public void SetTorque(double torque)
+    {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        MotionDevice.SetTorque(Channel, torque);
+    }
+
     public virtual void Wait()
     {
         if (MotionDevice == null)
