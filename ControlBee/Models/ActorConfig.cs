@@ -15,6 +15,7 @@ public class ActorConfig(
     IBinaryActuatorFactory binaryActuatorFactory,
     IVisionFactory visionFactory,
     IVariableManager variableManager,
+    IEventWriter eventWriter,
     ITimeManager timeManager,
     IScenarioFlowTester scenarioFlowTester,
     ISystemPropertiesDataSource systemPropertiesDataSource,
@@ -29,6 +30,7 @@ public class ActorConfig(
     public IDeviceManager DeviceManager { get; } = deviceManager;
     public string ActorName => actorName;
     public IVariableManager VariableManager => variableManager;
+    public IEventWriter EventWriter => eventWriter;
     public ITimeManager TimeManager => timeManager;
     public IAxisFactory AxisFactory => axisFactory;
     public IDigitalInputFactory DigitalInputFactory => digitalInputFactory;
