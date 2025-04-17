@@ -3,7 +3,7 @@
 public interface IBinaryActuatorFactory
 {
     IBinaryActuator Create(
-        IDigitalOutput outputOn,
+        IDigitalOutput? outputOn,
         IDigitalOutput? outputOff,
         IDigitalInput? inputOn,
         IDigitalInput? inputOff

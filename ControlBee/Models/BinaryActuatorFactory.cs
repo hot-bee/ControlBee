@@ -9,7 +9,7 @@ public class BinaryActuatorFactory(
 ) : IBinaryActuatorFactory
 {
     public IBinaryActuator Create(
-        IDigitalOutput outputOn,
+        IDigitalOutput? outputOn,
         IDigitalOutput? outputOff,
         IDigitalInput? inputOn,
         IDigitalInput? inputOff
