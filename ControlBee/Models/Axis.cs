@@ -419,7 +419,7 @@ public class Axis : DeviceChannel, IAxis
         MotionDevice.Stop(Channel);
     }
 
-    public void EStop()
+    public virtual void EStop()
     {
         if (MotionDevice == null)
         {

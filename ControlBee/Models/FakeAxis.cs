@@ -109,6 +109,11 @@ public class FakeAxis : Axis, IDisposable
         Wait();
     }
 
+    public override void EStop()
+    {
+        Stop();
+    }
+
     public override double GetPosition(PositionType type)
     {
         switch (type)
