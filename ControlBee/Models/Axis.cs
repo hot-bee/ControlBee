@@ -460,7 +460,8 @@ public class Axis : DeviceChannel, IAxis
                 MotionDevice.SetActualPosition(Channel, position);
                 break;
             case PositionType.CommandAndActual:
-                MotionDevice.SetCommandAndActualPosition(Channel, position);
+                MotionDevice.SetCommandPosition(Channel, position);
+                MotionDevice.SetActualPosition(Channel, position);
                 break;
             case PositionType.Target:
                 throw new ValueError();
