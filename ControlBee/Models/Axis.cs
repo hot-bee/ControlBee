@@ -204,6 +204,11 @@ public class Axis : DeviceChannel, IAxis
         return (SpeedProfile)NormalSpeed.ValueObject!;
     }
 
+    public SpeedProfile GetInitSpeed()
+    {
+        return (SpeedProfile)InitSpeed.ValueObject!;
+    }
+
     public Position1D GetInitPos()
     {
         return (Position1D)InitPos.ValueObject!;
@@ -396,13 +401,18 @@ public class Axis : DeviceChannel, IAxis
 
     public virtual void VelocityMove(AxisDirection direction)
     {
+        VelocityMove(direction, false);
+    }
+
+    public void VelocityMove(AxisDirection direction, bool @override)
+    {
         if (MotionDevice == null)
         {
             Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
             return;
         }
 
-        ValidateBeforeMove(false);
+        ValidateBeforeMove(@override);
         var velocity = CurrentSpeedProfile.Velocity * (double)direction;
         MotionDevice.VelocityMove(Channel, velocity, CurrentSpeedProfile.Accel,
             CurrentSpeedProfile.Decel, CurrentSpeedProfile.AccelJerkRatio, CurrentSpeedProfile.DecelJerkRatio);
@@ -517,7 +527,21 @@ public class Axis : DeviceChannel, IAxis
 
     public virtual double GetVelocity(VelocityType type)
     {
-        return 0;
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return 0;
+        }
+
+        switch (type)
+        {
+            case VelocityType.Command:
+                return MotionDevice.GetCommandVelocity(Channel);
+            case VelocityType.Actual:
+                return MotionDevice.GetActualVelocity(Channel);
+            default:
+                throw new ValueError();
+        }
     }
 
     public virtual bool GetSensorValue(AxisSensorType type)
