@@ -22,7 +22,7 @@ public class Axis : DeviceChannel, IAxis
 
     public Variable<int> EnableDelay = new(VariableScope.Global, 200);
 
-    public AxisDirection InitDirection;
+    public AxisDirection InitDirection = AxisDirection.Positive;
 
     public InitializeSequence InitializeSequence;
 
@@ -72,13 +72,25 @@ public class Axis : DeviceChannel, IAxis
     public override void InjectProperties(ISystemPropertiesDataSource dataSource)
     {
         base.InjectProperties(dataSource);
-        if (dataSource.GetValue(ActorName, ItemPath, nameof(InitSensorType)) is string initSensorType)
+        if (
+            dataSource.GetValue(ActorName, ItemPath, nameof(InitSensorType))
+            is string initSensorType
+        )
             Enum.TryParse(initSensorType, out InitSensorType);
         if (dataSource.GetValue(ActorName, ItemPath, nameof(InitDirection)) is string initDirection)
             Enum.TryParse(initDirection, out InitDirection);
 
-        InitializeSequence = new InitializeSequence(this, InitSpeed, InitPos, InitSensorType, InitDirection);
-        _initializeAction = () => { InitializeSequence.Run(); };
+        InitializeSequence = new InitializeSequence(
+            this,
+            InitSpeed,
+            InitPos,
+            InitSensorType,
+            InitDirection
+        );
+        _initializeAction = () =>
+        {
+            InitializeSequence.Run();
+        };
     }
 
     public override void RefreshCache()
@@ -170,7 +182,8 @@ public class Axis : DeviceChannel, IAxis
         sw.Restart();
         while (IsEnabled() != value)
         {
-            if (sw.ElapsedMilliseconds > 5000) throw new TimeoutError($"Failed to enable or disable axis. ({Channel})");
+            if (sw.ElapsedMilliseconds > 5000)
+                throw new TimeoutError($"Failed to enable or disable axis. ({Channel})");
             Thread.Sleep(1);
         }
 
@@ -248,7 +261,8 @@ public class Axis : DeviceChannel, IAxis
         sw.Restart();
         while (IsAlarmed())
         {
-            if (sw.ElapsedMilliseconds > 5000) throw new TimeoutError($"Failed to clear alarm of axis. ({Channel})");
+            if (sw.ElapsedMilliseconds > 5000)
+                throw new TimeoutError($"Failed to clear alarm of axis. ({Channel})");
             Thread.Sleep(1);
         }
     }
@@ -349,7 +363,12 @@ public class Axis : DeviceChannel, IAxis
             return;
         }
 
-        MotionDevice.SearchZPhase(Channel, InitSpeed.Value.Velocity, InitSpeed.Value.Accel, distance);
+        MotionDevice.SearchZPhase(
+            Channel,
+            InitSpeed.Value.Velocity,
+            InitSpeed.Value.Accel,
+            distance
+        );
     }
 
     public void Move(double position)
@@ -366,8 +385,15 @@ public class Axis : DeviceChannel, IAxis
         }
 
         ValidateBeforeMove(@override);
-        MotionDevice.JerkRatioSCurveMove(Channel, position, CurrentSpeedProfile.Velocity, CurrentSpeedProfile.Accel,
-            CurrentSpeedProfile.Decel, CurrentSpeedProfile.AccelJerkRatio, CurrentSpeedProfile.DecelJerkRatio);
+        MotionDevice.JerkRatioSCurveMove(
+            Channel,
+            position,
+            CurrentSpeedProfile.Velocity,
+            CurrentSpeedProfile.Accel,
+            CurrentSpeedProfile.Decel,
+            CurrentSpeedProfile.AccelJerkRatio,
+            CurrentSpeedProfile.DecelJerkRatio
+        );
         MonitorMoving();
     }
 
@@ -414,8 +440,14 @@ public class Axis : DeviceChannel, IAxis
 
         ValidateBeforeMove(@override);
         var velocity = CurrentSpeedProfile.Velocity * (double)direction;
-        MotionDevice.VelocityMove(Channel, velocity, CurrentSpeedProfile.Accel,
-            CurrentSpeedProfile.Decel, CurrentSpeedProfile.AccelJerkRatio, CurrentSpeedProfile.DecelJerkRatio);
+        MotionDevice.VelocityMove(
+            Channel,
+            velocity,
+            CurrentSpeedProfile.Accel,
+            CurrentSpeedProfile.Decel,
+            CurrentSpeedProfile.AccelJerkRatio,
+            CurrentSpeedProfile.DecelJerkRatio
+        );
     }
 
     public virtual void Stop()
@@ -558,7 +590,7 @@ public class Axis : DeviceChannel, IAxis
             AxisSensorType.Home => MotionDevice.GetHomeSensor(Channel),
             AxisSensorType.PositiveLimit => MotionDevice.GetPositiveLimitSensor(Channel),
             AxisSensorType.NegativeLimit => MotionDevice.GetNegativeLimitSensor(Channel),
-            _ => throw new ValueError()
+            _ => throw new ValueError(),
         };
     }
 
@@ -638,7 +670,7 @@ public class Axis : DeviceChannel, IAxis
                 ["IsInitializing"] = _isInitializingCache,
                 ["IsHomeDet"] = _isHomeDetCache,
                 ["IsNegativeLimitDet"] = _isNegativeLimitDetCache,
-                ["IsPositiveLimitDet"] = _isPositiveLimitDetCache
+                ["IsPositiveLimitDet"] = _isPositiveLimitDetCache,
             };
         }
 
