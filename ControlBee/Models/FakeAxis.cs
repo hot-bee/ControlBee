@@ -28,7 +28,9 @@ public class FakeAxis : Axis, IDisposable
         ITimeManager timeManager,
         IScenarioFlowTester flowTester
     )
-        : this(deviceManager, timeManager, flowTester, false) { }
+        : this(deviceManager, timeManager, flowTester, false)
+    {
+    }
 
     public FakeAxis(
         IDeviceManager deviceManager,
@@ -63,7 +65,7 @@ public class FakeAxis : Axis, IDisposable
             AxisSensorType.Home => _homeSensor,
             AxisSensorType.PositiveLimit => _positiveLimitSensor,
             AxisSensorType.NegativeLimit => _negativeLimitSensor,
-            _ => throw new ValueError(),
+            _ => throw new ValueError()
         };
     }
 
@@ -243,7 +245,6 @@ public class FakeAxis : Axis, IDisposable
     public override void Wait()
     {
         if (_movingTask != null)
-        {
             try
             {
                 _movingTask.Wait();
@@ -253,7 +254,6 @@ public class FakeAxis : Axis, IDisposable
             {
                 throw exception.InnerExceptions[0];
             }
-        }
 
         if (!IsMoving())
             return;
@@ -265,6 +265,11 @@ public class FakeAxis : Axis, IDisposable
     }
 
     public override void SearchZPhase(double distance)
+    {
+        // Empty
+    }
+
+    public override void SetTorque(double torque)
     {
         // Empty
     }

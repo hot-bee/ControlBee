@@ -504,7 +504,7 @@ public class Axis : DeviceChannel, IAxis
         RefreshCache();
     }
 
-    public void SetTorque(double torque)
+    public virtual void SetTorque(double torque)
     {
         if (MotionDevice == null)
         {
