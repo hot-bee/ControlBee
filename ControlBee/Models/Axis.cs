@@ -6,7 +6,6 @@ using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
 using log4net;
-using YamlDotNet.Core.Tokens;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
@@ -32,12 +31,12 @@ public class Axis : DeviceChannel, IAxis
 
     public Variable<SpeedProfile> InitSpeed = new(
         VariableScope.Global,
-        new SpeedProfile { Velocity = 10.0 }
+        new SpeedProfile { Velocity = 10.0, Accel = 100.0, Decel = 100.0, AccelJerkRatio = 0.75, DecelJerkRatio = 0.75 }
     );
 
     public Variable<SpeedProfile> JogSpeed = new(
         VariableScope.Global,
-        new SpeedProfile { Velocity = 10.0 }
+        new SpeedProfile { Velocity = 10.0, Accel = 100.0, Decel = 100.0, AccelJerkRatio = 0.75, DecelJerkRatio = 0.75 }
     );
 
     public Variable<Array1D<double>> JogSpeedLevelFactors = new(
@@ -47,7 +46,7 @@ public class Axis : DeviceChannel, IAxis
 
     public Variable<SpeedProfile> NormalSpeed = new(
         VariableScope.Global,
-        new SpeedProfile { Velocity = 10.0 }
+        new SpeedProfile { Velocity = 10.0, Accel = 100.0, Decel = 100.0, AccelJerkRatio = 0.75, DecelJerkRatio = 0.75 }
     );
 
     public Variable<Array1D<double>> StepJogSizes = new(
@@ -87,10 +86,7 @@ public class Axis : DeviceChannel, IAxis
             InitSensorType,
             InitDirection
         );
-        _initializeAction = () =>
-        {
-            InitializeSequence.Run();
-        };
+        _initializeAction = () => { InitializeSequence.Run(); };
     }
 
     public override void RefreshCache()
@@ -590,7 +586,7 @@ public class Axis : DeviceChannel, IAxis
             AxisSensorType.Home => MotionDevice.GetHomeSensor(Channel),
             AxisSensorType.PositiveLimit => MotionDevice.GetPositiveLimitSensor(Channel),
             AxisSensorType.NegativeLimit => MotionDevice.GetNegativeLimitSensor(Channel),
-            _ => throw new ValueError(),
+            _ => throw new ValueError()
         };
     }
 
@@ -670,7 +666,7 @@ public class Axis : DeviceChannel, IAxis
                 ["IsInitializing"] = _isInitializingCache,
                 ["IsHomeDet"] = _isHomeDetCache,
                 ["IsNegativeLimitDet"] = _isNegativeLimitDetCache,
-                ["IsPositiveLimitDet"] = _isPositiveLimitDetCache,
+                ["IsPositiveLimitDet"] = _isPositiveLimitDetCache
             };
         }
 
