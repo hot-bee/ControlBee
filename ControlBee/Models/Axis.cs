@@ -608,6 +608,12 @@ public class Axis : DeviceChannel, IAxis
 
     public void Initialize()
     {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
         _initializing = true;
         RefreshCache();
 
