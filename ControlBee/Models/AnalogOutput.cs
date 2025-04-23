@@ -1,17 +1,27 @@
 ﻿using ControlBee.Interfaces;
+using ControlBeeAbstract.Devices;
+using log4net;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
 public class AnalogOutput(IDeviceManager deviceManager) : AnalogIO(deviceManager), IAnalogOutput
 {
+    private static readonly ILog Logger = LogManager.GetLogger(nameof(AnalogOutput));
     protected long InternalData;
+    protected virtual IAnalogIoDevice? AnalogIoDevice => Device as IAnalogIoDevice;
 
     public void Write(long data)
     {
         InternalData = data;
-        WriteToDevice();
         SendDataToUi(Guid.Empty);
+        if (AnalogIoDevice == null)
+        {
+            Logger.Warn("AnalogIoDevice is null.");
+            return;
+        }
+
+        AnalogIoDevice.SetAnalogOutputSignedDWord(Channel, (int)InternalData);  // TODO: Separate this according to the data size that will be defined in property.
     }
 
     public long Read()
