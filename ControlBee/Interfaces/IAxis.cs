@@ -1,4 +1,5 @@
 ﻿using ControlBee.Constants;
+using ControlBee.Sequences;
 using ControlBee.Variables;
 
 namespace ControlBee.Interfaces;
@@ -43,4 +44,5 @@ public interface IAxis : IDeviceChannel
     SpeedProfile GetInitSpeed();
     Position1D GetInitPos();
     void SearchZPhase(double distance);
+    InitializeSequence InitializeSequence { get; }
 }
