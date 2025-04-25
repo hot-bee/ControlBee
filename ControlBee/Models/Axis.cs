@@ -49,7 +49,7 @@ public class Axis : DeviceChannel, IAxis
 
     public Variable<Array1D<double>> StepJogSizes = new(
         VariableScope.Global,
-        new Array1D<double>([0.01, 0.1, 1.0])
+        new Array1D<double>([0.1, 0.5, 1.0])
     );
 
     public Axis(IDeviceManager deviceManager, ITimeManager timeManager)
