@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Reflection.Metadata.Ecma335;
 using ControlBee.Interfaces;
 using Microsoft.Data.Sqlite;
 
@@ -57,6 +58,25 @@ public class SqliteDatabase : IDatabase, IDisposable
         command.Parameters.AddWithValue("@severity", severity);
 
         command.ExecuteNonQuery();
+    }
+
+    public DataTable ReadAll(string tableName)
+    {
+        var sql = $"SELECT * FROM {tableName}";
+
+        var dt = new DataTable();
+        try
+        {
+            using var command = new SqliteCommand(sql, _connection);
+            using var reader = command.ExecuteReader();
+            dt.Load(reader);
+        }
+        catch
+        {
+            // need to notify
+        }
+
+        return dt;
     }
 
     public string? Read(string localName, string actorName, string itemPath)
