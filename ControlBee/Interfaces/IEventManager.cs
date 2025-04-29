@@ -1,4 +1,6 @@
-﻿public interface IEventWriter
+﻿using System.Data;
+
+public interface IEventManager
 {
     void Write(
         string actorName,
@@ -7,4 +9,6 @@
         string desc = "",
         string severity = ""
         );
+
+    public DataTable ReadAll(string tableName);
 }

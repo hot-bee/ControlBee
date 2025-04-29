@@ -1,6 +1,7 @@
-﻿using ControlBee.Interfaces;
+﻿using System.Data;
+using ControlBee.Interfaces;
 
-public class EventWriter(IDatabase db) : IEventWriter
+public class EventManager(IDatabase db) : IEventManager
 {
     public void Write(
         string actorName,
@@ -11,5 +12,10 @@ public class EventWriter(IDatabase db) : IEventWriter
         )
     {
         db.WriteEvents(actorName, code, name, desc, severity);
+    }
+
+    public DataTable ReadAll(string tableName)
+    {
+        return db.ReadAll(tableName);
     }
 }
