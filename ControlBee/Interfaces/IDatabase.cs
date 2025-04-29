@@ -1,4 +1,5 @@
-﻿using ControlBee.Variables;
+﻿using System.Data;
+using ControlBee.Variables;
 
 namespace ControlBee.Interfaces;
 
@@ -19,6 +20,8 @@ public interface IDatabase
         string desc,
         string severity
         );
+
+    DataTable ReadAll(string tableName);
 
     string? Read(string localName, string actorName, string itemPath);
 }
