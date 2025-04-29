@@ -15,7 +15,7 @@ public class SqliteDatabase : IDatabase, IDisposable
         CreateTables();
     }
 
-    public void Write(
+    public void WriteVariables(
         VariableScope scope,
         string localName,
         string actorName,
@@ -37,7 +37,7 @@ public class SqliteDatabase : IDatabase, IDisposable
         command.ExecuteNonQuery();
     }
 
-    public void Write(
+    public void WriteEvents(
         string actorName,
         string code,
         string name,
@@ -46,7 +46,7 @@ public class SqliteDatabase : IDatabase, IDisposable
     )
     {
         var sql =
-            "INSERT OR REPLACE INTO log (actor_name, code, name, desc, severity) "
+            "INSERT OR REPLACE INTO events (actor_name, code, name, desc, severity) "
             + "VALUES (@actor_name, @code, @name, @desc, @severity)";
 
         using var command = new SqliteCommand(sql, _connection);
@@ -103,7 +103,7 @@ public class SqliteDatabase : IDatabase, IDisposable
                     updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
                     UNIQUE (local_name, actor_name, item_path)
                 );
-            CREATE TABLE IF NOT EXISTS log(
+            CREATE TABLE IF NOT EXISTS events(
                     id INTEGER PRIMARY KEY,
                     updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
                     actor_name TEXT NOT NULL,

@@ -2,9 +2,9 @@
 {
     void Write(
         string actorName,
-        string code,
-        string name,
-        string desc,
-        string severity
+        string code = "",
+        string name = "",
+        string desc = "",
+        string severity = ""
         );
 }

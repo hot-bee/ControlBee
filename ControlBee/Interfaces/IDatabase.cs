@@ -4,7 +4,7 @@ namespace ControlBee.Interfaces;
 
 public interface IDatabase
 {
-    void Write(
+    void WriteVariables(
         VariableScope scope,
         string localName,
         string actorName,
@@ -12,7 +12,7 @@ public interface IDatabase
         string value
     );
 
-    void Write(
+    void WriteEvents(
         string actorName,
         string code,
         string name,
