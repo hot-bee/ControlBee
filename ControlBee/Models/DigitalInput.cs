@@ -134,6 +134,11 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
 
     protected virtual void WaitSensor(bool isOn, int millisecondsTimeout)
     {
+        if (DigitalIoDevice == null)
+        {
+            Logger.Warn("DigitalIoDevice is null.");
+            return;
+        }
         var watch = TimeManager.CreateWatch();
         while (true)
         {
