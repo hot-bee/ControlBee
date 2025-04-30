@@ -426,7 +426,7 @@ public class Axis : DeviceChannel, IAxis
         VelocityMove(direction, false);
     }
 
-    public void VelocityMove(AxisDirection direction, bool @override)
+    public virtual void VelocityMove(AxisDirection direction, bool @override)
     {
         if (MotionDevice == null)
         {

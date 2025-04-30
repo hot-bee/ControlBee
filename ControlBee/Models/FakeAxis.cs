@@ -79,7 +79,7 @@ public class FakeAxis : Axis, IDisposable
         MonitorMoving(@override);
     }
 
-    public override void VelocityMove(AxisDirection direction)
+    public override void VelocityMove(AxisDirection direction, bool @override)
     {
         ValidateBeforeMove(false);
         switch (direction)
