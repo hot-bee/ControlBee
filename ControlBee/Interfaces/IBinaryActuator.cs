@@ -13,5 +13,6 @@ public interface IBinaryActuator : IActorItem, IUsesPlaceholder
     void OnAndWait();
 
     void OffAndWait();
+    void SetOnAndWait(bool value);
     void Wait();
 }

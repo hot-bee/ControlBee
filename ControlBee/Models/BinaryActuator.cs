@@ -92,13 +92,17 @@ public class BinaryActuator : ActorItem, IBinaryActuator
 
     public void OnAndWait()
     {
-        SetOn(true);
-        Wait();
+        SetOnAndWait(true);
     }
 
     public void OffAndWait()
     {
-        SetOn(false);
+        SetOnAndWait(false);
+    }
+
+    public void SetOnAndWait(bool value)
+    {
+        SetOn(value);
         Wait();
     }
 
@@ -179,6 +183,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
                 _timeManager.Sleep(1);
                 _scenarioFlowTester.OnCheckpoint();
             }
+
             _timeManager.Sleep(delay);
 
             _isOn = _on;
@@ -217,7 +222,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
             [nameof(On)] = _on,
             [nameof(IsOn)] = _isOn, // Do not call IsOn, or it will cause a recursive call issue.
             [nameof(OffDetect)] = OffDetect(),
-            [nameof(OnDetect)] = OnDetect(),
+            [nameof(OnDetect)] = OnDetect()
         };
         Actor.Ui?.Send(
             new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)
