@@ -36,6 +36,7 @@ public class InitializeSequence : ActorItem,
     public void Run()
     {
         _axis.ClearAlarm();
+        _axis.Enable(false);
         _axis.Enable(true);
         switch (_sensorType)
         {
