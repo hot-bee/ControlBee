@@ -320,8 +320,7 @@ public class Actor : IActorInternal, IDisposable
             if (fieldInfo.FieldType.IsAssignableTo(typeof(IActorItem)))
             {
                 var itemPath = string.Join('/', itemPathPrefix, fieldInfo.Name);
-                var actorItem = (IActorItem)fieldInfo.GetValue(actorItemHolder)!;
-
+                if (fieldInfo.GetValue(actorItemHolder)! is not IActorItem actorItem) continue;
                 actorItem = func(actorItemHolder, actorItem, fieldInfo, itemPath, config);
 
                 IterateItems(itemPath, actorItem, func, config);
