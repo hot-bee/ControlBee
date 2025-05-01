@@ -23,8 +23,6 @@ public class Axis : DeviceChannel, IAxis
 
     public AxisDirection InitDirection = AxisDirection.Positive;
 
-    public InitializeSequence InitializeSequence;
-
     public Variable<Position1D> InitPos = new(VariableScope.Global);
 
     public AxisSensorType InitSensorType;
@@ -33,6 +31,8 @@ public class Axis : DeviceChannel, IAxis
         VariableScope.Global,
         new SpeedProfile { Velocity = 10.0, Accel = 100.0, Decel = 100.0, AccelJerkRatio = 0.75, DecelJerkRatio = 0.75 }
     );
+
+    public InitializeSequence InternalInitializeSequence;
 
     public Variable<SpeedProfile> JogSpeed = new(
         VariableScope.Global,
@@ -79,14 +79,14 @@ public class Axis : DeviceChannel, IAxis
         if (dataSource.GetValue(ActorName, ItemPath, nameof(InitDirection)) is string initDirection)
             Enum.TryParse(initDirection, out InitDirection);
 
-        InitializeSequence = new InitializeSequence(
+        InternalInitializeSequence = new InitializeSequence(
             this,
             InitSpeed,
             InitPos,
             InitSensorType,
             InitDirection
         );
-        _initializeAction = () => { InitializeSequence.Run(); };
+        _initializeAction = () => { InternalInitializeSequence.Run(); };
     }
 
     public override void RefreshCache()
@@ -366,6 +366,8 @@ public class Axis : DeviceChannel, IAxis
             distance
         );
     }
+
+    public InitializeSequence InitializeSequence => InternalInitializeSequence;
 
     public void Move(double position)
     {
