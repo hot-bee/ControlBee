@@ -23,6 +23,8 @@ public class Axis : DeviceChannel, IAxis
 
     public AxisDirection InitDirection = AxisDirection.Positive;
 
+    public InitializeSequence InitializeSequence;
+
     public Variable<Position1D> InitPos = new(VariableScope.Global);
 
     public AxisSensorType InitSensorType;
@@ -60,8 +62,6 @@ public class Axis : DeviceChannel, IAxis
 
     // ReSharper disable once SuspiciousTypeConversion.Global
     protected virtual IMotionDevice? MotionDevice => Device as IMotionDevice;
-
-    public InitializeSequence InitializeSequence { get; private set; }
 
     public override void Init()
     {
