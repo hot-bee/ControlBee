@@ -1,4 +1,7 @@
-﻿using ControlBee.Interfaces;
+﻿using System.ComponentModel.DataAnnotations;
+using ControlBee.Constants;
+using ControlBee.Interfaces;
+using ControlBee.Sequences;
 using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
 using log4net;
@@ -21,6 +24,19 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
         }
     }
 
+    public override void InjectProperties(ISystemPropertiesDataSource dataSource)
+    {
+        base.InjectProperties(dataSource);
+        if (
+            dataSource.GetValue(ActorName, ItemPath, nameof(DataType))
+            is string analogDataType
+        )
+            Enum.TryParse(analogDataType, out DataType);
+        
+    }
+
+    public AnalogDataType DataType;
+
     public long Read()
     {
         if (AnalogIoDevice == null)
@@ -29,7 +45,29 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
             return InternalData;
         }
 
-        InternalData = AnalogIoDevice.GetAnalogInputSignedDWord(Channel);  // TODO: Separate this according to the data size that will be defined in property.
+        switch (DataType)
+        {
+            case AnalogDataType.SignedDWord:
+                InternalData = AnalogIoDevice.GetAnalogInputSignedDWord(Channel);
+                break;
+            case AnalogDataType.DWord:
+                InternalData = AnalogIoDevice.GetAnalogInputDWord(Channel);
+                break;
+            case AnalogDataType.SignedWord:
+                InternalData = AnalogIoDevice.GetAnalogInputSignedWord(Channel);
+                break;
+            case AnalogDataType.Word:
+                InternalData = AnalogIoDevice.GetAnalogInputWord(Channel);
+                break;
+            case AnalogDataType.SignedByte:
+                InternalData = AnalogIoDevice.GetAnalogInputSignedByte(Channel);
+                break;
+            case AnalogDataType.Byte:
+                InternalData = AnalogIoDevice.GetAnalogInputByte(Channel);
+                break;
+            default:
+                throw new SequenceError();
+        }
         return InternalData;
     }
 
