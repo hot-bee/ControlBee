@@ -1,14 +1,16 @@
 ﻿using System.Data;
 
+namespace ControlBee.Interfaces;
+
 public interface IEventManager
 {
-    void Write(
+    public void Write(
         string actorName,
-        string code = "",
-        string name = "",
-        string desc = "",
-        string severity = ""
-        );
+        string name,
+        string? code = null,
+        string? desc = null,
+        string? severity = null
+    );
 
     public DataTable ReadAll(string tableName);
 }
