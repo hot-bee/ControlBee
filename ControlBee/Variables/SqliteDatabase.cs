@@ -47,13 +47,13 @@ public class SqliteDatabase : IDatabase, IDisposable
     )
     {
         var sql =
-            "INSERT OR REPLACE INTO events (actor_name, code, name, desc, severity) "
+            "INSERT OR REPLACE INTO events (actor_name, name, code, desc, severity) "
             + "VALUES (@actor_name, @code, @name, @desc, @severity)";
 
         using var command = new SqliteCommand(sql, _connection);
         command.Parameters.AddWithValue("@actor_name", actorName);
-        command.Parameters.AddWithValue("@code", code);
         command.Parameters.AddWithValue("@name", name);
+        command.Parameters.AddWithValue("@code", code);
         command.Parameters.AddWithValue("@desc", desc);
         command.Parameters.AddWithValue("@severity", severity);
 
@@ -127,8 +127,8 @@ public class SqliteDatabase : IDatabase, IDisposable
                     id INTEGER PRIMARY KEY,
                     updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
                     actor_name TEXT NOT NULL,
-                    code TEXT NOT NULL,
                     name TEXT NOT NULL,
+                    code TEXT NOT NULL,
                     desc TEXT NOT NULL,
                     severity TEXT NOT NULL
                 );
