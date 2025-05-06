@@ -19,6 +19,7 @@ public class Axis : DeviceChannel, IAxis
 
     protected SpeedProfile? CurrentSpeedProfile;
 
+    public Variable<int> DisableDelay = new(VariableScope.Global, 200);
     public Variable<int> EnableDelay = new(VariableScope.Global, 200);
 
     public AxisDirection InitDirection = AxisDirection.Positive;
@@ -183,8 +184,7 @@ public class Axis : DeviceChannel, IAxis
             Thread.Sleep(1);
         }
 
-        if (value)
-            TimeManager.Sleep(EnableDelay.Value);
+        TimeManager.Sleep(value ? EnableDelay.Value : DisableDelay.Value);
         RefreshCache();
     }
 
