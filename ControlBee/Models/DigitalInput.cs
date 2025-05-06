@@ -103,6 +103,11 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
 
     protected virtual bool IsOnOffOrValue(bool on)
     {
+        if (DigitalIoDevice == null)
+        {
+            Logger.Warn("DigitalIoDevice is null.");
+            return on;
+        }
         return IsOn();
     }
 
