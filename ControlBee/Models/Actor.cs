@@ -498,6 +498,7 @@ public class Actor : IActorInternal, IDisposable
                     !result
                     && message.GetType() != typeof(DroppedMessage)
                     && message.GetType() != typeof(StateEntryMessage)
+                    && message.GetType() != typeof(TimeoutMessage)
                 )
                     message.Sender.Send(new DroppedMessage(message.Id, this));
                 break;
