@@ -35,7 +35,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     {
         if (DigitalIoDevice == null)
         {
-            Logger.Warn("DigitalIoDevice is null.");
+            //Logger.Warn("DigitalIoDevice is null.");
             return InternalIsOn;
         }
 
