@@ -247,8 +247,9 @@ public class Actor : IActorInternal, IDisposable
         PublishStatus();
     }
 
-    public void SetStatusByActor(IActor actor, string keyName, object? value)
+    public void SetStatusByActor(IActor? actor, string keyName, object? value)
     {
+        if (actor == null) return;
         SetStatusByActor(actor.Name, keyName, value);
     }
 
@@ -274,8 +275,9 @@ public class Actor : IActorInternal, IDisposable
         return GetPeerStatus(PeerDict[actorName], keyName);
     }
 
-    public object? GetPeerStatusByActor(IActor actor, string keyName)
+    public object? GetPeerStatusByActor(IActor? actor, string keyName)
     {
+        if (actor == null) return null;
         return (GetPeerStatus(actor, Name) as Dict)?.GetValueOrDefault(keyName);
     }
 
@@ -284,8 +286,9 @@ public class Actor : IActorInternal, IDisposable
         return GetPeerStatusByActor(PeerDict[actorName], keyName);
     }
 
-    public bool HasPeerError(IActor peer)
+    public bool HasPeerError(IActor? peer)
     {
+        if (peer == null) return false;
         return GetPeerStatus(peer, "_error") is true;
     }
 
