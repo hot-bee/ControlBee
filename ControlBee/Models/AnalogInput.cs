@@ -41,7 +41,7 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
     {
         if (AnalogIoDevice == null)
         {
-            Logger.Warn("AnalogIoDevice is null.");
+            //Logger.Warn("AnalogIoDevice is null.");
             return InternalData;
         }
 
