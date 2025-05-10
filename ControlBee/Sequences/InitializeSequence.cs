@@ -13,6 +13,7 @@ public class InitializeSequence : ActorItem,
     private readonly AxisDirection _direction;
     private readonly Variable<Position1D> _homePosition;
     private readonly Variable<SpeedProfile> _initSpeed;
+    public Variable<int> DelayBeforeSetZero = new(VariableScope.Global);
     private readonly AxisSensorType _sensorType;
     public IDialog SensorEntryTimeout = new DialogPlaceholder();
     public IDialog SensorExitTimeout = new DialogPlaceholder();
@@ -51,6 +52,8 @@ public class InitializeSequence : ActorItem,
             default:
                 throw new ValueError();
         }
+
+        TimeManager.Sleep(DelayBeforeSetZero.Value);
 
         _axis.SetPosition(0.0);
         _axis.SetSpeed(_axis.GetJogSpeed(JogSpeedLevel.Fast));

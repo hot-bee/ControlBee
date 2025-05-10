@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Reflection.Metadata.Ecma335;
 using ControlBee.Interfaces;
 using Microsoft.Data.Sqlite;
 
@@ -15,7 +16,7 @@ public class SqliteDatabase : IDatabase, IDisposable
         CreateTables();
     }
 
-    public void Write(
+    public void WriteVariables(
         VariableScope scope,
         string localName,
         string actorName,
@@ -35,6 +36,47 @@ public class SqliteDatabase : IDatabase, IDisposable
         command.Parameters.AddWithValue("@value", value);
 
         command.ExecuteNonQuery();
+    }
+
+    public void WriteEvents(
+        string actorName,
+        string name,
+        string? code = null,
+        string? desc = null,
+        string? severity = null
+    )
+    {
+        var sql =
+            "INSERT OR REPLACE INTO events (actor_name, name, code, desc, severity) "
+            + "VALUES (@actor_name, @name, @code, @desc, @severity)";
+
+        using var command = new SqliteCommand(sql, _connection);
+        command.Parameters.AddWithValue("@actor_name", actorName);
+        command.Parameters.AddWithValue("@name", name);
+        command.Parameters.AddWithValue("@code", code ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@desc", desc ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@severity", severity ?? (object)DBNull.Value);
+
+        command.ExecuteNonQuery();
+    }
+
+    public DataTable ReadAll(string tableName)
+    {
+        var sql = $"SELECT * FROM {tableName}";
+
+        var dt = new DataTable();
+        try
+        {
+            using var command = new SqliteCommand(sql, _connection);
+            using var reader = command.ExecuteReader();
+            dt.Load(reader);
+        }
+        catch
+        {
+            // need to notify
+        }
+
+        return dt;
     }
 
     public string? Read(string localName, string actorName, string itemPath)
@@ -80,6 +122,15 @@ public class SqliteDatabase : IDatabase, IDisposable
                     value BLOB,
                     updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
                     UNIQUE (local_name, actor_name, item_path)
+                );
+            CREATE TABLE IF NOT EXISTS events(
+                    id INTEGER PRIMARY KEY,
+                    updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+                    actor_name TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    code TEXT NULL,
+                    desc TEXT NULL,
+                    severity TEXT NULL
                 );
             """;
         using var command = new SqliteCommand(sql, _connection);
