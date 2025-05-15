@@ -13,6 +13,7 @@ public class SyncUtils
         string grantName
     )
     {
+        if (requests.Length == 0) return false;
         var guids = new List<Guid>();
         foreach (var request in requests)
         {
