@@ -16,9 +16,9 @@ public interface IDatabase
     void WriteEvents(
         string actorName,
         string name,
+        string severity,
         string? code = null,
-        string? desc = null,
-        string? severity = null
+        string? desc = null
         );
 
     DataTable ReadAll(string tableName);
