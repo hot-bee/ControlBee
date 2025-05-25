@@ -1,4 +1,6 @@
 ﻿using System.Data;
+using ControlBee.Constants;
+using ControlBee.Models;
 
 namespace ControlBee.Interfaces;
 
@@ -7,9 +9,9 @@ public interface IEventManager
     public void Write(
         string actorName,
         string name,
-        string? code = null,
-        string? desc = null,
-        string? severity = null
+        DialogSeverity severity = DialogSeverity.Info,
+        int? code = null,
+        string? desc = null
     );
 
     public DataTable ReadAll(string tableName);

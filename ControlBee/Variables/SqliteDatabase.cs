@@ -41,9 +41,9 @@ public class SqliteDatabase : IDatabase, IDisposable
     public void WriteEvents(
         string actorName,
         string name,
+        string severity,
         string? code = null,
-        string? desc = null,
-        string? severity = null
+        string? desc = null
     )
     {
         var sql =
@@ -55,7 +55,7 @@ public class SqliteDatabase : IDatabase, IDisposable
         command.Parameters.AddWithValue("@name", name);
         command.Parameters.AddWithValue("@code", code ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("@desc", desc ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@severity", severity ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@severity", severity);
 
         command.ExecuteNonQuery();
     }
@@ -130,7 +130,7 @@ public class SqliteDatabase : IDatabase, IDisposable
                     name TEXT NOT NULL,
                     code TEXT NULL,
                     desc TEXT NULL,
-                    severity TEXT NULL
+                    severity TEXT NOT NULL
                 );
             """;
         using var command = new SqliteCommand(sql, _connection);

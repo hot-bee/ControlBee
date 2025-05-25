@@ -21,10 +21,10 @@ public class Dialog(DialogContextFactory dialogContextFactory, IEventManager eve
     {
         eventManager.Write(
             Context.ActorName,
-            Context.Code?.ToString() ?? string.Empty,
             Context.Name,
-            Context.Desc,
-            Context.Severity.ToString()
+            Context.Severity,
+            Context.Code,
+            Context.Desc
             );
 
         return Show([]);
