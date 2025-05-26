@@ -30,14 +30,28 @@ public class Axis : DeviceChannel, IAxis
 
     public Variable<SpeedProfile> InitSpeed = new(
         VariableScope.Global,
-        new SpeedProfile { Velocity = 10.0, Accel = 100.0, Decel = 100.0, AccelJerkRatio = 0.75, DecelJerkRatio = 0.75 }
+        new SpeedProfile
+        {
+            Velocity = 10.0,
+            Accel = 100.0,
+            Decel = 100.0,
+            AccelJerkRatio = 0.75,
+            DecelJerkRatio = 0.75,
+        }
     );
 
     public InitializeSequence InternalInitializeSequence;
 
     public Variable<SpeedProfile> JogSpeed = new(
         VariableScope.Global,
-        new SpeedProfile { Velocity = 10.0, Accel = 100.0, Decel = 100.0, AccelJerkRatio = 0.75, DecelJerkRatio = 0.75 }
+        new SpeedProfile
+        {
+            Velocity = 10.0,
+            Accel = 100.0,
+            Decel = 100.0,
+            AccelJerkRatio = 0.75,
+            DecelJerkRatio = 0.75,
+        }
     );
 
     public Variable<Array1D<double>> JogSpeedLevelFactors = new(
@@ -47,8 +61,17 @@ public class Axis : DeviceChannel, IAxis
 
     public Variable<SpeedProfile> NormalSpeed = new(
         VariableScope.Global,
-        new SpeedProfile { Velocity = 10.0, Accel = 100.0, Decel = 100.0, AccelJerkRatio = 0.75, DecelJerkRatio = 0.75 }
+        new SpeedProfile
+        {
+            Velocity = 10.0,
+            Accel = 100.0,
+            Decel = 100.0,
+            AccelJerkRatio = 0.75,
+            DecelJerkRatio = 0.75,
+        }
     );
+
+    public Variable<double> Resolution = new(VariableScope.Global, 1.0);
 
     public Variable<Array1D<double>> StepJogSizes = new(
         VariableScope.Global,
@@ -87,7 +110,10 @@ public class Axis : DeviceChannel, IAxis
             InitSensorType,
             InitDirection
         );
-        _initializeAction = () => { InternalInitializeSequence.Run(); };
+        _initializeAction = () =>
+        {
+            InternalInitializeSequence.Run();
+        };
     }
 
     public override void RefreshCache()
@@ -361,8 +387,8 @@ public class Axis : DeviceChannel, IAxis
 
         MotionDevice.SearchZPhase(
             Channel,
-            InitSpeed.Value.Velocity,
-            InitSpeed.Value.Accel,
+            InitSpeed.Value.Velocity * Resolution.Value,
+            InitSpeed.Value.Accel * Resolution.Value,
             distance
         );
     }
@@ -385,10 +411,10 @@ public class Axis : DeviceChannel, IAxis
         ValidateBeforeMove(@override);
         MotionDevice.JerkRatioSCurveMove(
             Channel,
-            position,
-            CurrentSpeedProfile.Velocity,
-            CurrentSpeedProfile.Accel,
-            CurrentSpeedProfile.Decel,
+            position * Resolution.Value,
+            CurrentSpeedProfile.Velocity * Resolution.Value,
+            CurrentSpeedProfile.Accel * Resolution.Value,
+            CurrentSpeedProfile.Decel * Resolution.Value,
             CurrentSpeedProfile.AccelJerkRatio,
             CurrentSpeedProfile.DecelJerkRatio
         );
@@ -440,9 +466,9 @@ public class Axis : DeviceChannel, IAxis
         var velocity = CurrentSpeedProfile.Velocity * (double)direction;
         MotionDevice.VelocityMove(
             Channel,
-            velocity,
-            CurrentSpeedProfile.Accel,
-            CurrentSpeedProfile.Decel,
+            velocity * Resolution.Value,
+            CurrentSpeedProfile.Accel * Resolution.Value,
+            CurrentSpeedProfile.Decel * Resolution.Value,
             CurrentSpeedProfile.AccelJerkRatio,
             CurrentSpeedProfile.DecelJerkRatio
         );
@@ -484,14 +510,14 @@ public class Axis : DeviceChannel, IAxis
         switch (type)
         {
             case PositionType.Command:
-                MotionDevice.SetCommandPosition(Channel, position);
+                MotionDevice.SetCommandPosition(Channel, position * Resolution.Value);
                 break;
             case PositionType.Actual:
-                MotionDevice.SetActualPosition(Channel, position);
+                MotionDevice.SetActualPosition(Channel, position * Resolution.Value);
                 break;
             case PositionType.CommandAndActual:
-                MotionDevice.SetCommandPosition(Channel, position);
-                MotionDevice.SetActualPosition(Channel, position);
+                MotionDevice.SetCommandPosition(Channel, position * Resolution.Value);
+                MotionDevice.SetActualPosition(Channel, position * Resolution.Value);
                 break;
             case PositionType.Target:
                 throw new ValueError();
@@ -544,9 +570,9 @@ public class Axis : DeviceChannel, IAxis
         switch (type)
         {
             case PositionType.Command:
-                return MotionDevice.GetCommandPosition(Channel);
+                return MotionDevice.GetCommandPosition(Channel) / Resolution.Value;
             case PositionType.Actual:
-                return MotionDevice.GetActualPosition(Channel);
+                return MotionDevice.GetActualPosition(Channel) / Resolution.Value;
             case PositionType.CommandAndActual:
                 throw new ValueError();
             case PositionType.Target:
@@ -567,9 +593,9 @@ public class Axis : DeviceChannel, IAxis
         switch (type)
         {
             case VelocityType.Command:
-                return MotionDevice.GetCommandVelocity(Channel);
+                return MotionDevice.GetCommandVelocity(Channel) / Resolution.Value;
             case VelocityType.Actual:
-                return MotionDevice.GetActualVelocity(Channel);
+                return MotionDevice.GetActualVelocity(Channel) / Resolution.Value;
             default:
                 throw new ValueError();
         }
@@ -588,7 +614,7 @@ public class Axis : DeviceChannel, IAxis
             AxisSensorType.Home => MotionDevice.GetHomeSensor(Channel),
             AxisSensorType.PositiveLimit => MotionDevice.GetPositiveLimitSensor(Channel),
             AxisSensorType.NegativeLimit => MotionDevice.GetNegativeLimitSensor(Channel),
-            _ => throw new ValueError()
+            _ => throw new ValueError(),
         };
     }
 
@@ -674,7 +700,7 @@ public class Axis : DeviceChannel, IAxis
                 ["IsInitializing"] = _isInitializingCache,
                 ["IsHomeDet"] = _isHomeDetCache,
                 ["IsNegativeLimitDet"] = _isNegativeLimitDetCache,
-                ["IsPositiveLimitDet"] = _isPositiveLimitDetCache
+                ["IsPositiveLimitDet"] = _isPositiveLimitDetCache,
             };
         }
 
