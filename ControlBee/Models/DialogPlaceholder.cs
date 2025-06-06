@@ -46,4 +46,9 @@ public class DialogPlaceholder : IPlaceholder, IDialog
     {
         throw new UnimplementedByDesignError();
     }
+
+    public Guid Show(string desc)
+    {
+        throw new NotImplementedException();
+    }
 }
