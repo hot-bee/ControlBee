@@ -36,6 +36,7 @@ public class Actor : IActorInternal, IDisposable
     private string _title = string.Empty;
 
     public IDialog FatalError = new DialogPlaceholder();
+    public IDialog CrashError = new DialogPlaceholder();
 
     public PlatformException? ExitError;
 
@@ -452,6 +453,7 @@ public class Actor : IActorInternal, IDisposable
         {
             Logger.Fatal("PlatformException occured in thread.", e);
             ExitError = e;
+            CrashError.Show(e.Message);
         }
         finally
         {
