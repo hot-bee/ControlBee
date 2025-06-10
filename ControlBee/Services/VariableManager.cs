@@ -6,7 +6,7 @@ using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Services;
 
-public class VariableManager(IDatabase database, IActorRegistry actorRegistry)
+public class VariableManager(IDatabase database, IActorRegistry actorRegistry, IUserInfo? userInfo)
     : IVariableManager,
         IDisposable
 {
@@ -18,7 +18,7 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry)
     private IActor? _uiActor;
 
     public VariableManager(IDatabase database)
-        : this(database, EmptyActorRegistry.Instance) { }
+        : this(database, EmptyActorRegistry.Instance, null) { }
 
     private IActor? UiActor
     {
@@ -70,6 +70,7 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry)
                 "The 'ItemPath' is already being used by another variable."
             );
         variable.ValueChanged += Variable_ValueChanged;
+        variable.UserInfo = userInfo;
     }
 
     public void Save(string? localName = null)

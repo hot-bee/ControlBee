@@ -8,6 +8,7 @@ public interface IVariable : IActorItem, IValueChanged
     VariableScope Scope { get; }
     string ActorName { get; }
     public bool Dirty { get; set; }
+    IUserInfo? UserInfo { get; set; }
     string ToJson();
     void FromJson(string data);
 }

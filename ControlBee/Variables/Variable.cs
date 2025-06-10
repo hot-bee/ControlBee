@@ -47,6 +47,8 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
         : this(actor, itemPath, scope, new T()) { }
 
     public string Unit { get; private set; } = string.Empty;
+    public int? ReadLevel { get; private set; }
+    public int? WriteLevel { get; private set; }
 
     public T Value
     {
@@ -75,6 +77,8 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
 
     public object? ValueObject => Value;
     public VariableScope Scope { get; }
+
+    public IUserInfo? UserInfo { get; set; }
 
     public string ToJson()
     {
@@ -111,6 +115,10 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
             }
             case "_itemDataRead":
             {
+                if (ReadLevel.HasValue && UserInfo != null)
+                {
+                    if (ReadLevel.Value < UserInfo.Level) return false;
+                }
                 var newValue = _value;
                 if (_value is ICloneable cloneable)
                     newValue = (T)cloneable.Clone();
@@ -125,6 +133,10 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
             }
             case "_itemDataWrite":
             {
+                if (WriteLevel.HasValue && UserInfo != null)
+                {
+                    if (WriteLevel.Value < UserInfo.Level) return false;
+                }
                 WriteData((ItemDataWriteArgs)message.Payload!);
                 return true;
             }
@@ -152,6 +164,10 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
         base.InjectProperties(dataSource);
         if (dataSource.GetValue(ActorName, ItemPath, nameof(Unit)) is string unit)
             Unit = unit;
+        if (dataSource.GetValue(ActorName, ItemPath, nameof(ReadLevel)) is string readLevel)
+            ReadLevel = int.Parse(readLevel);
+        if (dataSource.GetValue(ActorName, ItemPath, nameof(WriteLevel)) is string writeLevel)
+            WriteLevel = int.Parse(writeLevel);
     }
 
     public void WriteData(ItemDataWriteArgs args)
