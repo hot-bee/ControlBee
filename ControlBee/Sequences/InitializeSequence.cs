@@ -57,6 +57,7 @@ public class InitializeSequence : ActorItem,
                 throw new ValueError();
         }
 
+        Thread.Sleep(1000);
         _axis.SetPosition(0.0);
         _axis.SetSpeed(_axis.GetJogSpeed(JogSpeedLevel.Fast));
         _homePosition.Value.MoveAndWait();
