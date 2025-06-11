@@ -38,6 +38,11 @@ public class InitializeSequence : ActorItem,
         _axis.ClearAlarm();
         _axis.Enable(false);
         _axis.Enable(true);
+
+        // tmp
+        _axis.EStop();
+        _axis.Wait();
+
         switch (_sensorType)
         {
             case AxisSensorType.Home:
