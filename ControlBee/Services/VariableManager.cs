@@ -18,7 +18,14 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry, I
     private IActor? _uiActor;
 
     public VariableManager(IDatabase database)
-        : this(database, EmptyActorRegistry.Instance, null) { }
+        : this(database, EmptyActorRegistry.Instance, null)
+    {
+    }
+
+    public VariableManager(IDatabase database, IActorRegistry actorRegistry)
+        : this(database, actorRegistry, null)
+    {
+    }
 
     private IActor? UiActor
     {
