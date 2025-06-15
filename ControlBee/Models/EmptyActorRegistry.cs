@@ -33,4 +33,9 @@ public class EmptyActorRegistry : IActorRegistry
     {
         throw new UnimplementedByDesignError();
     }
+
+    public void Dispose()
+    {
+        throw new NotImplementedException();
+    }
 }

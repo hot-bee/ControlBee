@@ -1,4 +1,5 @@
 ﻿using ControlBee.Interfaces;
+using ControlBee.Models;
 using ControlBeeAbstract.Exceptions;
 
 namespace ControlBee.Services;
@@ -33,5 +34,14 @@ public class ActorRegistry : IActorRegistry
     public (string name, string Title)[] GetActorNameTitlePairs()
     {
         return GetActors().Select(actor => (actor.Name, actor.Title)).ToArray();
+    }
+
+    public void Dispose()
+    {
+        var ui = _map["Ui"];
+        foreach (var (_, actor) in _map)
+        {
+            actor.Send(new Message(ui, "_terminate"));
+        }
     }
 }

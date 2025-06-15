@@ -4,7 +4,7 @@ using log4net;
 
 namespace ControlBee.Services;
 
-public class DeviceMonitor : IDisposable, IDeviceMonitor
+public class DeviceMonitor : IDeviceMonitor
 {
     private static readonly ILog Logger = LogManager.GetLogger("General");
 

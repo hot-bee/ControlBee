@@ -1,6 +1,6 @@
 ﻿namespace ControlBee.Interfaces;
 
-public interface IActorRegistry
+public interface IActorRegistry: IDisposable
 {
     void Add(IActor actor);
     IActor? Get(string actorName);
