@@ -34,11 +34,11 @@ public class Actor : IActorInternal, IDisposable
     private int _publishStep;
 
     private string _title = string.Empty;
-
-    public IDialog FatalError = new DialogPlaceholder();
     public IDialog CrashError = new DialogPlaceholder();
 
     public PlatformException? ExitError;
+
+    public IDialog FatalError = new DialogPlaceholder();
 
     public Dictionary<string, IActor> PeerDict = [];
     public Dictionary<IActor, Dict> PeerStatus = new();
@@ -91,6 +91,7 @@ public class Actor : IActorInternal, IDisposable
     public int MessageFetchTimeout { get; set; } = -1;
 
     public IScenarioFlowTester ScenarioFlowTester { get; }
+    public IDeviceManager DeviceManager { get; }
 
     public string Name { get; }
 
@@ -127,7 +128,6 @@ public class Actor : IActorInternal, IDisposable
 
     public IPositionAxesMap PositionAxesMap { get; }
     public IVariableManager VariableManager { get; }
-    public IDeviceManager DeviceManager { get; }
 
     public virtual void Init(ActorConfig config)
     {
@@ -305,7 +305,7 @@ public class Actor : IActorInternal, IDisposable
         IState oldState,
         IState newState,
         bool result
-    )>? MessageProcessed;
+        )>? MessageProcessed;
 
     public event EventHandler<(IState oldState, IState newState)>? StateChanged;
 
@@ -470,6 +470,7 @@ public class Actor : IActorInternal, IDisposable
             var item = GetItem(actorItemMessage.ItemPath);
             result |= item?.ProcessMessage(actorItemMessage) ?? false;
         }
+
         return result;
     }
 
@@ -559,9 +560,10 @@ public class Actor : IActorInternal, IDisposable
 
     public void InitPeers(IActor[] peerList)
     {
-        if (Ui != null && !peerList.Contains(Ui))
-            peerList = peerList.Concat([Ui]).ToArray();
-        foreach (var peer in peerList)
+        var peers = peerList.ToHashSet();
+        peers.Add(this);
+        if (Ui != null) peers.Add(Ui);
+        foreach (var peer in peers)
         {
             if (!PeerDict.TryAdd(peer.Name, peer))
                 throw new ValueError("Duplicate name.");
