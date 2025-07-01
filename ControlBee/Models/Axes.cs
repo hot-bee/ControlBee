@@ -69,9 +69,10 @@ public class Axes
             return;
         }
 
+        var resolutionOfFirstAxis = Math.Abs(_axes[0].ResolutionValue);
         motionDevice.JerkRatioSCurveMove(
             _axes.Select((t, i) => (t.GetChannel(), positions[i] * t.ResolutionValue)).ToArray(),
-            speedProfile.Velocity, speedProfile.Accel,
-            speedProfile.Decel, speedProfile.AccelJerkRatio, speedProfile.DecelJerkRatio);
+            speedProfile.Velocity * resolutionOfFirstAxis, speedProfile.Accel * resolutionOfFirstAxis,
+            speedProfile.Decel * resolutionOfFirstAxis, speedProfile.AccelJerkRatio, speedProfile.DecelJerkRatio);
     }
 }
