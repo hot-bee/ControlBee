@@ -72,6 +72,7 @@ public class Axis : DeviceChannel, IAxis
     );
 
     public Variable<double> Resolution = new(VariableScope.Global, 1.0);
+    public double ResolutionValue => Resolution.Value;
 
     public Variable<Array1D<double>> StepJogSizes = new(
         VariableScope.Global,

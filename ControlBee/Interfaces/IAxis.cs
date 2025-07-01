@@ -6,6 +6,8 @@ namespace ControlBee.Interfaces;
 
 public interface IAxis : IDeviceChannel
 {
+    InitializeSequence InitializeSequence { get; }
+    double ResolutionValue { get; }
     void Enable();
     void Disable();
     bool IsAlarmed();
@@ -44,6 +46,4 @@ public interface IAxis : IDeviceChannel
     SpeedProfile GetInitSpeed();
     Position1D GetInitPos();
     void SearchZPhase(double distance);
-    InitializeSequence InitializeSequence { get; }
-
 }
