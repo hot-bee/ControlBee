@@ -55,6 +55,11 @@ public class Axes
         foreach (var axis in _axes) axis.Wait();
     }
 
+    public bool IsMoving()
+    {
+        return _axes.Any(x => x.IsMoving());
+    }
+
     public void Move(double[] positions, SpeedProfile speedProfile)
     {
         if (_axes[0].GetDevice() is not IMotionDevice motionDevice)
