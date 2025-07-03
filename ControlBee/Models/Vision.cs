@@ -8,8 +8,7 @@ using log4net;
 namespace ControlBee.Models;
 
 public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
-    : DeviceChannel(deviceManager),
-        IVision
+    : DeviceChannel(deviceManager), IVision
 {
     private const int Timeout = 5000;
     private static readonly ILog Logger = LogManager.GetLogger(nameof(Vision));
@@ -38,6 +37,33 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
             ConnectionError.Show();
             throw;
         }
+    }
+
+    public void StartContinuous()
+    {
+        if (VisionDevice == null)
+        {
+            Logger.Error($"VisionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        VisionDevice.StartContinuous(Channel);
+    }
+
+    public void StopContinuous()
+    {
+        if (VisionDevice == null)
+        {
+            Logger.Error($"VisionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        VisionDevice.StopContinuous(Channel);
+    }
+
+    public bool IsContinuousMode()
+    {
+        throw new NotImplementedException();
     }
 
     public virtual void Wait(int inspectionIndex, int timeout)

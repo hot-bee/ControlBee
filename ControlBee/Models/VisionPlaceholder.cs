@@ -58,6 +58,21 @@ public class VisionPlaceholder : IPlaceholder, IVision
         throw new NotImplementedException();
     }
 
+    public void StartContinuous()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void StopContinuous()
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool IsContinuousMode()
+    {
+        throw new NotImplementedException();
+    }
+
     public void Wait(int inspectionIndex, int timeout)
     {
         throw new NotImplementedException();
