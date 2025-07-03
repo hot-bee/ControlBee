@@ -1,9 +1,9 @@
 ﻿using System.Text.Json.Nodes;
 using ControlBee.Interfaces;
+using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
 using log4net;
-using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
@@ -13,10 +13,12 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
 {
     private const int Timeout = 5000;
     private static readonly ILog Logger = LogManager.GetLogger(nameof(Vision));
-    protected virtual IVisionDevice? VisionDevice => Device as IVisionDevice;
 
     public IDialog ConnectionError = new DialogPlaceholder();
+
+    public Variable<int> PreDelay = new();
     public IDialog TimeoutError = new DialogPlaceholder();
+    protected virtual IVisionDevice? VisionDevice => Device as IVisionDevice;
 
     public virtual void Trigger(int inspectionIndex)
     {
@@ -28,6 +30,7 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
 
         try
         {
+            if (PreDelay.Value > 0) Thread.Sleep(PreDelay.Value);
             VisionDevice.Trigger(Channel, inspectionIndex);
         }
         catch (ConnectionError)
