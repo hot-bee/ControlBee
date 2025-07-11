@@ -2,6 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ControlBee.Interfaces;
+using ControlBee.Models;
 
 namespace ControlBee.Variables;
 
@@ -25,6 +26,8 @@ public class Array2D<T> : ArrayBase, IIndex2D
 
     public Array2D(Array2D<T> other)
     {
+        Actor = other.Actor;
+        ItemPath = other.ItemPath;
         _value = (T[,])other._value.Clone();
         for (var i = 0; i < Size.Item1; i++)
         for (var j = 0; j < Size.Item2; j++)
@@ -99,6 +102,11 @@ public class Array2D<T> : ArrayBase, IIndex2D
             for (var j = 0; j < Size.Item2; j++)
                 yield return _value[i, j];
         }
+    }
+
+    public override bool ProcessMessage(ActorItemMessage message)
+    {
+        throw new NotImplementedException();
     }
 
     public override object Clone()

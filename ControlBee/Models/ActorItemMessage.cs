@@ -10,13 +10,11 @@ public class ActorItemMessage : Message
         ItemPath = itemPath;
     }
 
-    public ActorItemMessage(
-        Guid requestId,
+    public ActorItemMessage(Guid requestId,
         IActor sender,
         string itemPath,
         string name,
-        object? payload
-    )
+        object? payload)
         : base(requestId, sender, name, payload)
     {
         ItemPath = itemPath;

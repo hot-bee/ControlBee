@@ -199,6 +199,8 @@ public abstract class Position : IValueChanged, IActorItemSub, IWriteData, IInde
         ValueChanged?.Invoke(this, e);
     }
 
+    public int Size => InternalVector.Count;
+
     public object? GetValue(int index)
     {
         return this[index];

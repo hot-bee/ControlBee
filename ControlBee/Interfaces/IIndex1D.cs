@@ -2,5 +2,6 @@
 
 public interface IIndex1D
 {
+    public int Size { get; }
     object? GetValue(int index);
 }

@@ -37,11 +37,7 @@ public abstract class ArrayBase : IValueChanged, IActorItemSub, ICloneable
 
     public virtual void OnDeserialized() { }
 
-    public bool ProcessMessage(ActorItemMessage message)
-    {
-        // Empty
-        return true;
-    }
+    public abstract bool ProcessMessage(ActorItemMessage message);
 
     public abstract object Clone();
 }

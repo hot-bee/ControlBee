@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using ControlBee.Interfaces;
+using ControlBee.Models;
 using log4net;
 
 namespace ControlBee.Variables;
@@ -28,6 +29,8 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
 
     public Array1D(Array1D<T> other)
     {
+        Actor = other.Actor;
+        ItemPath = other.ItemPath;
         _value = (T[])other._value.Clone();
         for (var i = 0; i < Size; i++)
         {
@@ -101,6 +104,24 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
                 actorItemSub.OnDeserialized();
             Subscribe(i);
         }
+    }
+
+    public override bool ProcessMessage(ActorItemMessage message)
+    {
+        if (message is VariableActorItemMessage variableActorItemMessage)
+        {
+            var index = (int)variableActorItemMessage.Location[0];
+            if (_value[index] is IActorItemSub actorItemSub)
+            {
+                var partialLocation = variableActorItemMessage.Location[1..];
+                var partialMessage = new VariableActorItemMessage(message.Sender, message.ItemPath, partialLocation,
+                    message.Name, message.Payload);
+                actorItemSub.ProcessMessage(partialMessage);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public override object Clone()
