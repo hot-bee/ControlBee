@@ -152,6 +152,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
     private void SetOn(bool on)
     {
         Wait();
+        if (_isOn == on) return;
         _isOn = null;
         _on = on;
         _outputOn?.SetOn(_on);
