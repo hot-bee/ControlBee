@@ -38,6 +38,11 @@ public class InitializeSequence : ActorItem,
         _axis.ClearAlarm();
         _axis.Enable(false);
         _axis.Enable(true);
+
+        // temp
+        _axis.EStop();
+        _axis.Wait();
+
         switch (_sensorType)
         {
             case AxisSensorType.Home:
@@ -52,6 +57,7 @@ public class InitializeSequence : ActorItem,
                 throw new ValueError();
         }
 
+        Thread.Sleep(1000);
         _axis.SetPosition(0.0);
         _axis.SetSpeed(_axis.GetJogSpeed(JogSpeedLevel.Fast));
         _homePosition.Value.MoveAndWait();
