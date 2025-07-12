@@ -13,7 +13,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
 
     #region Cache
 
-    private bool _isDetected;
+    private bool _isOnCache;
 
     #endregion
 
@@ -176,7 +176,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         var updated = false;
         lock (this)
         {
-            updated |= UpdateCache(ref _isDetected, isOn);
+            updated |= UpdateCache(ref _isOnCache, isOn);
         }
 
         if (updated)

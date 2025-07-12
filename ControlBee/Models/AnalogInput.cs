@@ -1,7 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using ControlBee.Constants;
+﻿using ControlBee.Constants;
 using ControlBee.Interfaces;
-using ControlBee.Sequences;
 using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
 using log4net;
@@ -13,7 +11,11 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(AnalogInput));
     private long _data;
+    private long _dataCache;
+
+    public AnalogDataType DataType;
     protected virtual IAnalogIoDevice? AnalogIoDevice => Device as IAnalogIoDevice;
+
     protected long InternalData
     {
         get => _data;
@@ -32,18 +34,13 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
             is string analogDataType
         )
             Enum.TryParse(analogDataType, out DataType);
-        
     }
-
-    public AnalogDataType DataType;
 
     public long Read()
     {
         if (AnalogIoDevice == null)
-        {
             //Logger.Warn("AnalogIoDevice is null.");
             return InternalData;
-        }
 
         switch (DataType)
         {
@@ -68,20 +65,8 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
             default:
                 throw new SequenceError();
         }
+
         return InternalData;
-    }
-
-    protected virtual void ReadFromDevice()
-    {
-        // TODO
-    }
-
-    private void SendDataToUi(Guid requestId)
-    {
-        var payload = new Dict { ["Data"] = InternalData };
-        Actor.Ui?.Send(
-            new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)
-        );
     }
 
     public override bool ProcessMessage(ActorItemMessage message)
@@ -94,6 +79,45 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
             case "_itemDataWrite":
                 throw new ValueError();
         }
+
         return base.ProcessMessage(message);
+    }
+
+    public override void RefreshCache()
+    {
+        base.RefreshCache();
+
+        if (AnalogIoDevice == null)
+            return;
+        RefreshCacheImpl();
+    }
+
+    private void SendDataToUi(Guid requestId)
+    {
+        var payload = new Dict { ["Data"] = InternalData };
+        Actor.Ui?.Send(
+            new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)
+        );
+    }
+
+    protected void RefreshCacheImpl()
+    {
+        Read();
+        var updated = false;
+        lock (this)
+        {
+            updated |= UpdateCache(ref _dataCache, InternalData);
+        }
+
+        if (updated)
+            SendDataToUi(Guid.Empty);
+    }
+
+    private static bool UpdateCache<T>(ref T field, T value)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value))
+            return false;
+        field = value;
+        return true;
     }
 }

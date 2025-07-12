@@ -6,9 +6,4 @@ public class FakeAnalogInput() : AnalogInput(EmptyDeviceManager.Instance)
     {
         set => InternalData = value;
     }
-
-    protected override void ReadFromDevice()
-    {
-        // Empty
-    }
 }
