@@ -83,13 +83,13 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
         return base.ProcessMessage(message);
     }
 
-    public override void RefreshCache()
+    public override void RefreshCache(bool alwaysUpdate = false)
     {
         base.RefreshCache();
 
         if (AnalogIoDevice == null)
             return;
-        RefreshCacheImpl();
+        RefreshCacheImpl(alwaysUpdate);
     }
 
     private void SendDataToUi(Guid requestId)
@@ -100,7 +100,7 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
         );
     }
 
-    protected void RefreshCacheImpl()
+    protected void RefreshCacheImpl(bool alwaysUpdate = false)
     {
         Read();
         var updated = false;
@@ -109,7 +109,7 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
             updated |= UpdateCache(ref _dataCache, InternalData);
         }
 
-        if (updated)
+        if (updated || alwaysUpdate)
             SendDataToUi(Guid.Empty);
     }
 

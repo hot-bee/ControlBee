@@ -40,7 +40,7 @@ public class DigitalOutputPlaceholder : IPlaceholder, IDigitalOutput
         throw new NotImplementedException();
     }
 
-    public void RefreshCache()
+    public void RefreshCache(bool alwaysUpdate = false)
     {
         throw new UnimplementedByDesignError();
     }

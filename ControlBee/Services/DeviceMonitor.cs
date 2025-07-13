@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using ControlBee.Interfaces;
+﻿using ControlBee.Interfaces;
 using log4net;
 
 namespace ControlBee.Services;
@@ -7,8 +6,10 @@ namespace ControlBee.Services;
 public class DeviceMonitor : IDeviceMonitor
 {
     private static readonly ILog Logger = LogManager.GetLogger("General");
+    private readonly Dictionary<(string actorName, string itemPath), bool> _alwaysUpdates = [];
 
     private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly Dictionary<(string actorName, string itemPath), IDeviceChannel> _channelMap = [];
     private readonly List<IDeviceChannel> _channels = [];
     private readonly Thread _thread;
 
@@ -17,7 +18,7 @@ public class DeviceMonitor : IDeviceMonitor
         _thread = new Thread(Monitoring)
         {
             Name = nameof(DeviceMonitor),
-            Priority = ThreadPriority.BelowNormal,
+            Priority = ThreadPriority.BelowNormal
         };
     }
 
@@ -32,23 +33,14 @@ public class DeviceMonitor : IDeviceMonitor
         _channels.Add(channel);
     }
 
-    private void Monitoring()
+    public void SetAlwaysUpdate(string actorName, string itemPath)
     {
-        var token = _cancellationTokenSource.Token;
-        try
-        {
-            while (true)
-                foreach (var channel in _channels)
-                {
-                    token.ThrowIfCancellationRequested();
-                    channel.RefreshCache();
-                    Thread.Sleep(1);
-                }
-        }
-        catch (OperationCanceledException)
-        {
-            Logger.Info("Exit Monitoring.");
-        }
+        _alwaysUpdates[(actorName, itemPath)] = true;
+    }
+
+    public bool GetAlwaysUpdate(string actorName, string itemPath)
+    {
+        return _alwaysUpdates.GetValueOrDefault((actorName, itemPath), false);
     }
 
     public void Start()
@@ -59,6 +51,37 @@ public class DeviceMonitor : IDeviceMonitor
             return;
         }
 
+        Init();
         _thread.Start();
+    }
+
+    public void Init()
+    {
+        foreach (var channel in _channels)
+        {
+            var actorName = channel.Actor.Name;
+            var itemPath = channel.ItemPath;
+            _channelMap.Add((actorName, itemPath), channel);
+        }
+    }
+
+    private void Monitoring()
+    {
+        var token = _cancellationTokenSource.Token;
+        try
+        {
+            while (true)
+                foreach (var (key, channel)in _channelMap)
+                {
+                    token.ThrowIfCancellationRequested();
+                    var alwaysUpdate = GetAlwaysUpdate(key.actorName, key.itemPath);
+                    channel.RefreshCache(alwaysUpdate);
+                    Thread.Sleep(1);
+                }
+        }
+        catch (OperationCanceledException)
+        {
+            Logger.Info("Exit Monitoring.");
+        }
     }
 }

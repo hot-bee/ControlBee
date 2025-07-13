@@ -11,7 +11,7 @@ public abstract class DeviceChannel(IDeviceManager deviceManager) : ActorItem, I
     protected string? DeviceName { get; set; }
     protected int Channel { get; set; } = -1;
 
-    public virtual void RefreshCache()
+    public virtual void RefreshCache(bool alwaysUpdate = false)
     {
         // Implement this on override functions
     }

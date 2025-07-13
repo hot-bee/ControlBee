@@ -38,7 +38,7 @@ public class AnalogOutputPlaceholder : IPlaceholder, IAnalogOutput
         throw new NotImplementedException();
     }
 
-    public void RefreshCache()
+    public void RefreshCache(bool alwaysUpdate = false)
     {
         throw new UnimplementedByDesignError();
     }

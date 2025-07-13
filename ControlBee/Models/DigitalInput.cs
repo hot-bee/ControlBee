@@ -92,7 +92,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         return base.ProcessMessage(message);
     }
 
-    public override void RefreshCache()
+    public override void RefreshCache(bool alwaysUpdate = false)
     {
         base.RefreshCache();
 
