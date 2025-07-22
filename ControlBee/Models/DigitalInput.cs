@@ -55,7 +55,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
 
     public bool IsOffOrTrue()
     {
-        return IsOnOffOrValue(true);
+        return !IsOnOffOrValue(!true);
     }
 
     public bool IsOnOrFalse()
@@ -65,7 +65,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
 
     public bool IsOffOrFalse()
     {
-        return IsOnOffOrValue(false);
+        return !IsOnOffOrValue(!false);
     }
 
     public void WaitOn()
