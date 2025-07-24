@@ -9,6 +9,7 @@ namespace ControlBee.Models;
 public class SystemPropertiesDataSource : ISystemPropertiesDataSource
 {
     private Dict? _data;
+    private const string BackupDir = "backup";
     private const string PropertyFileName = "ActorProperties.yaml";
 
     public object? GetValue(string actorName, string itemPath, string propertyName)
@@ -62,13 +63,13 @@ public class SystemPropertiesDataSource : ISystemPropertiesDataSource
         if (paths.Length == 0) return;
 
         var parentPath = paths[..^1];
-        if (!InitPath(parentPath)) return;
+        if (!CreatePath(parentPath)) return;
 
         var current = parentPath.Aggregate(_data, (prev, path) => (Dict)prev![path]!);
         current![paths[^1]] = value;
     }
 
-    public bool InitPath(string[] paths)
+    public bool CreatePath(string[] paths)
     {
         if (_data is null) return false;
 
@@ -84,17 +85,20 @@ public class SystemPropertiesDataSource : ISystemPropertiesDataSource
         return true;
     }
 
-    private void CopyOriginFile()
+    private void BackupOriginFile()
     {
+        if (!Directory.Exists(BackupDir))
+            Directory.CreateDirectory(BackupDir);
+
         var timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-        var destFile = $"{timestamp}{PropertyFileName}";
+        var destFile = Path.Combine(BackupDir, $"{timestamp}{PropertyFileName}");
 
         File.Copy(PropertyFileName, destFile, overwrite: true);
     }
 
     public void SaveToFile()
     {
-        CopyOriginFile();
+        BackupOriginFile();
 
         var serializer = new SerializerBuilder().Build();
         var objData = serializer.Serialize(_data)!;
