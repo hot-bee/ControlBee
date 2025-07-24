@@ -7,4 +7,6 @@ public interface ISystemPropertiesDataSource
     void ReadFromFile();
     void ReadFromString(string content);
     object? GetValue(string propertyPath);
+    void SetValue(string actorName, string propertyPath, object value);
+    void SaveToFile();
 }
