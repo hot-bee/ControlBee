@@ -1,4 +1,5 @@
-﻿using ControlBee.Interfaces;
+﻿using System.IO;
+using ControlBee.Interfaces;
 using ControlBee.Utils;
 using YamlDotNet.Serialization;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
@@ -8,6 +9,7 @@ namespace ControlBee.Models;
 public class SystemPropertiesDataSource : ISystemPropertiesDataSource
 {
     private Dict? _data;
+    private const string PropertyFileName = "ActorProperties.yaml";
 
     public object? GetValue(string actorName, string itemPath, string propertyName)
     {
@@ -23,7 +25,7 @@ public class SystemPropertiesDataSource : ISystemPropertiesDataSource
 
     public void ReadFromFile()
     {
-        using var reader = new StreamReader("ActorProperties.yaml");
+        using var reader = new StreamReader(PropertyFileName);
         _data = ParseYaml(reader.ReadToEnd());
     }
 
@@ -51,6 +53,54 @@ public class SystemPropertiesDataSource : ISystemPropertiesDataSource
         {
             return null;
         }
+    }
+
+    public void SetValue(string actorName, string propertyPath, object value)
+    {
+        var fullPath = string.Join('/', actorName.Trim('/'), propertyPath.Trim('/'));
+        var paths = fullPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (paths.Length == 0) return;
+
+        var parentPath = paths[..^1];
+        if (!InitPath(parentPath)) return;
+
+        var current = parentPath.Aggregate(_data, (prev, path) => (Dict)prev![path]!);
+        current![paths[^1]] = value;
+    }
+
+    public bool InitPath(string[] paths)
+    {
+        if (_data is null) return false;
+
+        var current = _data;
+        foreach (var path in paths)
+        {
+            if (current.TryGetValue(path, out var child) && child is not Dict)
+                return false;
+
+            current = (Dict)(current[path] = child as Dict ?? new Dict());
+        }
+
+        return true;
+    }
+
+    private void CopyOriginFile()
+    {
+        var timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+        var destFile = $"{timestamp}{PropertyFileName}";
+
+        File.Copy(PropertyFileName, destFile, overwrite: true);
+    }
+
+    public void SaveToFile()
+    {
+        CopyOriginFile();
+
+        var serializer = new SerializerBuilder().Build();
+        var objData = serializer.Serialize(_data)!;
+        using var writer = new StreamWriter(PropertyFileName);
+
+        writer.WriteLine(objData);
     }
 
     private Dict ParseYaml(string content)

@@ -18,6 +18,16 @@ public class EmptySystemPropertiesDataSource : ISystemPropertiesDataSource
         return null;
     }
 
+    public void SetValue(string actorName, string propertyPath, object value)
+    {
+        // Empty
+    }
+
+    public void SaveToFile()
+    {
+        // Empty
+    }
+
     public void ReadFromFile()
     {
         // Empty
