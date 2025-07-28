@@ -16,9 +16,9 @@ public interface IAxis : IDeviceChannel
     bool IsInitializing();
     bool IsNear(double position, double range);
     bool IsPosition(PositionComparisonType type, double position);
-    void WaitForPosition(PositionComparisonType type, double position);
+    bool WaitForPosition(PositionComparisonType type, double position);
     bool IsFar(double position, double range);
-    void WaitFar(double position, double range);
+    bool WaitFar(double position, double range);
     bool IsMoving();
     void Move(double position);
     void Move(double position, bool @override);

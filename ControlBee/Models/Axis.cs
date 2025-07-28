@@ -328,17 +328,17 @@ public class Axis : DeviceChannel, IAxis
         }
     }
 
-    public void WaitForPosition(PositionComparisonType type, double position)
+    public bool WaitForPosition(PositionComparisonType type, double position)
     {
         while (true)
         {
             if (IsPosition(type, position))
-                return;
+                return true;
             if (!IsMoving())
             {
                 if (IsPosition(type, position))
-                    return;
-                throw new SequenceError("Couldn't meet the condition.");
+                    return true;
+                return false;
             }
 
             _timeManager.Sleep(1);
@@ -350,17 +350,17 @@ public class Axis : DeviceChannel, IAxis
         return Math.Abs(GetPosition(PositionType.Command) - position) > range;
     }
 
-    public void WaitFar(double position, double range)
+    public bool WaitFar(double position, double range)
     {
         while (true)
         {
             if (IsFar(position, range))
-                return;
+                return true;
             if (!IsMoving())
             {
                 if (IsFar(position, range))
-                    return;
-                throw new SequenceError("Couldn't meet the condition.");
+                    return true;
+                return false;
             }
 
             _timeManager.Sleep(1);
