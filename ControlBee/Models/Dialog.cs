@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using ControlBee.Constants;
+﻿using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Services;
 using log4net;
@@ -12,7 +11,7 @@ public class Dialog(DialogContextFactory dialogContextFactory) : ActorItem, IDia
 
     protected IDialogContext Context = dialogContextFactory.Create();
 
-    public virtual void Init()
+    public override void Init()
     {
         Context.ActorName = ActorName;
     }
