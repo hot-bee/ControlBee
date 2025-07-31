@@ -36,11 +36,13 @@ public class Axis : DeviceChannel, IAxis
             Accel = 100.0,
             Decel = 100.0,
             AccelJerkRatio = 0.75,
-            DecelJerkRatio = 0.75,
+            DecelJerkRatio = 0.75
         }
     );
 
     public InitializeSequence InternalInitializeSequence;
+
+    public bool IsJogReversed;
 
     public Variable<SpeedProfile> JogSpeed = new(
         VariableScope.Global,
@@ -50,7 +52,7 @@ public class Axis : DeviceChannel, IAxis
             Accel = 100.0,
             Decel = 100.0,
             AccelJerkRatio = 0.75,
-            DecelJerkRatio = 0.75,
+            DecelJerkRatio = 0.75
         }
     );
 
@@ -67,12 +69,11 @@ public class Axis : DeviceChannel, IAxis
             Accel = 100.0,
             Decel = 100.0,
             AccelJerkRatio = 0.75,
-            DecelJerkRatio = 0.75,
+            DecelJerkRatio = 0.75
         }
     );
 
     public Variable<double> Resolution = new(VariableScope.Global, 1.0);
-    public double ResolutionValue => Resolution.Value;
 
     public Variable<Array1D<double>> StepJogSizes = new(
         VariableScope.Global,
@@ -87,6 +88,7 @@ public class Axis : DeviceChannel, IAxis
 
     // ReSharper disable once SuspiciousTypeConversion.Global
     protected virtual IMotionDevice? MotionDevice => Device as IMotionDevice;
+    public double ResolutionValue => Resolution.Value;
 
     public override void Init()
     {
@@ -103,6 +105,8 @@ public class Axis : DeviceChannel, IAxis
             Enum.TryParse(initSensorType, out InitSensorType);
         if (dataSource.GetValue(ActorName, ItemPath, nameof(InitDirection)) is string initDirection)
             Enum.TryParse(initDirection, out InitDirection);
+        if (dataSource.GetValue(ActorName, ItemPath, nameof(IsJogReversed)) is string isJogReversed)
+            bool.TryParse(isJogReversed, out IsJogReversed);
 
         InternalInitializeSequence = new InitializeSequence(
             this,
@@ -111,10 +115,7 @@ public class Axis : DeviceChannel, IAxis
             InitSensorType,
             InitDirection
         );
-        _initializeAction = () =>
-        {
-            InternalInitializeSequence.Run();
-        };
+        _initializeAction = () => { InternalInitializeSequence.Run(); };
     }
 
     public override void RefreshCache(bool alwaysUpdate = false)
@@ -152,13 +153,14 @@ public class Axis : DeviceChannel, IAxis
             {
                 var type = (string)message.DictPayload!["Type"]!;
                 var direction = (AxisDirection)message.DictPayload!["Direction"]!;
+                if (IsJogReversed) direction = (AxisDirection)((int)direction * -1);
                 switch (type)
                 {
                     case "Continuous":
                     {
                         Logger.Debug("Continuous Jog Start");
 
-                        if(DictPath.Start(message.DictPayload)["JogSpeed"].Value is JogSpeedLevel jogSpeed)
+                        if (DictPath.Start(message.DictPayload)["JogSpeed"].Value is JogSpeedLevel jogSpeed)
                         {
                             var speed = GetJogSpeed(jogSpeed);
                             SetSpeed(speed);
@@ -169,7 +171,11 @@ public class Axis : DeviceChannel, IAxis
                             speed.Velocity *= jogSpeedRatio;
                             SetSpeed(speed);
                         }
-                        else throw new ValueError();
+                        else
+                        {
+                            throw new ValueError();
+                        }
+
                         VelocityMove(direction);
                         message.Sender.Send(new Message(message, Actor, "_jogStarted"));
                         break;
@@ -625,7 +631,7 @@ public class Axis : DeviceChannel, IAxis
             AxisSensorType.Home => MotionDevice.GetHomeSensor(Channel),
             AxisSensorType.PositiveLimit => MotionDevice.GetPositiveLimitSensor(Channel),
             AxisSensorType.NegativeLimit => MotionDevice.GetNegativeLimitSensor(Channel),
-            _ => throw new ValueError(),
+            _ => throw new ValueError()
         };
     }
 
@@ -711,7 +717,7 @@ public class Axis : DeviceChannel, IAxis
                 ["IsInitializing"] = _isInitializingCache,
                 ["IsHomeDet"] = _isHomeDetCache,
                 ["IsNegativeLimitDet"] = _isNegativeLimitDetCache,
-                ["IsPositiveLimitDet"] = _isPositiveLimitDetCache,
+                ["IsPositiveLimitDet"] = _isPositiveLimitDetCache
             };
         }
 
