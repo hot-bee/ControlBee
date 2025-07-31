@@ -157,9 +157,19 @@ public class Axis : DeviceChannel, IAxis
                     case "Continuous":
                     {
                         Logger.Debug("Continuous Jog Start");
-                        var jogSpeed = (JogSpeedLevel)message.DictPayload!["JogSpeed"]!;
-                        var speed = GetJogSpeed(jogSpeed);
-                        SetSpeed(speed);
+
+                        if(DictPath.Start(message.DictPayload)["JogSpeed"].Value is JogSpeedLevel jogSpeed)
+                        {
+                            var speed = GetJogSpeed(jogSpeed);
+                            SetSpeed(speed);
+                        }
+                        else if (DictPath.Start(message.DictPayload)["JogSpeedRatio"].Value is double jogSpeedRatio)
+                        {
+                            var speed = (SpeedProfile)GetJogSpeed(JogSpeedLevel.Fast).Clone();
+                            speed.Velocity *= jogSpeedRatio;
+                            SetSpeed(speed);
+                        }
+                        else throw new ValueError();
                         VelocityMove(direction);
                         message.Sender.Send(new Message(message, Actor, "_jogStarted"));
                         break;
