@@ -440,8 +440,31 @@ public class Axis : DeviceChannel, IAxis
 
     public void RelativeMove(double distance)
     {
-        var position = GetPosition(PositionType.Command) + distance;
-        Move(position);
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        try
+        {
+            ValidateBeforeMove(false);
+            MotionDevice.JerkRatioSCurveRelativeMove(
+                Channel,
+                distance * Resolution.Value,
+                CurrentSpeedProfile.Velocity * Resolution.Value,
+                CurrentSpeedProfile.Accel * Resolution.Value,
+                CurrentSpeedProfile.Decel * Resolution.Value,
+                CurrentSpeedProfile.AccelJerkRatio,
+                CurrentSpeedProfile.DecelJerkRatio
+            );
+            MonitorMoving();
+        }
+        catch (NotImplementedException)
+        {
+            var position = GetPosition(PositionType.Command) + distance;
+            Move(position);
+        }
     }
 
     public void MoveAndWait(double position)
