@@ -405,7 +405,7 @@ public class Axis : DeviceChannel, IAxis
         MotionDevice.SearchZPhase(
             Channel,
             InitSpeed.Value.Velocity * Resolution.Value,
-            InitSpeed.Value.Accel * Resolution.Value,
+            Math.Abs(InitSpeed.Value.Accel * Resolution.Value),
             distance
         );
     }
@@ -429,9 +429,9 @@ public class Axis : DeviceChannel, IAxis
         MotionDevice.JerkRatioSCurveMove(
             Channel,
             position * Resolution.Value,
-            CurrentSpeedProfile.Velocity * Resolution.Value,
-            CurrentSpeedProfile.Accel * Resolution.Value,
-            CurrentSpeedProfile.Decel * Resolution.Value,
+            Math.Abs(CurrentSpeedProfile.Velocity * Resolution.Value),
+            Math.Abs(CurrentSpeedProfile.Accel * Resolution.Value),
+            Math.Abs(CurrentSpeedProfile.Decel * Resolution.Value),
             CurrentSpeedProfile.AccelJerkRatio,
             CurrentSpeedProfile.DecelJerkRatio
         );
@@ -452,9 +452,9 @@ public class Axis : DeviceChannel, IAxis
             MotionDevice.JerkRatioSCurveRelativeMove(
                 Channel,
                 distance * Resolution.Value,
-                CurrentSpeedProfile.Velocity * Resolution.Value,
-                CurrentSpeedProfile.Accel * Resolution.Value,
-                CurrentSpeedProfile.Decel * Resolution.Value,
+                Math.Abs(CurrentSpeedProfile.Velocity * Resolution.Value),
+                Math.Abs(CurrentSpeedProfile.Accel * Resolution.Value),
+                Math.Abs(CurrentSpeedProfile.Decel * Resolution.Value),
                 CurrentSpeedProfile.AccelJerkRatio,
                 CurrentSpeedProfile.DecelJerkRatio
             );
@@ -507,8 +507,8 @@ public class Axis : DeviceChannel, IAxis
         MotionDevice.VelocityMove(
             Channel,
             velocity * Resolution.Value,
-            CurrentSpeedProfile.Accel * Resolution.Value,
-            CurrentSpeedProfile.Decel * Resolution.Value,
+            Math.Abs(CurrentSpeedProfile.Accel * Resolution.Value),
+            Math.Abs(CurrentSpeedProfile.Decel * Resolution.Value),
             CurrentSpeedProfile.AccelJerkRatio,
             CurrentSpeedProfile.DecelJerkRatio
         );
