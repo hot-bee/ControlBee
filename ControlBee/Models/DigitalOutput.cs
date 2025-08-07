@@ -120,6 +120,17 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         Wait();
     }
 
+    public override void Sync()
+    {
+        if (DigitalIoDevice == null)
+        {
+            Logger.Warn("DigitalIoDevice is null.");
+            return;
+        }
+        InternalOn = DigitalIoDevice.GetDigitalOutputBit(Channel);
+        _isOn = InternalOn;
+    }
+
     private void SendDataToUi(Guid requestId)
     {
         var payload = new Dict { ["On"] = InternalOn, ["IsOn"] = IsOn() };
@@ -131,12 +142,6 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
     public override void PostInit()
     {
         base.PostInit();
-        if (DigitalIoDevice == null)
-        {   
-            Logger.Warn("DigitalIoDevice is null.");
-            return;
-        }
-        InternalOn = DigitalIoDevice.GetDigitalOutputBit(Channel);
-        _isOn = InternalOn;
+        Sync();
     }
 }

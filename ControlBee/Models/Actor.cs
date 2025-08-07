@@ -317,26 +317,43 @@ public class Actor : IActorInternal, IDisposable
     private void IterateItems(
         string itemPathPrefix,
         object actorItemHolder,
-        Func<object, IActorItem, FieldInfo, string, ActorConfig, IActorItem> func,
+        Func<object, IActorItem, Type, FieldInfo, int, string, ActorConfig, IActorItem> func,
         ActorConfig config
     )
     {
         var fieldInfos = actorItemHolder.GetType().GetFields();
         foreach (var fieldInfo in fieldInfos)
+        {
             if (fieldInfo.FieldType.IsAssignableTo(typeof(IActorItem)))
             {
                 var itemPath = string.Join('/', itemPathPrefix, fieldInfo.Name);
                 if (fieldInfo.GetValue(actorItemHolder)! is not IActorItem actorItem) continue;
-                actorItem = func(actorItemHolder, actorItem, fieldInfo, itemPath, config);
+                actorItem = func(actorItemHolder, actorItem, fieldInfo.FieldType, fieldInfo, -1, itemPath, config);
 
                 IterateItems(itemPath, actorItem, func, config);
             }
+
+            if (fieldInfo.FieldType.IsAssignableTo(typeof(IActorItem[])))
+            {
+                var array = (IActorItem[])fieldInfo.GetValue(this)!;
+                for (var i = 0; i < array.Length; i++)
+                {
+                    var itemPath = string.Join('/', itemPathPrefix, fieldInfo.Name, $"{i}");
+                    if (array[i] is not { } actorItem) continue;
+                    actorItem = func(actorItemHolder, actorItem, array[i].GetType(), fieldInfo, i, itemPath, config);
+
+                    IterateItems(itemPath, actorItem, func, config);
+                }
+            }
+        }
     }
 
     private IActorItem InitItem(
         object actorItemHolder,
         IActorItem actorItem,
+        Type type,
         FieldInfo fieldInfo,
+        int index,
         string itemPath,
         ActorConfig config
     )
@@ -344,23 +361,31 @@ public class Actor : IActorInternal, IDisposable
         if (actorItem is IPlaceholder placeHolder)
         {
             IActorItem newItem;
-            if (fieldInfo.FieldType.IsAssignableTo(typeof(IDigitalInput)))
+            if (type.IsAssignableTo(typeof(IDigitalInput)))
                 newItem = config.DigitalInputFactory.Create();
-            else if (fieldInfo.FieldType.IsAssignableTo(typeof(IDigitalOutput)))
+            else if (type.IsAssignableTo(typeof(IDigitalOutput)))
                 newItem = config.DigitalOutputFactory.Create();
-            else if (fieldInfo.FieldType.IsAssignableTo(typeof(IAnalogInput)))
+            else if (type.IsAssignableTo(typeof(IAnalogInput)))
                 newItem = config.AnalogInputFactory.Create();
-            else if (fieldInfo.FieldType.IsAssignableTo(typeof(IAnalogOutput)))
+            else if (type.IsAssignableTo(typeof(IAnalogOutput)))
                 newItem = config.AnalogOutputFactory.Create();
-            else if (fieldInfo.FieldType.IsAssignableTo(typeof(IDialog)))
+            else if (type.IsAssignableTo(typeof(IDialog)))
                 newItem = config.DialogFactory.Create();
-            else if (fieldInfo.FieldType.IsAssignableTo(typeof(IVision)))
+            else if (type.IsAssignableTo(typeof(IVision)))
                 newItem = config.VisionFactory.Create();
             else
                 throw new ValueError();
             _placeholderManager.Add(placeHolder, newItem);
             actorItem = newItem;
-            fieldInfo.SetValue(actorItemHolder, actorItem);
+            if (index == -1)
+            {
+                fieldInfo.SetValue(actorItemHolder, actorItem);
+            }
+            else
+            {
+                var array = (IActorItem[])fieldInfo.GetValue(actorItemHolder)!;
+                array[index] = actorItem;
+            }
         }
 
         AddItem(actorItem, itemPath);
@@ -371,7 +396,9 @@ public class Actor : IActorInternal, IDisposable
     private IActorItem PostInitItem(
         object actorItemHolder,
         IActorItem actorItem,
+        Type type,
         FieldInfo fieldInfo,
+        int index,
         string itemPath,
         ActorConfig config
     )
@@ -388,7 +415,9 @@ public class Actor : IActorInternal, IDisposable
     private IActorItem ReplacePlaceholder(
         object actorItemHolder,
         IActorItem actorItem,
+        Type type,
         FieldInfo fieldInfo,
+        int index,
         string itemPath,
         ActorConfig config
     )
