@@ -4,7 +4,7 @@ using ControlBee.Models;
 namespace ControlBee.Services;
 
 public class ActorFactory(
-    SystemConfigurations systemConfigurations,
+    ISystemConfigurations systemConfigurations,
     IAxisFactory axisFactory,
     IDigitalInputFactory digitalInputFactory,
     IDigitalOutputFactory digitalOutputFactory,

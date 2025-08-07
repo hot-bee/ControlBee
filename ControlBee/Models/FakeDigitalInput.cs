@@ -5,7 +5,7 @@ using log4net;
 namespace ControlBee.Models;
 
 public class FakeDigitalInput(
-    SystemConfigurations systemConfigurations,
+    ISystemConfigurations systemConfigurations,
     IScenarioFlowTester flowTester
 ) : DigitalInput(EmptyDeviceManager.Instance)
 {

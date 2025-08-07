@@ -26,7 +26,7 @@ public class FrozenTimeManager : ITimeManager
     private bool _disposing;
 
     public FrozenTimeManager(
-        SystemConfigurations systemConfigurations,
+        ISystemConfigurations systemConfigurations,
         IScenarioFlowTester scenarioFlowTester
     )
         : this(

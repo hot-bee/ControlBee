@@ -6,7 +6,7 @@ using ControlBee.Variables;
 
 namespace ControlBee.Services;
 
-public class InitializeSequenceFactory(SystemConfigurations systemConfigurations)
+public class InitializeSequenceFactory(ISystemConfigurations systemConfigurations)
     : IInitializeSequenceFactory
 {
     public IInitializeSequence Create(

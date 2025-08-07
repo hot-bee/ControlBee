@@ -3,7 +3,7 @@
 namespace ControlBee.Models;
 
 public class AxisFactory(
-    SystemConfigurations systemConfigurations,
+    ISystemConfigurations systemConfigurations,
     IDeviceManager deviceManager,
     ITimeManager timeManager,
     IScenarioFlowTester flowTester,

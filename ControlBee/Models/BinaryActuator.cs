@@ -8,7 +8,7 @@ namespace ControlBee.Models;
 public class BinaryActuator : ActorItem, IBinaryActuator
 {
     private readonly IScenarioFlowTester _scenarioFlowTester;
-    private readonly SystemConfigurations _systemConfigurations;
+    private readonly ISystemConfigurations _systemConfigurations;
     private readonly ITimeManager _timeManager;
     private IDigitalInput? _inputOff;
     private IDigitalInput? _inputOn;
@@ -23,7 +23,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
     public IDialog TimeoutError = new DialogPlaceholder();
 
     public BinaryActuator(
-        SystemConfigurations systemConfigurations,
+        ISystemConfigurations systemConfigurations,
         ITimeManager timeManager,
         IScenarioFlowTester scenarioFlowTester,
         IDigitalOutput? outputOn,

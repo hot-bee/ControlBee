@@ -4,7 +4,7 @@ namespace ControlBee.Models;
 
 public class ActorConfig(
     string actorName,
-    SystemConfigurations systemConfigurations,
+    ISystemConfigurations systemConfigurations,
     IAxisFactory axisFactory,
     IDigitalInputFactory digitalInputFactory,
     IDigitalOutputFactory digitalOutputFactory,
@@ -22,7 +22,7 @@ public class ActorConfig(
     IActor? uiActor
 )
 {
-    public SystemConfigurations SystemConfigurations { get; } = systemConfigurations;
+    public ISystemConfigurations SystemConfigurations { get; } = systemConfigurations;
     public IBinaryActuatorFactory BinaryActuatorFactory { get; } = binaryActuatorFactory;
     public IVisionFactory VisionFactory { get; } = visionFactory;
     public IScenarioFlowTester ScenarioFlowTester { get; } = scenarioFlowTester;

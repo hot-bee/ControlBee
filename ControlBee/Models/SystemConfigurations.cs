@@ -1,9 +1,10 @@
-﻿using log4net;
+﻿using ControlBee.Interfaces;
+using log4net;
 using Newtonsoft.Json;
 
 namespace ControlBee.Models;
 
-public class SystemConfigurations
+public class SystemConfigurations: ISystemConfigurations
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(SystemConfigurations));
     public bool FakeMode { get; set; } // TODO: setter should be removed

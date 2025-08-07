@@ -3,7 +3,7 @@
 namespace ControlBee.Models;
 
 public class DigitalInputFactory(
-    SystemConfigurations systemConfigurations,
+    ISystemConfigurations systemConfigurations,
     IDeviceManager deviceManager,
     IScenarioFlowTester scenarioFlowTester,
     IDeviceMonitor deviceMonitor

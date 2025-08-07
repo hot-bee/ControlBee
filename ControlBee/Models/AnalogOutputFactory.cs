@@ -3,7 +3,7 @@
 namespace ControlBee.Models;
 
 public class AnalogOutputFactory(
-    SystemConfigurations systemConfigurations,
+    ISystemConfigurations systemConfigurations,
     IDeviceManager deviceManager,
     IDeviceMonitor deviceMonitor
 ) : IAnalogOutputFactory

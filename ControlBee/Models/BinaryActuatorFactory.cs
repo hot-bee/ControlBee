@@ -3,7 +3,7 @@
 namespace ControlBee.Models;
 
 public class BinaryActuatorFactory(
-    SystemConfigurations systemConfigurations,
+    ISystemConfigurations systemConfigurations,
     ITimeManager timeManager,
     IScenarioFlowTester scenarioFlowTester
 ) : IBinaryActuatorFactory

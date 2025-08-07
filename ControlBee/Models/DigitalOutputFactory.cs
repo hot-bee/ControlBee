@@ -3,7 +3,7 @@
 namespace ControlBee.Models;
 
 public class DigitalOutputFactory(
-    SystemConfigurations systemConfigurations,
+    ISystemConfigurations systemConfigurations,
     IDeviceManager deviceManager,
     ITimeManager timeManager,
     IDeviceMonitor deviceMonitor
