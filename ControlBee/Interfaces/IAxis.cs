@@ -15,6 +15,7 @@ public interface IAxis : IDeviceChannel
     bool IsEnabled();
     bool IsInitializing();
     bool IsNear(double position, double range);
+    bool WaitNear(double position, double range);
     bool IsPosition(PositionComparisonType type, double position);
     bool WaitForPosition(PositionComparisonType type, double position);
     bool IsFar(double position, double range);

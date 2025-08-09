@@ -327,6 +327,23 @@ public class Axis : DeviceChannel, IAxis
         return Math.Abs(GetPosition(PositionType.Command) - position) <= range;
     }
 
+    public bool WaitNear(double position, double range)
+    {
+        while (true)
+        {
+            if (IsNear(position, range))
+                return true;
+            if (!IsMoving())
+            {
+                if (IsNear(position, range))
+                    return true;
+                return false;
+            }
+
+            _timeManager.Sleep(1);
+        }
+    }
+
     public bool IsPosition(PositionComparisonType type, double position)
     {
         switch (type)
