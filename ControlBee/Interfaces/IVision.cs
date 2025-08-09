@@ -10,5 +10,6 @@ public interface IVision : IDeviceChannel
     bool IsContinuousMode();
 
     void Wait(int inspectionIndex, int timeout);
+    void WaitGrabEnd(int inspectionIndex, int timeout);
     JsonObject? GetResult(int inspectionIndex);
 }

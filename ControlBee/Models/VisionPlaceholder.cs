@@ -78,6 +78,11 @@ public class VisionPlaceholder : IPlaceholder, IVision
         throw new NotImplementedException();
     }
 
+    public void WaitGrabEnd(int inspectionIndex, int timeout)
+    {
+        throw new NotImplementedException();
+    }
+
     public JsonObject? GetResult(int inspectionIndex)
     {
         throw new NotImplementedException();

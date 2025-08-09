@@ -85,6 +85,25 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         }
     }
 
+    public void WaitGrabEnd(int inspectionIndex, int timeout)
+    {
+        if (VisionDevice == null)
+        {
+            Logger.Error($"VisionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        try
+        {
+            VisionDevice.WaitGrabEnd(Channel, inspectionIndex, timeout);
+        }
+        catch (TimeoutError)
+        {
+            TimeoutError.Show();
+            throw;
+        }
+    }
+
     public virtual JsonObject? GetResult(int inspectionIndex)
     {
         if (VisionDevice == null)
