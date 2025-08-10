@@ -114,7 +114,7 @@ public class Actor : IActorInternal, IDisposable
         if (message.Name == "_status")
             MessageLogger.Debug(content);
         else
-            MessageLogger.Info(content);
+            MessageLogger.Debug(content);
         return message.Id;
     }
 
@@ -228,7 +228,7 @@ public class Actor : IActorInternal, IDisposable
         if (value != null && Status.TryGetValue(name, out var oldValue))
             if (value.Equals(oldValue))
                 return;
-        StatusLogger.Info($"SetStatus: {name}, {value}");
+        StatusLogger.Debug($"SetStatus: {name}, {value}");
         Status[name] = value;
         PublishStatus();
     }
@@ -244,7 +244,7 @@ public class Actor : IActorInternal, IDisposable
         if (value != null && statusByActor.TryGetValue(keyName, out var oldValue))
             if (value.Equals(oldValue))
                 return;
-        StatusLogger.Info($"SetStatusByActor: {actorName}, {keyName}, {value}");
+        StatusLogger.Debug($"SetStatusByActor: {actorName}, {keyName}, {value}");
         statusByActor[keyName] = value;
         Status[actorName] = statusByActor;
         PublishStatus();
@@ -523,7 +523,7 @@ public class Actor : IActorInternal, IDisposable
                     oldStateHashes.ExceptWith(newStateHashes);
                     oldStateHashes.ToList().ForEach(x => x.Dispose());
 
-                    StateLogger.Info($"{oldState.GetType().Name}->{State.GetType().Name}");
+                    StateLogger.Debug($"{oldState.GetType().Name}->{State.GetType().Name}");
                     OnStateChanged((oldState, State));
                     ScenarioFlowTester.OnCheckpoint();
                     message = new StateEntryMessage(this);
@@ -559,7 +559,7 @@ public class Actor : IActorInternal, IDisposable
                 State = CreateErrorState(error);
             }
 
-            StateLogger.Info($"{oldState.GetType().Name}->{State.GetType().Name}");
+            StateLogger.Debug($"{oldState.GetType().Name}->{State.GetType().Name}");
             OnStateChanged((oldState, State));
             ScenarioFlowTester.OnCheckpoint();
             Ui?.Send(new Message(this, "_stateChanged", State.GetType().Name));
