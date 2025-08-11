@@ -6,6 +6,7 @@ namespace ControlBee.Models;
 
 public class DialogFactory(
     DialogContextFactory dialogContextFactory,
+    IEventManager eventManager,
     IServiceProvider? serviceProvider
 ) : IDialogFactory
 {
@@ -13,6 +14,6 @@ public class DialogFactory(
     {
         return serviceProvider != null
             ? serviceProvider.GetRequiredService<IDialog>()
-            : new Dialog(dialogContextFactory);
+            : new Dialog(dialogContextFactory, eventManager);
     }
 }

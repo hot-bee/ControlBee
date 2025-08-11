@@ -1,11 +1,13 @@
 ﻿using System.Data;
+using System.Reflection.Metadata.Ecma335;
 using ControlBee.Interfaces;
+using log4net;
 using Microsoft.Data.Sqlite;
-
 namespace ControlBee.Variables;
 
 public class SqliteDatabase : IDatabase, IDisposable
 {
+    private static readonly ILog Logger = LogManager.GetLogger("SqliteDatabase");
     private readonly SqliteConnection _connection;
 
     public SqliteDatabase()
@@ -15,7 +17,7 @@ public class SqliteDatabase : IDatabase, IDisposable
         CreateTables();
     }
 
-    public void Write(
+    public void WriteVariables(
         VariableScope scope,
         string localName,
         string actorName,
@@ -35,6 +37,47 @@ public class SqliteDatabase : IDatabase, IDisposable
         command.Parameters.AddWithValue("@value", value);
 
         command.ExecuteNonQuery();
+    }
+
+    public void WriteEvents(
+        string actorName,
+        string name,
+        string severity,
+        string? code = null,
+        string? desc = null
+    )
+    {
+        var sql =
+            "INSERT OR REPLACE INTO events (actor_name, name, code, desc, severity) "
+            + "VALUES (@actor_name, @name, @code, @desc, @severity)";
+
+        using var command = new SqliteCommand(sql, _connection);
+        command.Parameters.AddWithValue("@actor_name", actorName);
+        command.Parameters.AddWithValue("@name", name);
+        command.Parameters.AddWithValue("@code", code ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@desc", desc ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@severity", severity);
+
+        command.ExecuteNonQuery();
+    }
+
+    public DataTable ReadAll(string tableName)
+    {
+        var sql = $"SELECT * FROM {tableName}";
+
+        var dt = new DataTable();
+        try
+        {
+            using var command = new SqliteCommand(sql, _connection);
+            using var reader = command.ExecuteReader();
+            dt.Load(reader);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"ReadAll failed." + $"TableName: {tableName}" + $"Message: {ex.Message}");
+        }
+
+        return dt;
     }
 
     public string? Read(string localName, string actorName, string itemPath)
@@ -72,16 +115,25 @@ public class SqliteDatabase : IDatabase, IDisposable
     private void CreateTables()
     {
         var sql = """
-            CREATE TABLE IF NOT EXISTS variables(
-                    scope INTEGER NOT NULL,
-                    local_name TEXT NOT NULL,
-                    actor_name TEXT NOT NULL,
-                    item_path TEXT NOT NULL,
-                    value BLOB,
-                    updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
-                    UNIQUE (local_name, actor_name, item_path)
-                );
-            """;
+                  CREATE TABLE IF NOT EXISTS variables(
+                          scope INTEGER NOT NULL,
+                          local_name TEXT NOT NULL,
+                          actor_name TEXT NOT NULL,
+                          item_path TEXT NOT NULL,
+                          value BLOB,
+                          updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+                          UNIQUE (local_name, actor_name, item_path)
+                      );
+                  CREATE TABLE IF NOT EXISTS events(
+                          id INTEGER PRIMARY KEY,
+                          updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+                          actor_name TEXT NOT NULL,
+                          name TEXT NOT NULL,
+                          code TEXT NULL,
+                          desc TEXT NULL,
+                          severity TEXT NOT NULL
+                      );
+                  """;
         using var command = new SqliteCommand(sql, _connection);
         command.ExecuteNonQuery();
     }
