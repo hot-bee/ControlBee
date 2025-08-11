@@ -11,6 +11,7 @@ public class SystemConfigurations: ISystemConfigurations
     public bool FakeVision { get; set; } // TODO: setter should be removed
     public bool SkipWaitSensor { get; set; } // TODO: setter should be removed
     public bool TimeEmulationMode { get; set; } // TODO: setter should be removed
+    public string Version { get; set; } = "0.0.1";
 
     public void Save()
     {
