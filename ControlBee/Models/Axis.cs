@@ -16,6 +16,7 @@ public class Axis : DeviceChannel, IAxis
 
     private Action _initializeAction;
     private bool _initializing;
+    protected bool _velocityMoving;
 
     protected SpeedProfile? CurrentSpeedProfile;
 
@@ -427,6 +428,11 @@ public class Axis : DeviceChannel, IAxis
         );
     }
 
+    public bool IsVelocityMoving()
+    {
+        return _velocityMoving;
+    }
+
     public InitializeSequence InitializeSequence => InternalInitializeSequence;
 
     public void Move(double position)
@@ -453,6 +459,7 @@ public class Axis : DeviceChannel, IAxis
             CurrentSpeedProfile.DecelJerkRatio
         );
         MonitorMoving();
+        _velocityMoving = false;
     }
 
     public void RelativeMove(double distance)
@@ -529,6 +536,7 @@ public class Axis : DeviceChannel, IAxis
             CurrentSpeedProfile.AccelJerkRatio,
             CurrentSpeedProfile.DecelJerkRatio
         );
+        _velocityMoving = true;
     }
 
     public virtual void Stop()
@@ -540,6 +548,7 @@ public class Axis : DeviceChannel, IAxis
         }
 
         MotionDevice.Stop(Channel);
+        _velocityMoving = false;
     }
 
     public virtual void EStop()
@@ -551,6 +560,7 @@ public class Axis : DeviceChannel, IAxis
         }
 
         MotionDevice.EStop(Channel);
+        _velocityMoving = false;
     }
 
     public virtual void SetPosition(

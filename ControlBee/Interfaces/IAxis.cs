@@ -47,4 +47,5 @@ public interface IAxis : IDeviceChannel
     SpeedProfile GetInitSpeed();
     Position1D GetInitPos();
     void SearchZPhase(double distance);
+    bool IsVelocityMoving();
 }

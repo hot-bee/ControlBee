@@ -74,6 +74,7 @@ public class FakeAxis : Axis, IDisposable
         ValidateBeforeMove(@override);
         _targetPosition = position;
         _isMoving = true;
+        _velocityMoving = false;
         _flowTester.OnCheckpoint();
         RefreshCache();
         MonitorMoving(@override);
@@ -95,6 +96,7 @@ public class FakeAxis : Axis, IDisposable
         }
 
         _isMoving = true;
+        _velocityMoving = true;
         _flowTester.OnCheckpoint();
         RefreshCache();
         MonitorMoving();
@@ -106,6 +108,7 @@ public class FakeAxis : Axis, IDisposable
             return;
         _targetPosition = _commandPosition;
         _isMoving = false;
+        _velocityMoving = false;
         _flowTester.OnCheckpoint();
         RefreshCache();
         Wait();
