@@ -11,5 +11,6 @@ public interface IVision : IDeviceChannel
 
     void Wait(int inspectionIndex, int timeout);
     void WaitGrabEnd(int inspectionIndex, int timeout);
+    void WaitExposureEnd(int inspectionIndex, int timeout);
     JsonObject? GetResult(int inspectionIndex);
 }

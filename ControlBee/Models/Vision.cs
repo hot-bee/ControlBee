@@ -104,6 +104,25 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         }
     }
 
+    public void WaitExposureEnd(int inspectionIndex, int timeout)
+    {
+        if (VisionDevice == null)
+        {
+            Logger.Error($"VisionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        try
+        {
+            VisionDevice.WaitExposureEnd(Channel, inspectionIndex, timeout);
+        }
+        catch (TimeoutError)
+        {
+            TimeoutError.Show();
+            throw;
+        }
+    }
+
     public virtual JsonObject? GetResult(int inspectionIndex)
     {
         if (VisionDevice == null)
