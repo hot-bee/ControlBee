@@ -9,7 +9,7 @@ public class FakeVision(IDeviceManager deviceManager, ITimeManager timeManager)
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(FakeVision));
 
-    public override void Trigger(int inspectionIndex)
+    public override void Trigger(int inspectionIndex, string? triggerId = null)
     {
         Logger.Info($"Trigger {Channel}.");
     }

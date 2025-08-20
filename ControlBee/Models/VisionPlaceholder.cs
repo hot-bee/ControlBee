@@ -53,7 +53,7 @@ public class VisionPlaceholder : IPlaceholder, IVision
         throw new NotImplementedException();
     }
 
-    public void Trigger(int inspectionIndex)
+    public void Trigger(int inspectionIndex, string? triggerId = null)
     {
         throw new NotImplementedException();
     }
@@ -78,6 +78,11 @@ public class VisionPlaceholder : IPlaceholder, IVision
         throw new NotImplementedException();
     }
 
+    public void Wait(string triggerId, int timeout)
+    {
+        throw new NotImplementedException();
+    }
+
     public void WaitGrabEnd(int inspectionIndex, int timeout)
     {
         throw new NotImplementedException();
@@ -89,6 +94,11 @@ public class VisionPlaceholder : IPlaceholder, IVision
     }
 
     public JsonObject? GetResult(int inspectionIndex)
+    {
+        throw new NotImplementedException();
+    }
+
+    public JsonObject? GetResult(string triggerId)
     {
         throw new NotImplementedException();
     }
