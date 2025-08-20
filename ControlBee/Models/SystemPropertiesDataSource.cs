@@ -6,11 +6,13 @@ using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
-public class SystemPropertiesDataSource : ISystemPropertiesDataSource
+public class SystemPropertiesDataSource(ISystemConfigurations systemConfigurations) : ISystemPropertiesDataSource
 {
     private Dict? _data;
-    private const string BackupDir = "backup";
+    private const string BackupDirName = "Backup";
     private const string PropertyFileName = "ActorProperties.yaml";
+    private string BackupDir => Path.Combine(systemConfigurations.DataFolder, BackupDirName);
+    private string PropertyFilePath => Path.Combine(systemConfigurations.DataFolder, PropertyFileName);
 
     public object? GetValue(string actorName, string itemPath, string propertyName)
     {
@@ -26,7 +28,7 @@ public class SystemPropertiesDataSource : ISystemPropertiesDataSource
 
     public void ReadFromFile()
     {
-        using var reader = new StreamReader(PropertyFileName);
+        using var reader = new StreamReader(PropertyFilePath);
         _data = ParseYaml(reader.ReadToEnd());
     }
 
@@ -85,10 +87,9 @@ public class SystemPropertiesDataSource : ISystemPropertiesDataSource
         return true;
     }
 
-    private void BackupOriginFile()
+    private void BackupPropertyFile()
     {
-        if (!Directory.Exists(BackupDir))
-            Directory.CreateDirectory(BackupDir);
+        Directory.CreateDirectory(BackupDir);
 
         var timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
         var destFile = Path.Combine(BackupDir, $"{timestamp}{PropertyFileName}");
@@ -98,11 +99,11 @@ public class SystemPropertiesDataSource : ISystemPropertiesDataSource
 
     public void SaveToFile()
     {
-        BackupOriginFile();
+        BackupPropertyFile();
 
         var serializer = new SerializerBuilder().Build();
         var objData = serializer.Serialize(_data)!;
-        using var writer = new StreamWriter(PropertyFileName);
+        using var writer = new StreamWriter(PropertyFilePath);
 
         writer.WriteLine(objData);
     }

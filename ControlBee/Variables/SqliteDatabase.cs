@@ -1,21 +1,26 @@
 ﻿using System.Data;
-using System.Reflection.Metadata.Ecma335;
 using ControlBee.Interfaces;
 using log4net;
 using Microsoft.Data.Sqlite;
+
 namespace ControlBee.Variables;
 
 public class SqliteDatabase : IDatabase, IDisposable
 {
+    private const string DbFileName = "machine.db";
     private static readonly ILog Logger = LogManager.GetLogger("SqliteDatabase");
     private readonly SqliteConnection _connection;
+    private readonly ISystemConfigurations _systemConfigurations;
 
-    public SqliteDatabase()
+    public SqliteDatabase(ISystemConfigurations systemConfigurations)
     {
-        _connection = new SqliteConnection("Data Source=machine.db");
+        _systemConfigurations = systemConfigurations;
+        _connection = new SqliteConnection($"Data Source={DbFilePath}");
         _connection.Open();
         CreateTables();
     }
+
+    private string DbFilePath => Path.Combine(_systemConfigurations.DataFolder, DbFileName);
 
     public void WriteVariables(
         VariableScope scope,

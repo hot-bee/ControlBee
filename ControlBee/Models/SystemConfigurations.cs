@@ -4,13 +4,14 @@ using Newtonsoft.Json;
 
 namespace ControlBee.Models;
 
-public class SystemConfigurations: ISystemConfigurations
+public class SystemConfigurations : ISystemConfigurations
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(SystemConfigurations));
     public bool FakeMode { get; set; } // TODO: setter should be removed
     public bool FakeVision { get; set; } // TODO: setter should be removed
     public bool SkipWaitSensor { get; set; } // TODO: setter should be removed
     public bool TimeEmulationMode { get; set; } // TODO: setter should be removed
+    public string DataFolder { get; set; } = "";
     public string Version { get; set; } = "0.0.1";
 
     public void Save()
@@ -18,6 +19,7 @@ public class SystemConfigurations: ISystemConfigurations
         var contents = JsonConvert.SerializeObject(this, Formatting.Indented);
         File.WriteAllText("SystemConfig.json", contents);
     }
+
     public void Load()
     {
         try
