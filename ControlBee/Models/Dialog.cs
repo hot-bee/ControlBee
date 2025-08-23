@@ -19,27 +19,17 @@ public class Dialog(DialogContextFactory dialogContextFactory, IEventManager eve
 
     public Guid Show()
     {
-        eventManager.Write(
-            Context.ActorName,
-            Context.Name,
-            Context.Severity,
-            Context.Code,
-            Context.Desc
-            );
-
-        return Show([]);
+        return Show(null, null);
     }
 
     public Guid Show(string[] actionButtons)
     {
-        Context.ActionButtons = actionButtons;
-        return Actor.Ui?.Send(new Message(Actor, "_displayDialog", Context)) ?? Guid.Empty;
+        return Show(actionButtons, null);
     }
 
     public Guid Show(string desc)
     {
-        Context.Desc = desc;
-        return Actor.Ui?.Send(new Message(Actor, "_displayDialog", Context)) ?? Guid.Empty;
+        return Show(null, desc);
     }
 
     public override void InjectProperties(ISystemPropertiesDataSource dataSource)
@@ -67,5 +57,19 @@ public class Dialog(DialogContextFactory dialogContextFactory, IEventManager eve
             else
                 Logger.Error($"Failed to parse DialogSeverity ({severityValue})");
         }
+    }
+
+    public Guid Show(string[]? actionButtons, string? desc)
+    {
+        if (actionButtons != null) Context.ActionButtons = actionButtons;
+        if (desc != null) Context.Desc = desc;
+        eventManager.Write(
+            Context.ActorName,
+            Context.Name,
+            Context.Severity,
+            Context.Code,
+            Context.Desc
+        );
+        return Actor.Ui?.Send(new Message(Actor, "_displayDialog", Context)) ?? Guid.Empty;
     }
 }

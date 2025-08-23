@@ -131,7 +131,7 @@ public class SqliteDatabase : IDatabase, IDisposable
                       );
                   CREATE TABLE IF NOT EXISTS events(
                           id INTEGER PRIMARY KEY,
-                          updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+                          created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
                           actor_name TEXT NOT NULL,
                           name TEXT NOT NULL,
                           code TEXT NULL,
