@@ -295,6 +295,17 @@ public class Actor : IActorInternal, IDisposable
         return GetPeerStatus(peer, "_error") is true;
     }
 
+    public bool IsPeerInactive(IActor? peer)
+    {
+        if (peer == null) return false;
+        return GetPeerStatus(peer, "_inactive") is true;
+    }
+
+    public bool HasPeerFailed(IActor? peer)
+    {
+        return HasPeerError(peer) || IsPeerInactive(peer);
+    }
+
     public void ResetState()
     {
         State = _initialState;
