@@ -42,6 +42,26 @@ public class SpeedProfile : PropertyVariable, ICloneable
         set => ValueChangedUtils.SetField(ref _decelJerkRatio, value, OnValueChanged);
     }
 
+    public double AccelJerk
+    {
+        get
+        {
+            var accelTime = Velocity / Accel;
+            var jerk = Velocity / AccelJerkRatio / (accelTime * accelTime);
+            return jerk;
+        }
+    }
+
+    public double DecelJerk
+    {
+        get
+        {
+            var decelTime = Velocity / Decel;
+            var jerk = Velocity / DecelJerkRatio / (decelTime * decelTime);
+            return jerk;
+        }
+    }
+
     public object Clone()
     {
         return MemberwiseClone();
