@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBeeAbstract.Exceptions;
 using log4net;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
@@ -21,7 +20,9 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
     }
 
     public Variable(IActorInternal actor, string itemPath, VariableScope scope, T value)
-        : this(actor.VariableManager, actor, itemPath, scope, value) { }
+        : this(actor.VariableManager, actor, itemPath, scope, value)
+    {
+    }
 
     public Variable(
         IVariableManager variableManager,
@@ -38,13 +39,19 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
     }
 
     public Variable()
-        : this(VariableScope.Global) { }
+        : this(VariableScope.Global)
+    {
+    }
 
     public Variable(VariableScope scope)
-        : this(scope, new T()) { }
+        : this(scope, new T())
+    {
+    }
 
     public Variable(IActorInternal actor, string itemPath, VariableScope scope)
-        : this(actor, itemPath, scope, new T()) { }
+        : this(actor, itemPath, scope, new T())
+    {
+    }
 
     public string Unit { get; private set; } = string.Empty;
     public int? ReadLevel { get; private set; }
@@ -75,6 +82,7 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
 
     public event EventHandler<ValueChangedArgs>? ValueChanged;
 
+    public int? Id { get; set; }
     public object? ValueObject => Value;
     public VariableScope Scope { get; }
 
@@ -106,7 +114,7 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
                 {
                     [nameof(Name)] = Name,
                     [nameof(Unit)] = Unit,
-                    [nameof(Desc)] = Desc,
+                    [nameof(Desc)] = Desc
                 };
                 message.Sender.Send(
                     new ActorItemMessage(message.Id, Actor, ItemPath, "_itemMetaData", payload)
@@ -116,15 +124,14 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
             case "_itemDataRead":
             {
                 if (ReadLevel.HasValue && UserInfo != null)
-                {
-                    if (ReadLevel.Value < UserInfo.Level) return false;
-                }
+                    if (ReadLevel.Value < UserInfo.Level)
+                        return false;
                 var newValue = _value;
                 if (_value is ICloneable cloneable)
                     newValue = (T)cloneable.Clone();
                 var payload = new Dict
                 {
-                    [nameof(ValueChangedArgs)] = new ValueChangedArgs([], null, newValue),
+                    [nameof(ValueChangedArgs)] = new ValueChangedArgs([], null, newValue)
                 };
                 message.Sender.Send(
                     new ActorItemMessage(message.Id, Actor, ItemPath, "_itemDataChanged", payload)
@@ -134,9 +141,8 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
             case "_itemDataWrite":
             {
                 if (WriteLevel.HasValue && UserInfo != null)
-                {
-                    if (WriteLevel.Value < UserInfo.Level) return false;
-                }
+                    if (WriteLevel.Value < UserInfo.Level)
+                        return false;
                 WriteData((ItemDataWriteArgs)message.Payload!);
                 return true;
             }

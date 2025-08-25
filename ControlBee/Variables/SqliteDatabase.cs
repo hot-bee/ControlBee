@@ -2,6 +2,7 @@
 using ControlBee.Interfaces;
 using log4net;
 using Microsoft.Data.Sqlite;
+using Newtonsoft.Json;
 
 namespace ControlBee.Variables;
 
@@ -22,17 +23,20 @@ public class SqliteDatabase : IDatabase, IDisposable
 
     private string DbFilePath => Path.Combine(_systemConfigurations.DataFolder, DbFileName);
 
-    public void WriteVariables(
-        VariableScope scope,
+    public int WriteVariables(VariableScope scope,
         string localName,
         string actorName,
         string itemPath,
-        string value
-    )
+        string value)
     {
-        var sql =
-            "INSERT OR REPLACE INTO variables (actor_name, item_path, scope, local_name, value) "
-            + "VALUES (@actor_name, @item_path, @scope, @local_name, @value)";
+        var sql = """
+                  INSERT INTO variables (scope, local_name, actor_name, item_path, value)
+                  VALUES (@scope, @local_name, @actor_name, @item_path, @value)
+                  ON CONFLICT(local_name, actor_name, item_path) DO UPDATE SET
+                      value      = excluded.value,
+                      updated_at = datetime('now','localtime')
+                  RETURNING id;
+                  """;
 
         using var command = new SqliteCommand(sql, _connection);
         command.Parameters.AddWithValue("@scope", scope);
@@ -41,7 +45,8 @@ public class SqliteDatabase : IDatabase, IDisposable
         command.Parameters.AddWithValue("@item_path", itemPath);
         command.Parameters.AddWithValue("@value", value);
 
-        command.ExecuteNonQuery();
+        var id = (long)command.ExecuteScalar()!;
+        return (int)id;
     }
 
     public void WriteEvents(
@@ -68,6 +73,7 @@ public class SqliteDatabase : IDatabase, IDisposable
 
     public DataTable ReadAll(string tableName)
     {
+        // TODO: Should not read all. This is a very expensive.
         var sql = $"SELECT * FROM {tableName}";
 
         var dt = new DataTable();
@@ -85,10 +91,10 @@ public class SqliteDatabase : IDatabase, IDisposable
         return dt;
     }
 
-    public string? Read(string localName, string actorName, string itemPath)
+    public (int id, string value)? Read(string localName, string actorName, string itemPath)
     {
         var sql =
-            "SELECT value FROM variables "
+            "SELECT id, value FROM variables "
             + "WHERE actor_name = @actor_name and item_path = @item_path and local_name = @local_name";
 
         using var command = new SqliteCommand(sql, _connection);
@@ -108,8 +114,9 @@ public class SqliteDatabase : IDatabase, IDisposable
                 "Data inconsistency detected: More than two rows found for the same variable."
             );
 
-        var value = dt.Rows[0][0].ToString();
-        return value;
+        var id = (int)(long)dt.Rows[0][0];
+        var value = dt.Rows[0][1].ToString()!;
+        return (id, value);
     }
 
     public string[] GetLocalNames()
@@ -141,15 +148,60 @@ public class SqliteDatabase : IDatabase, IDisposable
         command.ExecuteNonQuery();
     }
 
+    public void WriteVariableChange(IVariable variable, ValueChangedArgs valueChangedArgs)
+    {
+        var sql =
+            "INSERT INTO variable_changes (variable_id, location, old_value, new_value) "
+            + "VALUES (@variable_id, @location, @old_value, @new_value)";
+
+        using var command = new SqliteCommand(sql, _connection);
+        var location = JsonConvert.SerializeObject(valueChangedArgs.Location);
+        var oldValue = JsonConvert.SerializeObject(valueChangedArgs.OldValue);
+        var newValue = JsonConvert.SerializeObject(valueChangedArgs.NewValue);
+        command.Parameters.AddWithValue("@variable_id", variable.Id);
+        command.Parameters.AddWithValue("@location", location);
+        command.Parameters.AddWithValue("@old_value", oldValue);
+        command.Parameters.AddWithValue("@new_value", newValue);
+
+        command.ExecuteNonQuery();
+    }
+
     public void Dispose()
     {
         _connection.Close();
+    }
+
+    public DataTable ReadVariableChanges()
+    {
+        var sql = """
+                  SELECT a.id, b.local_name, b.scope, a.variable_id, b.actor_name, b.item_path, 
+                  a.location, a.old_value, a.new_value, a.created_at
+                  FROM variable_changes a
+                  INNER JOIN variables b ON a.variable_id = b.id
+                  ORDER BY a.id DESC
+                  LIMIT 300
+                  """; // TODO: Support paging
+
+        var dt = new DataTable();
+        try
+        {
+            using var command = new SqliteCommand(sql, _connection);
+            using var reader = command.ExecuteReader();
+            dt.Load(reader);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Failed to read variable changes. {ex}");
+        }
+
+        return dt;
     }
 
     private void CreateTables()
     {
         var sql = """
                   CREATE TABLE IF NOT EXISTS variables(
+                          id INTEGER PRIMARY KEY,
                           scope INTEGER NOT NULL,
                           local_name TEXT NOT NULL,
                           actor_name TEXT NOT NULL,
@@ -158,6 +210,14 @@ public class SqliteDatabase : IDatabase, IDisposable
                           updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
                           UNIQUE (local_name, actor_name, item_path)
                       );
+                  CREATE TABLE IF NOT EXISTS variable_changes(
+                      id INTEGER PRIMARY KEY,
+                      variable_id INTEGER,
+                      location TEXT,
+                      old_value BLOB,
+                      new_value BLOB,
+                      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+                  );
                   CREATE TABLE IF NOT EXISTS events(
                           id INTEGER PRIMARY KEY,
                           created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),

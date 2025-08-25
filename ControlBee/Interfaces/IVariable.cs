@@ -4,6 +4,7 @@ namespace ControlBee.Interfaces;
 
 public interface IVariable : IActorItem, IValueChanged
 {
+    int? Id { get; set; }
     object? ValueObject { get; }
     VariableScope Scope { get; }
     string ActorName { get; }

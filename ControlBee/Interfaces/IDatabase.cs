@@ -5,13 +5,11 @@ namespace ControlBee.Interfaces;
 
 public interface IDatabase
 {
-    void WriteVariables(
-        VariableScope scope,
+    int WriteVariables(VariableScope scope,
         string localName,
         string actorName,
         string itemPath,
-        string value
-    );
+        string value);
 
     void WriteEvents(
         string actorName,
@@ -23,7 +21,9 @@ public interface IDatabase
 
     DataTable ReadAll(string tableName);
 
-    string? Read(string localName, string actorName, string itemPath);
+    (int id, string value)? Read(string localName, string actorName, string itemPath);
     string[] GetLocalNames();
     void DeleteLocal(string localName);
+    void WriteVariableChange(IVariable variable, ValueChangedArgs valueChangedArgs);
+    DataTable ReadVariableChanges();
 }

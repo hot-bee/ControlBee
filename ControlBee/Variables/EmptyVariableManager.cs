@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Data;
 using System.Runtime.CompilerServices;
 using ControlBee.Interfaces;
 
@@ -29,6 +30,11 @@ public class EmptyVariableManager : IVariableManager
     public void Delete(string localName)
     {
         // Empty
+    }
+
+    public DataTable ReadVariableChanges()
+    {
+        throw new NotImplementedException();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

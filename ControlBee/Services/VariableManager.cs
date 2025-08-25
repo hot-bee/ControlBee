@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Data;
 using System.Runtime.CompilerServices;
 using ControlBee.Interfaces;
 using ControlBee.Models;
@@ -15,9 +16,10 @@ public class VariableManager(
     IUserInfo? userInfo)
     : IVariableManager, IDisposable
 {
-    private static readonly ILog Logger = LogManager.GetLogger("General");
+    private static readonly ILog Logger = LogManager.GetLogger(nameof(VariableManager));
 
     private readonly Dictionary<Tuple<string, string>, IVariable> _variables = [];
+    private bool _loading;
     private string _localName = "Default";
 
     private IActor? _uiActor;
@@ -89,6 +91,7 @@ public class VariableManager(
 
     public void Save(string? localName = null)
     {
+        Logger.Info($"Save. ({localName})");
         var localNameChanged = false;
         if (!string.IsNullOrEmpty(localName))
         {
@@ -103,36 +106,47 @@ public class VariableManager(
             variable.Dirty = false;
             var jsonString = variable.ToJson();
             var dbLocalName = variable.Scope == VariableScope.Local ? LocalName : "";
-            database.WriteVariables(variable.Scope, dbLocalName, groupName, uid, jsonString);
-        }
-
-        if (localNameChanged) OnPropertyChanged(nameof(LocalNames));
-    }
-
-    public void Load(string? localName = null)
-    {
-        var localNameChanged = false;
-        if (!string.IsNullOrEmpty(localName))
-        {
-            localNameChanged = true;
-            LocalName = localName;
-        }
-
-        foreach (var ((groupName, uid), variable) in _variables)
-        {
-            var dbLocalName = variable.Scope == VariableScope.Local ? LocalName : "";
-            var jsonString = database.Read(dbLocalName, groupName, uid);
-            if (jsonString != null)
-            {
-                variable.FromJson(jsonString);
-                variable.Dirty = false;
-            }
+            var id = database.WriteVariables(variable.Scope, dbLocalName, groupName, uid, jsonString);
+            variable.Id = id;
         }
 
         if (localNameChanged)
         {
             systemConfigurations.RecipeName = LocalName;
-            systemConfigurations.Save();
+            OnPropertyChanged(nameof(LocalNames));
+        }
+    }
+
+    public void Load(string? localName = null)
+    {
+        Logger.Info($"Load. ({localName})");
+        _loading = true;
+        try
+        {
+            var localNameChanged = false;
+            if (!string.IsNullOrEmpty(localName))
+            {
+                localNameChanged = true;
+                LocalName = localName;
+            }
+
+            foreach (var ((groupName, uid), variable) in _variables)
+            {
+                var dbLocalName = variable.Scope == VariableScope.Local ? LocalName : "";
+                var row = database.Read(dbLocalName, groupName, uid);
+                if (row.HasValue)
+                {
+                    variable.Id = row.Value.id;
+                    variable.FromJson(row.Value.value);
+                    variable.Dirty = false;
+                }
+            }
+
+            if (localNameChanged) systemConfigurations.RecipeName = LocalName;
+        }
+        finally
+        {
+            _loading = false;
         }
     }
 
@@ -144,6 +158,11 @@ public class VariableManager(
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    public DataTable ReadVariableChanges()
+    {
+        return database.ReadVariableChanges();
+    }
+
     private void Variable_ValueChanged(object? sender, ValueChangedArgs e)
     {
         var variable = (IVariable)sender!;
@@ -151,6 +170,13 @@ public class VariableManager(
         UiActor?.Send(
             new ActorItemMessage(variable.Actor, variable.ItemPath, "_itemDataChanged", payload)
         );
+
+        if (variable.Scope != VariableScope.Temporary && !_loading)
+        {
+            if (variable.Id == null || variable.Dirty) Save();
+            if (variable.Id == null) Logger.Warn("Variable Id is 0 even after saving it.");
+            database.WriteVariableChange(variable, e);
+        }
     }
 
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
