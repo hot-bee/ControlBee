@@ -8,7 +8,12 @@ namespace ControlBee.Variables;
 public abstract class PropertyVariable : IActorItemSub, IValueChanged, IWriteData
 {
     private static readonly ILog Logger = LogManager.GetLogger("PropertyVariable");
-    public event EventHandler<ValueChangedArgs>? ValueChanged;
+    protected EventHandler<ValueChangedArgs>? _valueChanged;
+    public event EventHandler<ValueChangedArgs>? ValueChanged
+    {
+        add => _valueChanged += value;
+        remove => _valueChanged -= value;
+    }
 
     public virtual void WriteData(ItemDataWriteArgs args)
     {
@@ -38,7 +43,7 @@ public abstract class PropertyVariable : IActorItemSub, IValueChanged, IWriteDat
 
     protected virtual void OnValueChanged(ValueChangedArgs e)
     {
-        ValueChanged?.Invoke(this, e);
+        _valueChanged?.Invoke(this, e);
     }
 
     [JsonIgnore]

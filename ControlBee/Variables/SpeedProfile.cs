@@ -1,4 +1,5 @@
-﻿using ControlBee.Utils;
+﻿using System.Reflection;
+using ControlBee.Utils;
 using log4net;
 
 namespace ControlBee.Variables;
@@ -64,7 +65,10 @@ public class SpeedProfile : PropertyVariable, ICloneable
 
     public object Clone()
     {
-        return MemberwiseClone();
+        var clone = MemberwiseClone();
+        typeof(SpeedProfile).GetField("_valueChanged", 
+            BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(clone, null);
+        return clone;
     }
 
     public override void OnDeserialized()
