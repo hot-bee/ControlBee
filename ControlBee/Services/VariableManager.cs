@@ -113,6 +113,7 @@ public class VariableManager(
         if (localNameChanged)
         {
             systemConfigurations.RecipeName = LocalName;
+            systemConfigurations.Save();
             OnPropertyChanged(nameof(LocalNames));
         }
     }
@@ -142,7 +143,11 @@ public class VariableManager(
                 }
             }
 
-            if (localNameChanged) systemConfigurations.RecipeName = LocalName;
+            if (localNameChanged)
+            {
+                systemConfigurations.RecipeName = LocalName;
+                systemConfigurations.Save();
+            }
         }
         finally
         {

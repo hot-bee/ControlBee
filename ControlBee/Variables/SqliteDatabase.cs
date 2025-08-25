@@ -155,20 +155,22 @@ public class SqliteDatabase : IDatabase, IDisposable
             + "VALUES (@variable_id, @location, @old_value, @new_value)";
 
         using var command = new SqliteCommand(sql, _connection);
-        var location = JsonConvert.SerializeObject(valueChangedArgs.Location);
-        var oldValue = JsonConvert.SerializeObject(valueChangedArgs.OldValue);
-        var newValue = JsonConvert.SerializeObject(valueChangedArgs.NewValue);
-        command.Parameters.AddWithValue("@variable_id", variable.Id);
-        command.Parameters.AddWithValue("@location", location);
-        command.Parameters.AddWithValue("@old_value", oldValue);
-        command.Parameters.AddWithValue("@new_value", newValue);
+        try
+        {
+            var location = JsonConvert.SerializeObject(valueChangedArgs.Location);
+            var oldValue = JsonConvert.SerializeObject(valueChangedArgs.OldValue);
+            var newValue = JsonConvert.SerializeObject(valueChangedArgs.NewValue);
+            command.Parameters.AddWithValue("@variable_id", variable.Id);
+            command.Parameters.AddWithValue("@location", location);
+            command.Parameters.AddWithValue("@old_value", oldValue);
+            command.Parameters.AddWithValue("@new_value", newValue);
 
-        command.ExecuteNonQuery();
-    }
-
-    public void Dispose()
-    {
-        _connection.Close();
+            command.ExecuteNonQuery();
+        }
+        catch (JsonSerializationException exception)
+        {
+            Logger.Error($"Failed to WriteVariableChange. {variable.Id}");
+        }
     }
 
     public DataTable ReadVariableChanges()
@@ -195,6 +197,11 @@ public class SqliteDatabase : IDatabase, IDisposable
         }
 
         return dt;
+    }
+
+    public void Dispose()
+    {
+        _connection.Close();
     }
 
     private void CreateTables()

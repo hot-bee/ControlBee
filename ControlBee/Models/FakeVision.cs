@@ -18,8 +18,17 @@ public class FakeVision(IDeviceManager deviceManager, ITimeManager timeManager)
     {
         Logger.Info($"Wait {Channel}.");
     }
+    public override void Wait(string triggerId, int timeout)
+    {
+        Logger.Info($"Wait {Channel} ({triggerId}).");
+    }
 
     public override JsonObject? GetResult(int inspectionIndex)
+    {
+        return new JsonObject();
+    }
+
+    public override JsonObject? GetResult(string triggerId)
     {
         return new JsonObject();
     }
