@@ -112,6 +112,35 @@ public class SqliteDatabase : IDatabase, IDisposable
         return value;
     }
 
+    public string[] GetLocalNames()
+    {
+        var sql = """
+                  SELECT local_name
+                  FROM variables
+                  GROUP BY local_name;
+                  """;
+        using var command = new SqliteCommand(sql, _connection);
+        using var reader = command.ExecuteReader();
+        var list = new List<string>();
+        while (reader.Read())
+        {
+            var localName = reader["local_name"] as string;
+            if (!string.IsNullOrEmpty(localName)) list.Add(localName);
+        }
+
+        return list.ToArray();
+    }
+
+    public void DeleteLocal(string localName)
+    {
+        if (string.IsNullOrEmpty(localName)) return;
+        const string sql = "DELETE FROM variables where local_name=@local_name";
+
+        using var command = new SqliteCommand(sql, _connection);
+        command.Parameters.AddWithValue("@local_name", localName);
+        command.ExecuteNonQuery();
+    }
+
     public void Dispose()
     {
         _connection.Close();

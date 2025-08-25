@@ -19,9 +19,11 @@ public interface IDatabase
         string severity,
         string? code = null,
         string? desc = null
-        );
+    );
 
     DataTable ReadAll(string tableName);
 
     string? Read(string localName, string actorName, string itemPath);
+    string[] GetLocalNames();
+    void DeleteLocal(string localName);
 }

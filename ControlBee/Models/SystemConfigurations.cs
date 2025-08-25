@@ -7,6 +7,9 @@ namespace ControlBee.Models;
 public class SystemConfigurations : ISystemConfigurations
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(SystemConfigurations));
+
+    public string RecipeName { get; set; } = "Default";
+
     public bool FakeMode { get; set; } // TODO: setter should be removed
     public bool FakeVision { get; set; } // TODO: setter should be removed
     public bool SkipWaitSensor { get; set; } // TODO: setter should be removed

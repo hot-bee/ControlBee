@@ -8,6 +8,7 @@ public interface ISystemConfigurations
     public bool TimeEmulationMode { get; }
     public string DataFolder { get; }
     public string Version { get; set; }
+    string RecipeName { get; set; }
     public void Save();
     public void Load();
 }

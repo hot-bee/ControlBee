@@ -1,4 +1,6 @@
-﻿using ControlBee.Interfaces;
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Variables;
 using log4net;
@@ -6,9 +8,12 @@ using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Services;
 
-public class VariableManager(IDatabase database, IActorRegistry actorRegistry, IUserInfo? userInfo)
-    : IVariableManager,
-        IDisposable
+public class VariableManager(
+    IDatabase database,
+    IActorRegistry actorRegistry,
+    ISystemConfigurations systemConfigurations,
+    IUserInfo? userInfo)
+    : IVariableManager, IDisposable
 {
     private static readonly ILog Logger = LogManager.GetLogger("General");
 
@@ -17,13 +22,13 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry, I
 
     private IActor? _uiActor;
 
-    public VariableManager(IDatabase database)
-        : this(database, EmptyActorRegistry.Instance, null)
+    public VariableManager(IDatabase database, ISystemConfigurations systemConfigurations)
+        : this(database, EmptyActorRegistry.Instance, systemConfigurations, null)
     {
     }
 
-    public VariableManager(IDatabase database, IActorRegistry actorRegistry)
-        : this(database, actorRegistry, null)
+    public VariableManager(IDatabase database, IActorRegistry actorRegistry, ISystemConfigurations systemConfigurations)
+        : this(database, actorRegistry, systemConfigurations, null)
     {
     }
 
@@ -61,9 +66,11 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry, I
                 throw new ApplicationException(
                     "The 'LocalName' property cannot be left blank. Please enter a valid name."
                 );
-            _localName = value;
+            SetField(ref _localName, value);
         }
     }
+
+    public string[] LocalNames => database.GetLocalNames();
 
     public void Add(IVariable variable)
     {
@@ -82,22 +89,35 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry, I
 
     public void Save(string? localName = null)
     {
+        var localNameChanged = false;
         if (!string.IsNullOrEmpty(localName))
+        {
+            localNameChanged = true;
             LocalName = localName;
+        }
+
         foreach (var ((groupName, uid), variable) in _variables)
         {
-            if (!variable.Dirty) continue;
+            if (localNameChanged && variable.Scope != VariableScope.Local) continue;
+            if (!(localNameChanged || variable.Dirty)) continue;
+            variable.Dirty = false;
             var jsonString = variable.ToJson();
             var dbLocalName = variable.Scope == VariableScope.Local ? LocalName : "";
             database.WriteVariables(variable.Scope, dbLocalName, groupName, uid, jsonString);
-            variable.Dirty = false;
         }
+
+        if (localNameChanged) OnPropertyChanged(nameof(LocalNames));
     }
 
     public void Load(string? localName = null)
     {
+        var localNameChanged = false;
         if (!string.IsNullOrEmpty(localName))
+        {
+            localNameChanged = true;
             LocalName = localName;
+        }
+
         foreach (var ((groupName, uid), variable) in _variables)
         {
             var dbLocalName = variable.Scope == VariableScope.Local ? LocalName : "";
@@ -108,7 +128,21 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry, I
                 variable.Dirty = false;
             }
         }
+
+        if (localNameChanged)
+        {
+            systemConfigurations.RecipeName = LocalName;
+            systemConfigurations.Save();
+        }
     }
+
+    public void Delete(string localName)
+    {
+        database.DeleteLocal(localName);
+        OnPropertyChanged(nameof(LocalNames));
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     private void Variable_ValueChanged(object? sender, ValueChangedArgs e)
     {
@@ -117,5 +151,18 @@ public class VariableManager(IDatabase database, IActorRegistry actorRegistry, I
         UiActor?.Send(
             new ActorItemMessage(variable.Actor, variable.ItemPath, "_itemDataChanged", payload)
         );
+    }
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        field = value;
+        OnPropertyChanged(propertyName);
+        return true;
     }
 }
