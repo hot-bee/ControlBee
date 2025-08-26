@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Variables;
+using ControlBeeAbstract.Devices;
 using log4net;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
@@ -13,6 +14,7 @@ public class VariableManager(
     IDatabase database,
     IActorRegistry actorRegistry,
     ISystemConfigurations systemConfigurations,
+    IDeviceManager deviceManager,
     IUserInfo? userInfo)
     : IVariableManager, IDisposable
 {
@@ -24,13 +26,14 @@ public class VariableManager(
 
     private IActor? _uiActor;
 
-    public VariableManager(IDatabase database, ISystemConfigurations systemConfigurations)
-        : this(database, EmptyActorRegistry.Instance, systemConfigurations, null)
+    public VariableManager(IDatabase database, ISystemConfigurations systemConfigurations, IDeviceManager deviceManager)
+        : this(database, EmptyActorRegistry.Instance, systemConfigurations, deviceManager, null)
     {
     }
 
-    public VariableManager(IDatabase database, IActorRegistry actorRegistry, ISystemConfigurations systemConfigurations)
-        : this(database, actorRegistry, systemConfigurations, null)
+    public VariableManager(IDatabase database, IActorRegistry actorRegistry,
+        ISystemConfigurations systemConfigurations, IDeviceManager deviceManager)
+        : this(database, actorRegistry, systemConfigurations, deviceManager, null)
     {
     }
 
@@ -115,6 +118,7 @@ public class VariableManager(
             systemConfigurations.RecipeName = LocalName;
             systemConfigurations.Save();
             OnPropertyChanged(nameof(LocalNames));
+            SaveVisionRecipe(LocalName);
         }
     }
 
@@ -147,6 +151,7 @@ public class VariableManager(
             {
                 systemConfigurations.RecipeName = LocalName;
                 systemConfigurations.Save();
+                LoadVisionRecipe(LocalName);
             }
         }
         finally
@@ -166,6 +171,20 @@ public class VariableManager(
     public DataTable ReadVariableChanges()
     {
         return database.ReadVariableChanges();
+    }
+
+    private void LoadVisionRecipe(string localName)
+    {
+        foreach (var device in deviceManager.GetDevices())
+            if (device is IVisionDevice visionDevice)
+                visionDevice.LoadRecipe(localName);
+    }
+
+    private void SaveVisionRecipe(string localName)
+    {
+        foreach (var device in deviceManager.GetDevices())
+            if (device is IVisionDevice visionDevice)
+                visionDevice.SaveRecipe(localName);
     }
 
     private void Variable_ValueChanged(object? sender, ValueChangedArgs e)

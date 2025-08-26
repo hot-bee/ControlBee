@@ -23,4 +23,9 @@ public class DeviceManager : IDeviceManager, IDisposable
             device.Dispose();
         _devices.Clear();
     }
+
+    public IDevice[] GetDevices()
+    {
+        return _devices.Values.ToArray();
+    }
 }

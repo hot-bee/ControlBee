@@ -19,4 +19,9 @@ public class EmptyDeviceManager : IDeviceManager
     {
         throw new NotImplementedException();
     }
+
+    public IDevice[] GetDevices()
+    {
+        throw new NotImplementedException();
+    }
 }
