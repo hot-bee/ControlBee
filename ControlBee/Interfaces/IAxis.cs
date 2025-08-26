@@ -1,6 +1,7 @@
 ﻿using ControlBee.Constants;
 using ControlBee.Sequences;
 using ControlBee.Variables;
+using ControlBeeAbstract.Constants;
 
 namespace ControlBee.Interfaces;
 
@@ -20,10 +21,10 @@ public interface IAxis : IDeviceChannel
     bool WaitForPosition(PositionComparisonType type, double position);
     bool IsFar(double position, double range);
     bool WaitFar(double position, double range);
-    bool IsMoving();
+    bool IsMoving(PositionType type = PositionType.CommandAndActual);
     void Move(double position);
     void Move(double position, bool @override);
-    void MoveAndWait(double position);
+    void MoveAndWait(double position, PositionType type = PositionType.CommandAndActual);
     void SetSpeed(IVariable speedProfileVariable);
     void SetSpeed(SpeedProfile speedProfile);
     void VelocityMove(AxisDirection direction);
@@ -32,7 +33,7 @@ public interface IAxis : IDeviceChannel
     void EStop();
     void SetPosition(double position, PositionType type = PositionType.CommandAndActual);
     void SetTorque(double torque);
-    void Wait();
+    void Wait(PositionType type = PositionType.CommandAndActual);
     double GetPosition(PositionType type = PositionType.Command);
     double GetVelocity(VelocityType type);
     bool GetSensorValue(AxisSensorType type);

@@ -1,5 +1,6 @@
 ﻿using ControlBee.Constants;
 using ControlBee.Interfaces;
+using ControlBeeAbstract.Constants;
 using ControlBeeAbstract.Exceptions;
 using log4net;
 
@@ -53,7 +54,7 @@ public class FakeAxis : Axis, IDisposable
         _timeManager.CurrentTimeChanged -= TimeManagerOnCurrentTimeChanged;
     }
 
-    public override bool IsMoving()
+    public override bool IsMoving(PositionType type = PositionType.CommandAndActual)
     {
         return _isMoving;
     }
@@ -247,7 +248,7 @@ public class FakeAxis : Axis, IDisposable
         });
     }
 
-    public override void Wait()
+    public override void Wait(PositionType type = PositionType.CommandAndActual)
     {
         if (_movingTask != null)
             try
@@ -260,12 +261,12 @@ public class FakeAxis : Axis, IDisposable
                 throw exception.InnerExceptions[0];
             }
 
-        if (!IsMoving())
+        if (!IsMoving(type))
             return;
         Logger.Error(
             $"Monitoring task finished but axis is still moving. Fallback by spinning wait. ({ActorName}, {ItemPath})"
         );
-        while (IsMoving()) // Fallback
+        while (IsMoving(type)) // Fallback
             _timeManager.Sleep(1);
     }
 

@@ -3,6 +3,7 @@ using ControlBee.Interfaces;
 using ControlBee.Sequences;
 using ControlBee.Utils;
 using ControlBee.Variables;
+using ControlBeeAbstract.Constants;
 using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
 using log4net;
@@ -401,7 +402,7 @@ public class Axis : DeviceChannel, IAxis
         }
     }
 
-    public virtual bool IsMoving()
+    public virtual bool IsMoving(PositionType type = PositionType.CommandAndActual)
     {
         if (MotionDevice == null)
         {
@@ -409,7 +410,7 @@ public class Axis : DeviceChannel, IAxis
             return false;
         }
 
-        return MotionDevice.IsMoving(Channel);
+        return MotionDevice.IsMoving(Channel, type);
     }
 
     public virtual void SearchZPhase(double distance)
@@ -491,10 +492,10 @@ public class Axis : DeviceChannel, IAxis
         }
     }
 
-    public void MoveAndWait(double position)
+    public void MoveAndWait(double position, PositionType type = PositionType.CommandAndActual)
     {
         Move(position);
-        Wait();
+        Wait(type);
     }
 
     public void RelativeMoveAndWait(double distance)
@@ -606,7 +607,7 @@ public class Axis : DeviceChannel, IAxis
         MotionDevice.SetTorque(Channel, torque);
     }
 
-    public virtual void Wait()
+    public virtual void Wait(PositionType type = PositionType.CommandAndActual)
     {
         if (MotionDevice == null)
         {
@@ -614,13 +615,13 @@ public class Axis : DeviceChannel, IAxis
             return;
         }
 
-        MotionDevice.Wait(Channel);
-        if (!IsMoving())
+        MotionDevice.Wait(Channel, type);
+        if (!IsMoving(type))
             return;
         Logger.Error(
             $"Monitoring task finished but axis is still moving. Fallback by spinning wait. ({ActorName}, {ItemPath})"
         );
-        while (IsMoving()) // Fallback
+        while (IsMoving(type)) // Fallback
             _timeManager.Sleep(1);
         if (IsAlarmed())
             throw new FatalSequenceError("Servo alarm");
