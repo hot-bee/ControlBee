@@ -4,6 +4,7 @@ using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
 using log4net;
+using Newtonsoft.Json.Linq;
 
 namespace ControlBee.Models;
 
@@ -142,7 +143,7 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         }
     }
 
-    public virtual JsonObject? GetResult(int inspectionIndex)
+    public virtual JObject? GetResult(int inspectionIndex)
     {
         if (VisionDevice == null)
         {
@@ -153,7 +154,7 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         return VisionDevice.GetResult(Channel, inspectionIndex);
     }
 
-    public virtual JsonObject? GetResult(string triggerId)
+    public virtual JObject? GetResult(string triggerId)
     {
         if (VisionDevice == null)
         {

@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Nodes;
+﻿using Newtonsoft.Json.Linq;
 
 namespace ControlBee.Interfaces;
 
@@ -13,6 +13,6 @@ public interface IVision : IDeviceChannel
     void Wait(string triggerId, int timeout);
     void WaitGrabEnd(int inspectionIndex, int timeout);
     void WaitExposureEnd(int inspectionIndex, int timeout);
-    JsonObject? GetResult(int inspectionIndex);
-    JsonObject? GetResult(string triggerId);
+    JObject? GetResult(int inspectionIndex);
+    JObject? GetResult(string triggerId);
 }

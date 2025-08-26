@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
-using System.Text.Json.Nodes;
 using ControlBee.Interfaces;
 using ControlBeeAbstract.Devices;
+using Newtonsoft.Json.Linq;
 
 namespace ControlBee.Models;
 
@@ -93,12 +93,12 @@ public class VisionPlaceholder : IPlaceholder, IVision
         throw new NotImplementedException();
     }
 
-    public JsonObject? GetResult(int inspectionIndex)
+    public JObject? GetResult(int inspectionIndex)
     {
         throw new NotImplementedException();
     }
 
-    public JsonObject? GetResult(string triggerId)
+    public JObject? GetResult(string triggerId)
     {
         throw new NotImplementedException();
     }

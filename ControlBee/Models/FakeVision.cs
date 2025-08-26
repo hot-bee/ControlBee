@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Nodes;
 using ControlBee.Interfaces;
 using log4net;
+using Newtonsoft.Json.Linq;
 
 namespace ControlBee.Models;
 
@@ -23,13 +24,13 @@ public class FakeVision(IDeviceManager deviceManager, ITimeManager timeManager)
         Logger.Info($"Wait {Channel} ({triggerId}).");
     }
 
-    public override JsonObject? GetResult(int inspectionIndex)
+    public override JObject? GetResult(int inspectionIndex)
     {
-        return new JsonObject();
+        return new JObject();
     }
 
-    public override JsonObject? GetResult(string triggerId)
+    public override JObject? GetResult(string triggerId)
     {
-        return new JsonObject();
+        return new JObject();
     }
 }
