@@ -2,6 +2,7 @@
 using ControlBee.Interfaces;
 using log4net;
 using Newtonsoft.Json.Linq;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
@@ -10,7 +11,7 @@ public class FakeVision(IDeviceManager deviceManager, ITimeManager timeManager)
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(FakeVision));
 
-    public override void Trigger(int inspectionIndex, string? triggerId = null)
+    public override void Trigger(int inspectionIndex, string? triggerId, Dict? options = null)
     {
         Logger.Info($"Trigger {Channel}.");
     }

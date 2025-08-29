@@ -5,6 +5,7 @@ using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
 using log4net;
 using Newtonsoft.Json.Linq;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
@@ -20,7 +21,7 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
     public IDialog TimeoutError = new DialogPlaceholder();
     protected virtual IVisionDevice? VisionDevice => Device as IVisionDevice;
 
-    public virtual void Trigger(int inspectionIndex, string? triggerId = null)
+    public virtual void Trigger(int inspectionIndex, string? triggerId, Dict? options = null)
     {
         if (VisionDevice == null)
         {
@@ -31,13 +32,18 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         try
         {
             if (PreDelay.Value > 0) Thread.Sleep(PreDelay.Value);
-            VisionDevice.Trigger(Channel, inspectionIndex, triggerId);
+            VisionDevice.Trigger(Channel, inspectionIndex, triggerId, options);
         }
         catch (ConnectionError)
         {
             ConnectionError.Show();
             throw;
         }
+    }
+
+    public void Trigger(int inspectionIndex, Dict? options = null)
+    {
+        Trigger(inspectionIndex, null, options);
     }
 
     public void StartContinuous()

@@ -1,10 +1,12 @@
 ﻿using Newtonsoft.Json.Linq;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Interfaces;
 
 public interface IVision : IDeviceChannel
 {
-    void Trigger(int inspectionIndex, string? triggerId = null);
+    void Trigger(int inspectionIndex, string? triggerId, Dict? options = null);
+    void Trigger(int inspectionIndex, Dict? options = null);
     void StartContinuous();
     void StopContinuous();
     bool IsContinuousMode();

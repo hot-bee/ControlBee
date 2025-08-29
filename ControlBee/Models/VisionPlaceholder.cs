@@ -2,6 +2,7 @@
 using ControlBee.Interfaces;
 using ControlBeeAbstract.Devices;
 using Newtonsoft.Json.Linq;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
@@ -53,7 +54,12 @@ public class VisionPlaceholder : IPlaceholder, IVision
         throw new NotImplementedException();
     }
 
-    public void Trigger(int inspectionIndex, string? triggerId = null)
+    public void Trigger(int inspectionIndex, string? triggerId, Dict? options = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Trigger(int inspectionIndex, Dict? options = null)
     {
         throw new NotImplementedException();
     }
