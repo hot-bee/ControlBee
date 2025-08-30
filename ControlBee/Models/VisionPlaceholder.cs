@@ -79,7 +79,7 @@ public class VisionPlaceholder : IPlaceholder, IVision
         throw new NotImplementedException();
     }
 
-    public void SetLightOnOff(bool on)
+    public void SetLightOnOff(int inspIndex, bool on)
     {
         // pass
     }
