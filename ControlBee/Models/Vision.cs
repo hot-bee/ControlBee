@@ -17,7 +17,6 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
     public IDialog ConnectionError = new DialogPlaceholder();
 
     public Variable<int> PreDelay = new();
-    public Variable<int> LightOnOffDelay = new(VariableScope.Local, 100);
     public IDialog TimeoutError = new DialogPlaceholder();
     protected virtual IVisionDevice? VisionDevice => Device as IVisionDevice;
 
@@ -73,7 +72,7 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         throw new NotImplementedException();
     }
 
-    public void SetLight(bool on)
+    public void SetLightOnOff(bool on)
     {
         if (VisionDevice == null)
         {
@@ -83,16 +82,12 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
 
         try
         {
-            VisionDevice.SetLight(Channel, on);
+            VisionDevice.SetLightOnOff(Channel, on);
         }
         catch (ConnectionError)
         {
             ConnectionError.Show();
             throw;
-        }
-        finally
-        {
-            Thread.Sleep(LightOnOffDelay.Value);
         }
     }
 
