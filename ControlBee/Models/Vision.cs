@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Nodes;
-using ControlBee.Interfaces;
+﻿using ControlBee.Interfaces;
 using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
@@ -71,6 +70,25 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
     public bool IsContinuousMode()
     {
         throw new NotImplementedException();
+    }
+
+    public void SetLightOnOff(int inspectionIndex, bool on)
+    {
+        if (VisionDevice == null)
+        {
+            Logger.Error($"VisionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        try
+        {
+            VisionDevice.SetLightOnOff(Channel, inspectionIndex, on);
+        }
+        catch (ConnectionError)
+        {
+            ConnectionError.Show();
+            throw;
+        }
     }
 
     public virtual void Wait(int inspectionIndex, int timeout)
