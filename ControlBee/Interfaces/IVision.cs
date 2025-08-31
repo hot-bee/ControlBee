@@ -10,7 +10,7 @@ public interface IVision : IDeviceChannel
     void StartContinuous();
     void StopContinuous();
     bool IsContinuousMode();
-    void SetLightOnOff(int inspIndex, bool on);
+    void SetLightOnOff(int inspectionIndex, bool on);
 
     void Wait(int inspectionIndex, int timeout);
     void Wait(string triggerId, int timeout);

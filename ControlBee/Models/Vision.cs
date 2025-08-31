@@ -72,7 +72,7 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         throw new NotImplementedException();
     }
 
-    public void SetLightOnOff(int inspIndex ,bool on)
+    public void SetLightOnOff(int inspectionIndex, bool on)
     {
         if (VisionDevice == null)
         {
@@ -82,7 +82,7 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
 
         try
         {
-            VisionDevice.SetLightOnOff(Channel, inspIndex, on);
+            VisionDevice.SetLightOnOff(Channel, inspectionIndex, on);
         }
         catch (ConnectionError)
         {
