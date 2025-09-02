@@ -461,6 +461,7 @@ public class Actor : IActorInternal, IDisposable
         Logger.Info($"Thread is starting. ({Name})");
         TimeManager.Register();
         ScenarioFlowTester.OnCheckpoint();
+        PublishStateChanged();
         try
         {
             while (true)
@@ -501,6 +502,11 @@ public class Actor : IActorInternal, IDisposable
         }
     }
 
+    private void PublishStateChanged()
+    {
+        Ui?.Send(new Message(this, "_stateChanged", State.GetType().Name));
+    }
+
     protected virtual bool ProcessMessage(Message message)
     {
         var result = ActorBuiltinMessageHandler.ProcessMessage(message);
@@ -538,7 +544,7 @@ public class Actor : IActorInternal, IDisposable
                     OnStateChanged((oldState, State));
                     ScenarioFlowTester.OnCheckpoint();
                     message = new StateEntryMessage(this);
-                    Ui?.Send(new Message(this, "_stateChanged", State.GetType().Name));
+                    PublishStateChanged();
                     continue;
                 }
 
@@ -573,7 +579,7 @@ public class Actor : IActorInternal, IDisposable
             StateLogger.Debug($"{oldState.GetType().Name}->{State.GetType().Name}");
             OnStateChanged((oldState, State));
             ScenarioFlowTester.OnCheckpoint();
-            Ui?.Send(new Message(this, "_stateChanged", State.GetType().Name));
+            PublishStateChanged();
             MessageHandler(new StateEntryMessage(this));
         }
     }
