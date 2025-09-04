@@ -30,6 +30,15 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     }
 
     protected virtual IDigitalIoDevice? DigitalIoDevice => Device as IDigitalIoDevice;
+    protected bool Reversed { get; private set; }
+
+    public override void InjectProperties(ISystemPropertiesDataSource dataSource)
+    {
+        base.InjectProperties(dataSource);
+        if (dataSource.GetValue(ActorName, ItemPath, nameof(Reversed)) is string reversedValue)
+            if (bool.TryParse(reversedValue, out var reversed))
+                Reversed = reversed;
+    }
 
     public bool IsOn()
     {
@@ -37,7 +46,9 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
             //Logger.Warn("DigitalIoDevice is null.");
             return InternalIsOn;
 
-        InternalIsOn = DigitalIoDevice.GetDigitalInputBit(Channel);
+        var inputValue = DigitalIoDevice.GetDigitalInputBit(Channel);
+        if (Reversed) inputValue = !inputValue;
+        InternalIsOn = inputValue;
         return InternalIsOn;
     }
 
