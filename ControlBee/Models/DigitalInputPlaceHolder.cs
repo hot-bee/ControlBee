@@ -84,12 +84,12 @@ public class DigitalInputPlaceholder : IPlaceholder, IDigitalInput
         throw new UnimplementedByDesignError();
     }
 
-    public void WaitOn()
+    public void WaitOn(bool showErrorDialog = true)
     {
         throw new UnimplementedByDesignError();
     }
 
-    public void WaitOff()
+    public void WaitOff(bool showErrorDialog = true)
     {
         throw new UnimplementedByDesignError();
     }

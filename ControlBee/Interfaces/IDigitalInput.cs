@@ -9,6 +9,6 @@ public interface IDigitalInput : IDigitalIO
     bool IsOnOrFalse();
     bool IsOffOrFalse();
 
-    void WaitOn();
-    void WaitOff();
+    void WaitOn(bool showErrorDialog = true);
+    void WaitOff(bool showErrorDialog = true);
 }

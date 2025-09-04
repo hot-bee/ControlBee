@@ -11,13 +11,13 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(DigitalInput));
 
+    private bool _isOn;
+
     #region Cache
 
     private bool _isOnCache;
 
     #endregion
-
-    private bool _isOn;
 
     protected bool InternalIsOn
     {
@@ -34,10 +34,8 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     public bool IsOn()
     {
         if (DigitalIoDevice == null)
-        {
             //Logger.Warn("DigitalIoDevice is null.");
             return InternalIsOn;
-        }
 
         InternalIsOn = DigitalIoDevice.GetDigitalInputBit(Channel);
         return InternalIsOn;
@@ -68,14 +66,14 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         return !IsOnOffOrValue(!false);
     }
 
-    public void WaitOn()
+    public void WaitOn(bool showErrorDialog = true)
     {
-        WaitOn(OnTimeout.Value);
+        WaitOn(OnTimeout.Value, showErrorDialog);
     }
 
-    public void WaitOff()
+    public void WaitOff(bool showErrorDialog = true)
     {
-        WaitOff(OffTimeout.Value);
+        WaitOff(OffTimeout.Value, showErrorDialog);
     }
 
     public override bool ProcessMessage(ActorItemMessage message)
@@ -108,10 +106,11 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
             Logger.Warn("DigitalIoDevice is null.");
             return on;
         }
+
         return IsOn();
     }
 
-    public void WaitOn(int millisecondsTimeout)
+    public void WaitOn(int millisecondsTimeout, bool showErrorDialog)
     {
         try
         {
@@ -119,12 +118,12 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         }
         catch (TimeoutError)
         {
-            OnTimeoutError.Show();
+            if (showErrorDialog) OnTimeoutError.Show();
             throw;
         }
     }
 
-    public void WaitOff(int millisecondsTimeout)
+    public void WaitOff(int millisecondsTimeout, bool showErrorDialog)
     {
         try
         {
@@ -132,7 +131,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         }
         catch (TimeoutError)
         {
-            OffTimeoutError.Show();
+            if (showErrorDialog) OffTimeoutError.Show();
             throw;
         }
     }
@@ -144,6 +143,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
             Logger.Warn("DigitalIoDevice is null.");
             return;
         }
+
         var watch = TimeManager.CreateWatch();
         while (true)
         {
