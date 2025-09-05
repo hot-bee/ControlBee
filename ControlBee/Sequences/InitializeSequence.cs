@@ -6,39 +6,28 @@ using ControlBeeAbstract.Exceptions;
 
 namespace ControlBee.Sequences;
 
-public class InitializeSequence : ActorItem,
-    IInitializeSequence
+public class InitializeSequence(
+    IAxis axis,
+    Variable<SpeedProfile> initSpeed,
+    Variable<Position1D> homePosition,
+    AxisSensorType sensorType,
+    AxisDirection direction)
+    : ActorItem,
+        IInitializeSequence
 {
-    private readonly IAxis _axis;
-    private readonly AxisDirection _direction;
-    private readonly Variable<Position1D> _homePosition;
-    private readonly Variable<SpeedProfile> _initSpeed;
-    private readonly AxisSensorType _sensorType;
+    public Variable<int> DelayBeforeClearPosition = new(VariableScope.Global, 0);
     public IDialog SensorEntryTimeout = new DialogPlaceholder();
     public IDialog SensorExitTimeout = new DialogPlaceholder();
     public IDialog SensorReentryTimeout = new DialogPlaceholder();
 
-    public InitializeSequence(
-        IAxis axis,
-        Variable<SpeedProfile> initSpeed,
-        Variable<Position1D> homePosition,
-        AxisSensorType sensorType,
-        AxisDirection direction
-    )
-    {
-        _axis = axis;
-        _initSpeed = initSpeed;
-        _homePosition = homePosition;
-        _sensorType = sensorType;
-        _direction = direction;
-    }
-
     public void Run()
     {
-        _axis.ClearAlarm();
-        _axis.Enable(false);
-        _axis.Enable(true);
-        switch (_sensorType)
+        axis.ClearAlarm();
+        axis.Enable(false);
+        axis.Enable(true);
+        axis.OnBeforeInitialize();
+
+        switch (sensorType)
         {
             case AxisSensorType.Home:
             case AxisSensorType.NegativeLimit:
@@ -52,23 +41,24 @@ public class InitializeSequence : ActorItem,
                 throw new ValueError();
         }
 
-        _axis.SetPosition(0.0);
-        _axis.SetSpeed(_axis.GetJogSpeed(JogSpeedLevel.Fast));
-        _homePosition.Value.MoveAndWait();
+        Thread.Sleep(DelayBeforeClearPosition.Value);
+        axis.SetPosition(0.0);
+        axis.SetSpeed(axis.GetJogSpeed(JogSpeedLevel.Fast));
+        homePosition.Value.MoveAndWait();
     }
 
     public void RunZPhase()
     {
-        _axis.SearchZPhase(0);
+        axis.SearchZPhase(0);
     }
 
     public void RunNormal()
     {
         try
         {
-            _axis.SetSpeed(_initSpeed);
-            if(_axis.GetSensorValue(_sensorType) != true) _axis.VelocityMove(_direction);
-            _axis.WaitSensor(_sensorType, true, 3 * 60 * 1000);
+            axis.SetSpeed(initSpeed);
+            if (axis.GetSensorValue(sensorType) != true) axis.VelocityMove(direction);
+            axis.WaitSensor(sensorType, true, 3 * 60 * 1000);
         }
         catch (TimeoutError)
         {
@@ -77,17 +67,17 @@ public class InitializeSequence : ActorItem,
         }
         finally
         {
-            _axis.EStop();
-            _axis.Wait();
+            axis.EStop();
+            axis.Wait();
         }
 
         try
         {
-            var halfHomingSpeed = (SpeedProfile)_initSpeed.Value.Clone();
+            var halfHomingSpeed = (SpeedProfile)initSpeed.Value.Clone();
             halfHomingSpeed.Velocity /= 10;
-            _axis.SetSpeed(halfHomingSpeed);
-            _axis.VelocityMove((AxisDirection)((int)_direction * -1));
-            _axis.WaitSensor(_sensorType, false, 3 * 60 * 1000);
+            axis.SetSpeed(halfHomingSpeed);
+            axis.VelocityMove((AxisDirection)((int)direction * -1));
+            axis.WaitSensor(sensorType, false, 3 * 60 * 1000);
         }
         catch (TimeoutError)
         {
@@ -96,14 +86,14 @@ public class InitializeSequence : ActorItem,
         }
         finally
         {
-            _axis.EStop();
-            _axis.Wait();
+            axis.EStop();
+            axis.Wait();
         }
 
         try
         {
-            _axis.VelocityMove(_direction);
-            _axis.WaitSensor(_sensorType, true, 3 * 60 * 1000);
+            axis.VelocityMove(direction);
+            axis.WaitSensor(sensorType, true, 3 * 60 * 1000);
         }
         catch (TimeoutError)
         {
@@ -112,8 +102,8 @@ public class InitializeSequence : ActorItem,
         }
         finally
         {
-            _axis.EStop();
-            _axis.Wait();
+            axis.EStop();
+            axis.Wait();
         }
     }
 

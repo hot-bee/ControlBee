@@ -324,6 +324,17 @@ public class Axis : DeviceChannel, IAxis
         return _initializing;
     }
 
+    public void OnBeforeInitialize()
+    {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        MotionDevice.OnBeforeInitialize(Channel);
+    }
+
     public bool IsNear(double position, double range)
     {
         return Math.Abs(GetPosition(PositionType.Command) - position) <= range;
