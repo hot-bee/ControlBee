@@ -42,7 +42,7 @@ public class InitializeSequence(
         }
 
         Thread.Sleep(DelayBeforeClearPosition.Value);
-        axis.SetPosition(0.0);
+        axis.ClearPosition();
         axis.SetSpeed(axis.GetJogSpeed(JogSpeedLevel.Fast));
         homePosition.Value.MoveAndWait();
     }

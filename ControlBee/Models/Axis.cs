@@ -75,6 +75,8 @@ public class Axis : DeviceChannel, IAxis
         }
     );
 
+    public bool ResetEnableToClearPosition;
+
     public Variable<double> Resolution = new(VariableScope.Global, 1.0);
 
     public Variable<Array1D<double>> StepJogSizes = new(
@@ -109,6 +111,9 @@ public class Axis : DeviceChannel, IAxis
             Enum.TryParse(initDirection, out InitDirection);
         if (dataSource.GetValue(ActorName, ItemPath, nameof(IsJogReversed)) is string isJogReversed)
             bool.TryParse(isJogReversed, out IsJogReversed);
+        if (dataSource.GetValue(ActorName, ItemPath, nameof(ResetEnableToClearPosition)) is string
+            resetEnableToClearPosition)
+            bool.TryParse(resetEnableToClearPosition, out ResetEnableToClearPosition);
 
         InternalInitializeSequence = new InitializeSequence(
             this,
@@ -573,6 +578,19 @@ public class Axis : DeviceChannel, IAxis
 
         MotionDevice.EStop(Channel);
         _velocityMoving = false;
+    }
+
+    public void ClearPosition(PositionType type = PositionType.CommandAndActual)
+    {
+        if (ResetEnableToClearPosition)
+        {
+            Logger.Info($"Reset Enable. ({ActorName}, {ItemPath})");
+            Disable();
+            Enable();
+            return;
+        }
+
+        SetPosition(0.0, type);
     }
 
     public virtual void SetPosition(

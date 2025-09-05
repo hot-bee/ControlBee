@@ -32,6 +32,7 @@ public interface IAxis : IDeviceChannel
     void VelocityMove(AxisDirection direction, bool @override);
     void Stop();
     void EStop();
+    void ClearPosition(PositionType type = PositionType.CommandAndActual);
     void SetPosition(double position, PositionType type = PositionType.CommandAndActual);
     void SetTorque(double torque);
     void Wait(PositionType type = PositionType.CommandAndActual);
