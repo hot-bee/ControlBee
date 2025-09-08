@@ -37,6 +37,9 @@ public class InitializeSequence(
             case AxisSensorType.ZPhase:
                 RunZPhase();
                 break;
+            case AxisSensorType.Builtin:
+                axis.BuiltinInitialize();
+                break;
             default:
                 throw new ValueError();
         }

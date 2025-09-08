@@ -747,6 +747,19 @@ public class Axis : DeviceChannel, IAxis
         RefreshCache();
     }
 
+    public void BuiltinInitialize()
+    {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        Logger.Info($"Start built-in initialize. ({ActorName}, {ItemPath})");
+        MotionDevice.BuiltinInitialize(Channel);
+        return;
+    }
+
     protected void RefreshCacheImpl()
     {
         var commandPosition = GetPosition(PositionType.Command);

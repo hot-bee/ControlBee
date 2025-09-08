@@ -51,4 +51,5 @@ public interface IAxis : IDeviceChannel
     Position1D GetInitPos();
     void SearchZPhase(double distance);
     bool IsVelocityMoving();
+    void BuiltinInitialize();
 }
