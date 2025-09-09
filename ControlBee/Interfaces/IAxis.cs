@@ -2,6 +2,7 @@
 using ControlBee.Sequences;
 using ControlBee.Variables;
 using ControlBeeAbstract.Constants;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Interfaces;
 
@@ -52,4 +53,5 @@ public interface IAxis : IDeviceChannel
     void SearchZPhase(double distance);
     bool IsVelocityMoving();
     void BuiltinInitialize();
+    void SpecialCommand(Dict data);
 }

@@ -35,7 +35,7 @@ public class DeviceLoader : IDeviceLoader
             var initArgs = DictPath.Start(deviceInfo)["InitArgs"].Value as Dict ?? [];
             var type = driverDll.ExportedTypes.Where(x => x.BaseType?.Name == "Device").ToList()[0];
             var device = (Device)Activator.CreateInstance(type)!;
-            device.Init(initArgs);
+            device.Init(deviceName, initArgs);
             deviceManager.Add(deviceName, device);
         }
     }

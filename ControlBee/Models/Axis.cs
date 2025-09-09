@@ -757,7 +757,18 @@ public class Axis : DeviceChannel, IAxis
 
         Logger.Info($"Start built-in initialize. ({ActorName}, {ItemPath})");
         MotionDevice.BuiltinInitialize(Channel);
-        return;
+    }
+
+    public void SpecialCommand(Dict data)
+    {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        Logger.Info($"Start special command. ({ActorName}, {ItemPath})");
+        MotionDevice.SpecialCommand(Channel, data);
     }
 
     protected void RefreshCacheImpl()
