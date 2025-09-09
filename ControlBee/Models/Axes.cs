@@ -1,5 +1,6 @@
 ﻿using ControlBee.Interfaces;
 using ControlBee.Variables;
+using ControlBeeAbstract.Constants;
 using ControlBeeAbstract.Devices;
 using log4net;
 using MathNet.Numerics.LinearAlgebra.Double;
@@ -60,7 +61,7 @@ public class Axes
         return _axes.Any(x => x.IsMoving());
     }
 
-    public void Move(double[] positions, SpeedProfile speedProfile)
+    public void InterpolateMove(double[] positions, SpeedProfile speedProfile)
     {
         if (_axes[0].GetDevice() is not IMotionDevice motionDevice)
         {
@@ -79,5 +80,38 @@ public class Axes
             _axes.Select((t, i) => (t.GetChannel(), positions[i] * t.ResolutionValue)).ToArray(),
             speedProfile.Velocity * resolutionOfFirstAxis, speedProfile.Accel * resolutionOfFirstAxis,
             speedProfile.Decel * resolutionOfFirstAxis, speedProfile.AccelJerkRatio, speedProfile.DecelJerkRatio);
+    }
+
+    public void MultiMove((double position, SpeedProfile speedProfile)[] moveParameters)
+    {
+        if (_axes[0].GetDevice() is not IMotionDevice motionDevice)
+        {
+            Logger.Error($"Couldn't find motionDevice. ({_axes[0].Actor}, {_axes[0].ItemPath})");
+            return;
+        }
+
+        if (_axes.Length != moveParameters.Length)
+        {
+            Logger.Error($"_axes length and position length mismatch. ({_axes[0].Actor}, {_axes[0].ItemPath}).");
+            return;
+        }
+
+        var param = new List<JerkRatioSCurveMoveParameter>();
+        for (var i = 0; i < moveParameters.Length; i++)
+        {
+            var resolution = _axes[i].ResolutionValue;
+            param.Add(new JerkRatioSCurveMoveParameter
+            {
+                Channel = _axes[i].GetChannel(),
+                Position = moveParameters[i].position * resolution,
+                Velocity = moveParameters[i].speedProfile.Velocity * resolution,
+                Acceleration = moveParameters[i].speedProfile.Accel * resolution,
+                Deceleration = moveParameters[i].speedProfile.Decel * resolution,
+                AccelJerkRatio = moveParameters[i].speedProfile.AccelJerkRatio,
+                DecelJerkRatio = moveParameters[i].speedProfile.DecelJerkRatio
+            });
+        }
+
+        motionDevice.JerkRatioSCurveMultiMove(param.ToArray());
     }
 }
