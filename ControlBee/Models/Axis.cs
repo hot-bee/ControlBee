@@ -23,6 +23,7 @@ public class Axis : DeviceChannel, IAxis
 
     public Variable<int> DisableDelay = new(VariableScope.Global, 200);
     public Variable<int> EnableDelay = new(VariableScope.Global, 200);
+    public IDialog HomeSensorTimeoutError = new DialogPlaceholder();
 
     public AxisDirection InitDirection = AxisDirection.Positive;
 
@@ -63,6 +64,8 @@ public class Axis : DeviceChannel, IAxis
         new Array1D<double>([0.04, 0.2, 1.0])
     );
 
+    public IDialog NegativeLimitSensorTimeoutError = new DialogPlaceholder();
+
     public Variable<SpeedProfile> NormalSpeed = new(
         VariableScope.Global,
         new SpeedProfile
@@ -74,6 +77,8 @@ public class Axis : DeviceChannel, IAxis
             DecelJerkRatio = 0.75
         }
     );
+
+    public IDialog PositiveLimitSensorTimeoutError = new DialogPlaceholder();
 
     public bool ResetEnableToClearPosition;
 
@@ -721,7 +726,23 @@ public class Axis : DeviceChannel, IAxis
         while (GetSensorValue(type) != waitingValue)
         {
             if (watch.ElapsedMilliseconds > millisecondsTimeout)
+            {
+                switch (type)
+                {
+                    case AxisSensorType.Home:
+                        HomeSensorTimeoutError.Show();
+                        break;
+                    case AxisSensorType.PositiveLimit:
+                        PositiveLimitSensorTimeoutError.Show();
+                        break;
+                    case AxisSensorType.NegativeLimit:
+                        NegativeLimitSensorTimeoutError.Show();
+                        break;
+                }
+
                 throw new TimeoutError();
+            }
+
             _timeManager.Sleep(1);
         }
     }
