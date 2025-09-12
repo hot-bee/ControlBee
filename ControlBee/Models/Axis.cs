@@ -444,7 +444,7 @@ public class Axis : DeviceChannel, IAxis
 
         MotionDevice.SearchZPhase(
             Channel,
-            InitSpeed.Value.Velocity * Resolution.Value,
+            InitSpeed.Value.Velocity * Resolution.Value * (int)InitDirection,
             Math.Abs(InitSpeed.Value.Accel * Resolution.Value),
             distance
         );
