@@ -725,7 +725,7 @@ public class Axis : DeviceChannel, IAxis
         var watch = _timeManager.CreateWatch();
         while (GetSensorValue(type) != waitingValue)
         {
-            if (watch.ElapsedMilliseconds > millisecondsTimeout)
+            if (watch.ElapsedMilliseconds > millisecondsTimeout || millisecondsTimeout == 0)
             {
                 switch (type)
                 {

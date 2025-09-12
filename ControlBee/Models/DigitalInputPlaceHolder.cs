@@ -94,6 +94,16 @@ public class DigitalInputPlaceholder : IPlaceholder, IDigitalInput
         throw new UnimplementedByDesignError();
     }
 
+    public void WaitOn(int millisecondsTimeout, bool showErrorDialog)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void WaitOff(int millisecondsTimeout, bool showErrorDialog)
+    {
+        throw new NotImplementedException();
+    }
+
     public void WaitOn(int millisecondsTimeout)
     {
         throw new UnimplementedByDesignError();
