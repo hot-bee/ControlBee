@@ -9,6 +9,7 @@ public interface IActorItem : INotifyPropertyChanged
     string ItemPath { get; set; }
     string Name { get; }
     string Desc { get; }
+    bool Visible { get; }
     bool ProcessMessage(ActorItemMessage message);
     void UpdateSubItem();
     void InjectProperties(ISystemPropertiesDataSource dataSource);

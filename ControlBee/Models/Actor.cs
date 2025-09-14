@@ -120,7 +120,8 @@ public class Actor : IActorInternal, IDisposable
 
     public (string itemPath, Type type)[] GetItems()
     {
-        return _actorItems.ToList().ConvertAll(x => (x.Key, x.Value.GetType())).ToArray();
+        return _actorItems.Where(x => x.Value.Visible)
+            .ToList().ConvertAll(x => (x.Key, x.Value.GetType())).ToArray();
     }
 
     public ITimeManager TimeManager { get; }
@@ -157,7 +158,7 @@ public class Actor : IActorInternal, IDisposable
 
     public virtual string[] GetFunctions()
     {
-        return [];
+        return GetRegisteredFunctions().Where(IsFunctionAvailable).ToArray();
     }
 
     public string[] GetAxisItemPaths(string positionItemPath)
@@ -175,6 +176,16 @@ public class Actor : IActorInternal, IDisposable
         }
 
         Logger.Info("Actor instance successfully disposed.");
+    }
+
+    protected virtual string[] GetRegisteredFunctions()
+    {
+        return [];
+    }
+
+    protected virtual bool IsFunctionAvailable(string functionName)
+    {
+        return true;
     }
 
     public void PushState(IState state)

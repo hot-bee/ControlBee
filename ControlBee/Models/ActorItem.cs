@@ -12,6 +12,7 @@ public abstract class ActorItem : IActorItem
 
     public string Name => string.IsNullOrEmpty(_name) ? ItemPath : _name;
     public string Desc { get; private set; } = string.Empty;
+    public bool Visible { get; set; } = true;
 
     public IActorInternal Actor { get; set; } = EmptyActor.Instance;
     public string ItemPath { get; set; } = string.Empty;
@@ -25,7 +26,7 @@ public abstract class ActorItem : IActorItem
                 var payload = new Dictionary<string, object?>
                 {
                     [nameof(Name)] = Name,
-                    [nameof(Desc)] = Desc,
+                    [nameof(Desc)] = Desc
                 };
                 message.Sender.Send(
                     new ActorItemMessage(message.Id, Actor, ItemPath, "_itemMetaData", payload)
@@ -37,7 +38,9 @@ public abstract class ActorItem : IActorItem
         return false;
     }
 
-    public virtual void UpdateSubItem() { }
+    public virtual void UpdateSubItem()
+    {
+    }
 
     public virtual void InjectProperties(ISystemPropertiesDataSource dataSource)
     {
@@ -47,7 +50,10 @@ public abstract class ActorItem : IActorItem
             Desc = desc;
     }
 
-    public virtual void Init() { }
+    public virtual void Init()
+    {
+    }
+
     public virtual void PostInit()
     {
         // Empty
