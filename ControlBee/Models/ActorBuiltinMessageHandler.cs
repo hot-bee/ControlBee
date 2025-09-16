@@ -43,6 +43,9 @@ public class ActorBuiltinMessageHandler(Actor actor)
                 message.Sender.Send(new Message(message, actor, "_property", value));
                 return true;
             }
+            case "_requestStatus":
+                actor.PublishStatus();
+                return true;
         }
 
         return false;
