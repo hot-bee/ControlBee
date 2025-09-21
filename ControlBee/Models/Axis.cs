@@ -198,7 +198,12 @@ public class Axis : DeviceChannel, IAxis
                         if (IsMoving())
                             Logger.Warn("Cancel jog. It's already moving now.");
                         var jogStep = (JogStep)message.DictPayload!["JogStep"]!;
-                        var step = StepJogSizes.Value[(int)jogStep] * (int)direction;
+                        var customStepSize = (double?)message.DictPayload!["CustomStepSize"];
+                        double step;
+                        if(jogStep == JogStep.Custom)
+                            step = customStepSize!.Value * (int)direction;
+                        else
+                            step = StepJogSizes.Value[(int)jogStep] * (int)direction;
                         var speed = GetJogSpeed(JogSpeedLevel.Medium);
                         SetSpeed(speed);
                         RelativeMove(step);
