@@ -91,6 +91,25 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         }
     }
 
+    public void SetLightValue(int inspectionIndex, int lightChannel, double value)
+    {
+        if (VisionDevice == null)
+        {
+            Logger.Error($"VisionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        try
+        {
+            VisionDevice.SetLightValue(Channel, inspectionIndex, lightChannel, value);
+        }
+        catch (ConnectionError)
+        {
+            ConnectionError.Show();
+            throw;
+        }
+    }
+
     public virtual void Wait(int inspectionIndex, int timeout)
     {
         if (VisionDevice == null)

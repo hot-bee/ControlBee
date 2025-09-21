@@ -114,4 +114,9 @@ public class VisionPlaceholder : IPlaceholder, IVision
     {
         throw new NotImplementedException();
     }
+
+    public void SetLightValue(int inspectionIndex, int lightChannel, double value)
+    {
+        throw new NotImplementedException();
+    }
 }

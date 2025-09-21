@@ -18,4 +18,5 @@ public interface IVision : IDeviceChannel
     void WaitExposureEnd(int inspectionIndex, int timeout);
     JObject? GetResult(int inspectionIndex);
     JObject? GetResult(string triggerId);
+    void SetLightValue(int inspectionIndex, int lightChannel, double value);
 }
