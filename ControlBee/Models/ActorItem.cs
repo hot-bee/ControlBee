@@ -4,14 +4,18 @@ using ControlBee.Interfaces;
 
 namespace ControlBee.Models;
 
-public abstract class ActorItem : IActorItem
+public abstract class ActorItem : IActorItem, IActorItemModifier
 {
     private string _name = string.Empty;
     public string ActorName => Actor.Name;
     protected ITimeManager TimeManager => Actor.TimeManager;
 
-    public string Name => string.IsNullOrEmpty(_name) ? ItemPath : _name;
-    public string Desc { get; private set; } = string.Empty;
+    public string Name
+    {
+        get => string.IsNullOrEmpty(_name) ? ItemPath : _name;
+        set => _name = value;
+    }
+    public string Desc { get; set; } = string.Empty;
     public bool Visible { get; set; } = true;
 
     public IActorInternal Actor { get; set; } = EmptyActor.Instance;
@@ -73,5 +77,15 @@ public abstract class ActorItem : IActorItem
         field = value;
         OnPropertyChanged(propertyName);
         return true;
+    }
+
+    public void SetName(string name)
+    {
+        _name = name;
+    }
+
+    public void SetDesc(string desc)
+    {
+        Desc = desc;
     }
 }
