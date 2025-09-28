@@ -9,6 +9,7 @@ public interface ISystemConfigurations
     public string DataFolder { get; }
     public string Version { get; set; }
     string RecipeName { get; set; }
+    int VisionChannelCount { get; set; }
     public void Save();
     public void Load();
 }

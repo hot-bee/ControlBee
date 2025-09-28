@@ -7,6 +7,7 @@ namespace ControlBee.Models;
 public class SystemConfigurations : ISystemConfigurations
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(SystemConfigurations));
+    public int VisionChannelCount { get; set; } = 0;
 
     public string RecipeName { get; set; } = "Default";
 
@@ -15,7 +16,7 @@ public class SystemConfigurations : ISystemConfigurations
     public bool SkipWaitSensor { get; set; } // TODO: setter should be removed
     public bool TimeEmulationMode { get; set; } // TODO: setter should be removed
     public string DataFolder { get; set; } = "";
-    public string Version { get; set; } = "0.0.1";
+    public string Version { get; set; } = "0.0.0";
 
     public void Save()
     {
