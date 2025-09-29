@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
 using ControlBee.Interfaces;
+using ControlBee.Services;
 using ControlBee.Utils;
 using ControlBeeAbstract.Exceptions;
 using log4net;
@@ -56,6 +57,7 @@ public class Actor : IActorInternal, IDisposable
         TimeManager = config.TimeManager;
         ScenarioFlowTester = config.ScenarioFlowTester;
         _systemPropertiesDataSource = config.SystemPropertiesDataSource;
+        EventManager = config.EventManager;
         PositionAxesMap = new PositionAxesMap();
         Name = config.ActorName;
         Ui = config.UiActor;
@@ -91,6 +93,7 @@ public class Actor : IActorInternal, IDisposable
     public int MessageFetchTimeout { get; set; } = -1;
 
     public IScenarioFlowTester ScenarioFlowTester { get; }
+    public IEventManager EventManager { get; }
     public IDeviceManager DeviceManager { get; }
 
     public string Name { get; }

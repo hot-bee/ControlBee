@@ -15,10 +15,26 @@ public class EventManager(IDatabase db) : IEventManager
     )
     {
         db.WriteEvents(actorName, name, severity.ToString(), code?.ToString(), desc);
+        OnEventOccured(new EventMessage
+        {
+            EventTime = DateTime.Now,  // TODO: Get from DB.
+            ActorName = actorName,
+            Name = name,
+            Severity = severity,
+            Code = code,
+            Desc = desc
+        });
     }
 
     public DataTable ReadAll(string tableName)
     {
         return db.ReadAll(tableName);
+    }
+
+    public event EventHandler<EventMessage>? EventOccured;
+
+    protected virtual void OnEventOccured(EventMessage e)
+    {
+        EventOccured?.Invoke(this, e);
     }
 }
