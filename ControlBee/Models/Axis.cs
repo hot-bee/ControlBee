@@ -493,6 +493,9 @@ public class Axis : DeviceChannel, IAxis
         }
         catch (AxisAlarmError)
         {
+            if (string.IsNullOrEmpty(AxisAlarmError.Desc))
+                throw;
+
             throw new AxisAlarmError(AxisAlarmError.Desc);
         }
     }
