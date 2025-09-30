@@ -23,6 +23,7 @@ public class Axis : DeviceChannel, IAxis
 
     public Variable<int> DisableDelay = new(VariableScope.Global, 200);
     public Variable<int> EnableDelay = new(VariableScope.Global, 200);
+    public IDialog AxisAlarmError = new DialogPlaceholder();
     public IDialog HomeSensorTimeoutError = new DialogPlaceholder();
 
     public AxisDirection InitDirection = AxisDirection.Positive;
@@ -475,18 +476,25 @@ public class Axis : DeviceChannel, IAxis
             return;
         }
 
-        ValidateBeforeMove(@override);
-        MotionDevice.JerkRatioSCurveMove(
-            Channel,
-            position * Resolution.Value,
-            Math.Abs(CurrentSpeedProfile.Velocity * Resolution.Value),
-            Math.Abs(CurrentSpeedProfile.Accel * Resolution.Value),
-            Math.Abs(CurrentSpeedProfile.Decel * Resolution.Value),
-            CurrentSpeedProfile.AccelJerkRatio,
-            CurrentSpeedProfile.DecelJerkRatio
-        );
-        MonitorMoving();
-        _velocityMoving = false;
+        try
+        {
+            ValidateBeforeMove(@override);
+            MotionDevice.JerkRatioSCurveMove(
+                Channel,
+                position * Resolution.Value,
+                Math.Abs(CurrentSpeedProfile.Velocity * Resolution.Value),
+                Math.Abs(CurrentSpeedProfile.Accel * Resolution.Value),
+                Math.Abs(CurrentSpeedProfile.Decel * Resolution.Value),
+                CurrentSpeedProfile.AccelJerkRatio,
+                CurrentSpeedProfile.DecelJerkRatio
+            );
+            MonitorMoving();
+            _velocityMoving = false;
+        }
+        catch (AxisAlarmError)
+        {
+            throw new AxisAlarmError(AxisAlarmError.Desc);
+        }
     }
 
     public void RelativeMove(double distance)
@@ -663,7 +671,7 @@ public class Axis : DeviceChannel, IAxis
         while (IsMoving(type)) // Fallback
             _timeManager.Sleep(1);
         if (IsAlarmed())
-            throw new FatalSequenceError("Servo alarm");
+            throw new AxisAlarmError("Servo alarm");
     }
 
     public virtual double GetPosition(PositionType type)
@@ -871,7 +879,7 @@ public class Axis : DeviceChannel, IAxis
         if (CurrentSpeedProfile!.Velocity == 0)
             throw new ValueError("You must provide a speed greater than 0 to move the axis.");
         if (IsAlarmed())
-            throw new FatalSequenceError("Servo alarm");
+            throw new AxisAlarmError("Servo alarm");
         if (!@override)
         {
             if (!IsMoving())
