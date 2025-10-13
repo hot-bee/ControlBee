@@ -55,10 +55,11 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
         set
         {
             var oldValue = _value[x];
+            OnValueChanging(new ValueChangedArgs([x], oldValue, value));
             Unsubscribe(x);
             _value[x] = value;
             Subscribe(x);
-            OnArrayElementChanged(new ValueChangedArgs([x], oldValue, value));
+            OnValueChanged(new ValueChangedArgs([x], oldValue, value));
         }
     }
 
@@ -131,17 +132,22 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
 
     private void Subscribe(int index)
     {
-        if (_value[index] is IValueChanged valueChanged)
-            valueChanged.ValueChanged += ValueChangedOnValueChanged;
+        if (_value[index] is INotifyValueChanged notify)
+        {
+            notify.ValueChanging += NotifyOnValueChanging;
+            notify.ValueChanged += NotifyOnValueChanged;
+        }
     }
 
     private void Unsubscribe(int index)
     {
-        if (_value[index] is IValueChanged valueChanged)
-            valueChanged.ValueChanged -= ValueChangedOnValueChanged;
+        if (_value[index] is INotifyValueChanged notify)
+        {
+            notify.ValueChanging -= NotifyOnValueChanging;
+            notify.ValueChanged -= NotifyOnValueChanged;
+        }
     }
-
-    private void ValueChangedOnValueChanged(object? sender, ValueChangedArgs e)
+    private void NotifyOnValueChanging(object? sender, ValueChangedArgs e)
     {
         var index = Array.IndexOf(_value, sender);
         if (index == -1)
@@ -150,7 +156,24 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
             return;
         }
 
-        OnArrayElementChanged(
+        OnValueChanging(
+            new ValueChangedArgs(
+                ((object[])[index]).Concat(e.Location).ToArray(),
+                e.OldValue,
+                e.NewValue
+            )
+        );
+    }
+    private void NotifyOnValueChanged(object? sender, ValueChangedArgs e)
+    {
+        var index = Array.IndexOf(_value, sender);
+        if (index == -1)
+        {
+            Logger.Warn($"Couldn't find index of the changed value. ({sender})");
+            return;
+        }
+
+        OnValueChanged(
             new ValueChangedArgs(
                 ((object[])[index]).Concat(e.Location).ToArray(),
                 e.OldValue,

@@ -4,8 +4,9 @@ using ControlBee.Models;
 
 namespace ControlBee.Variables;
 
-public abstract class ArrayBase : IValueChanged, IActorItemSub, ICloneable
+public abstract class ArrayBase : INotifyValueChanged, IActorItemSub, ICloneable
 {
+    public event EventHandler<ValueChangedArgs>? ValueChanging;
     public event EventHandler<ValueChangedArgs>? ValueChanged;
     public abstract void ReadJson(JsonDocument jsonDoc);
     public abstract void WriteJson(
@@ -13,11 +14,6 @@ public abstract class ArrayBase : IValueChanged, IActorItemSub, ICloneable
         ArrayBase value,
         JsonSerializerOptions options
     );
-
-    protected virtual void OnArrayElementChanged(ValueChangedArgs e)
-    {
-        ValueChanged?.Invoke(this, e);
-    }
 
     public IActorInternal Actor { get; set; } = EmptyActor.Instance;
     public string ItemPath { get; set; } = string.Empty;
@@ -40,4 +36,14 @@ public abstract class ArrayBase : IValueChanged, IActorItemSub, ICloneable
     public abstract bool ProcessMessage(ActorItemMessage message);
 
     public abstract object Clone();
+
+    protected virtual void OnValueChanged(ValueChangedArgs e)
+    {
+        ValueChanged?.Invoke(this, e);
+    }
+
+    protected virtual void OnValueChanging(ValueChangedArgs e)
+    {
+        ValueChanging?.Invoke(this, e);
+    }
 }

@@ -48,8 +48,10 @@ public class Array3D<T> : ArrayBase, IIndex3D
         set
         {
             var oldValue = _value[x, y, z];
+            var valueChangedArgs = new ValueChangedArgs([(x, y, z)], oldValue, value);
+            OnValueChanging(valueChangedArgs);
             _value[x, y, z] = value;
-            OnArrayElementChanged(new ValueChangedArgs([(x, y, z)], oldValue, value));
+            OnValueChanged(valueChangedArgs);
         }
     }
 

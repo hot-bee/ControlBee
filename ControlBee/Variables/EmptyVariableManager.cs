@@ -27,12 +27,24 @@ public class EmptyVariableManager : IVariableManager
 
     public string LocalName { get; } = "";
     public string[] LocalNames { get; } = [];
+    public bool Modified { get; }
+
     public void Delete(string localName)
     {
         // Empty
     }
 
     public DataTable ReadVariableChanges()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void SaveTemporaryVariables()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void DiscardChanges()
     {
         throw new NotImplementedException();
     }

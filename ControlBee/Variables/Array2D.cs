@@ -46,8 +46,10 @@ public class Array2D<T> : ArrayBase, IIndex2D
         set
         {
             var oldValue = _value[x, y];
+            var valueChangedArgs = new ValueChangedArgs([(x, y)], oldValue, value);
+            OnValueChanging(valueChangedArgs);
             _value[x, y] = value;
-            OnArrayElementChanged(new ValueChangedArgs([(x, y)], oldValue, value));
+            OnValueChanged(valueChangedArgs);
         }
     }
 

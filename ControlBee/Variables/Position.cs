@@ -8,7 +8,7 @@ using MathNet.Numerics.LinearAlgebra.Double;
 
 namespace ControlBee.Variables;
 
-public abstract class Position : IValueChanged, IActorItemSub, IWriteData, IIndex1D
+public abstract class Position : INotifyValueChanged, IActorItemSub, IWriteData, IIndex1D
 {
     private static readonly ILog Logger = LogManager.GetLogger("Position");
     private DenseVector _duplicatedVector = new(0);
@@ -54,9 +54,11 @@ public abstract class Position : IValueChanged, IActorItemSub, IWriteData, IInde
         set
         {
             var oldValue = Vector;
+            var valueChangedArgs = new ValueChangedArgs([nameof(Vector)], oldValue, value);
+            OnValueChanging(valueChangedArgs);
             InternalVector = value;
             _duplicatedVector = value;
-            OnValueChanged(new ValueChangedArgs([nameof(Vector)], oldValue, value));
+            OnValueChanged(valueChangedArgs);
         }
     }
 
@@ -73,9 +75,11 @@ public abstract class Position : IValueChanged, IActorItemSub, IWriteData, IInde
         {
             var newVector = DenseVector.OfVector(InternalVector);
             var oldValue = newVector[i];
+            var valueChangedArgs = new ValueChangedArgs([i], oldValue, value);
+            OnValueChanging(valueChangedArgs);
             newVector[i] = value;
             InternalVector = newVector;
-            OnValueChanged(new ValueChangedArgs([i], oldValue, value));
+            OnValueChanged(valueChangedArgs);
         }
     }
 
@@ -99,14 +103,15 @@ public abstract class Position : IValueChanged, IActorItemSub, IWriteData, IInde
             case "MoveToHomePos":
                 MoveToHomePos();
                 return true;
-            case "SavePos":
-                SavePos();
+            case "SetPos":
+                SetPos();
                 return true;
         }
 
         return false;
     }
 
+    public event EventHandler<ValueChangedArgs>? ValueChanging;
     public event EventHandler<ValueChangedArgs>? ValueChanged;
 
     public void WriteData(ItemDataWriteArgs args)
@@ -225,12 +230,17 @@ public abstract class Position : IValueChanged, IActorItemSub, IWriteData, IInde
         }
     }
 
-    public void SavePos()
+    public void SetPos()
     {
         for (var i = 0; i < Axes.Length; i++)
         {
             var pos = Axes[i].GetPosition();
             this[i] = pos;
         }
+    }
+
+    protected virtual void OnValueChanging(ValueChangedArgs e)
+    {
+        ValueChanging?.Invoke(this, e);
     }
 }

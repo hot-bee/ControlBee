@@ -16,7 +16,8 @@ public class SystemConfigurations : ISystemConfigurations
     public bool SkipWaitSensor { get; set; } // TODO: setter should be removed
     public bool TimeEmulationMode { get; set; } // TODO: setter should be removed
     public string DataFolder { get; set; } = "";
-    public string Version { get; set; } = "0.0.0";
+    public string Version { get; set; } = "0.0.0"; // TODO: Relocate this to somewhere
+    public bool AutoVariableSave { get; set; } = true;
 
     public void Save()
     {

@@ -65,13 +65,15 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
             var oldValue = _value;
             if (EqualityComparer<T>.Default.Equals(oldValue, value))
                 return;
+            var newValue = value;
+            if (value is ICloneable cloneable)
+                newValue = (T)cloneable.Clone();
+            var valueChangedArgs = new ValueChangedArgs([], oldValue, newValue);  // TODO: Not sure why we need to cloned value here.
+            OnValueChanging(valueChangedArgs);
             Unsubscribe();
             _value = value;
-            var newValue = _value;
-            if (_value is ICloneable cloneable)
-                newValue = (T)cloneable.Clone();
             OnAfterValueChange();
-            OnValueChanged(new ValueChangedArgs([], oldValue, newValue));
+            OnValueChanged(valueChangedArgs);
         }
     }
 
@@ -80,6 +82,7 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
         Unsubscribe();
     }
 
+    public event EventHandler<ValueChangedArgs>? ValueChanging;
     public event EventHandler<ValueChangedArgs>? ValueChanged;
 
     public int? Id { get; set; }
@@ -198,17 +201,28 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
 
     private void Subscribe()
     {
-        if (_value is IValueChanged arrayValue)
-            arrayValue.ValueChanged += ArrayValue_ValueChanged;
+        if (_value is INotifyValueChanged notify)
+        {
+            notify.ValueChanging += NotifyOnValueChanging;
+            notify.ValueChanged += NotifyOnValueChanged;
+        }
     }
 
     private void Unsubscribe()
     {
-        if (_value is IValueChanged arrayValue)
-            arrayValue.ValueChanged -= ArrayValue_ValueChanged;
+        if (_value is INotifyValueChanged notify)
+        {
+            notify.ValueChanging -= NotifyOnValueChanging;
+            notify.ValueChanged -= NotifyOnValueChanged;
+        }
     }
 
-    private void ArrayValue_ValueChanged(object? sender, ValueChangedArgs e)
+    private void NotifyOnValueChanging(object? sender, ValueChangedArgs e)
+    {
+        OnValueChanging(e);
+    }
+
+    private void NotifyOnValueChanged(object? sender, ValueChangedArgs e)
     {
         OnValueChanged(e);
     }
@@ -217,5 +231,10 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
     {
         Dirty = true;
         ValueChanged?.Invoke(this, e);
+    }
+
+    protected virtual void OnValueChanging(ValueChangedArgs e)
+    {
+        ValueChanging?.Invoke(this, e);
     }
 }

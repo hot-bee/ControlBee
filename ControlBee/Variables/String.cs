@@ -17,7 +17,7 @@ public class String : PropertyVariable
     public string Value
     {
         get => _value;
-        set => ValueChangedUtils.SetField(ref _value, value, OnValueChanged);
+        set => ValueChangedUtils.SetField(ref _value, value, OnValueChanging, OnValueChanged);
     }
 
     public override string ToString()

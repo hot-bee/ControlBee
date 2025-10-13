@@ -5,15 +5,39 @@ using log4net;
 
 namespace ControlBee.Variables;
 
-public abstract class PropertyVariable : IActorItemSub, IValueChanged, IWriteData
+public abstract class PropertyVariable : IActorItemSub, INotifyValueChanged, IWriteData
 {
     private static readonly ILog Logger = LogManager.GetLogger("PropertyVariable");
-    protected EventHandler<ValueChangedArgs>? _valueChanged;
-    public event EventHandler<ValueChangedArgs>? ValueChanged
+
+    protected PropertyVariable()
     {
-        add => _valueChanged += value;
-        remove => _valueChanged -= value;
     }
+
+    protected PropertyVariable(PropertyVariable source)
+    {
+        Actor = source.Actor;
+        ItemPath = source.ItemPath;
+    }
+
+    [JsonIgnore] public IActorInternal Actor { get; set; } = null!;
+
+    [JsonIgnore] public string ItemPath { get; set; } = null!;
+
+    public void UpdateSubItem()
+    {
+        // TODO
+    }
+
+    public abstract void OnDeserialized();
+
+    public bool ProcessMessage(ActorItemMessage message)
+    {
+        // Empty
+        return false;
+    }
+
+    public event EventHandler<ValueChangedArgs>? ValueChanging;
+    public event EventHandler<ValueChangedArgs>? ValueChanged;
 
     public virtual void WriteData(ItemDataWriteArgs args)
     {
@@ -43,25 +67,11 @@ public abstract class PropertyVariable : IActorItemSub, IValueChanged, IWriteDat
 
     protected virtual void OnValueChanged(ValueChangedArgs e)
     {
-        _valueChanged?.Invoke(this, e);
+        ValueChanged?.Invoke(this, e);
     }
 
-    [JsonIgnore]
-    public IActorInternal Actor { get; set; } = null!;
-
-    [JsonIgnore]
-    public string ItemPath { get; set; } = null!;
-
-    public void UpdateSubItem()
+    protected virtual void OnValueChanging(ValueChangedArgs e)
     {
-        // TODO
-    }
-
-    public abstract void OnDeserialized();
-
-    public bool ProcessMessage(ActorItemMessage message)
-    {
-        // Empty
-        return false;
+        ValueChanging?.Invoke(this, e);
     }
 }

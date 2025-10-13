@@ -14,34 +14,48 @@ public class SpeedProfile : PropertyVariable, ICloneable
     private double _decelJerkRatio;
     private double _velocity;
 
+    public SpeedProfile()
+    {
+        
+    }
+
+    protected SpeedProfile(SpeedProfile source) : base(source)
+    {
+        Velocity = source.Velocity;
+        Accel = source.Accel;
+        Decel = source.Decel;
+        AccelJerkRatio = source.AccelJerkRatio;
+        DecelJerkRatio = source.DecelJerkRatio;
+    }
+
     public double Velocity
     {
         get => _velocity;
-        set => ValueChangedUtils.SetField(ref _velocity, value, OnValueChanged);
+        set => ValueChangedUtils.SetField(ref _velocity, value, OnValueChanging, OnValueChanged);
     }
 
     public double Accel
     {
         get => _accel;
-        set => ValueChangedUtils.SetField(ref _accel, value, OnValueChanged);
+        set => ValueChangedUtils.SetField(ref _accel, value, OnValueChanging, OnValueChanged);
     }
 
     public double Decel
     {
         get => _decel;
-        set => ValueChangedUtils.SetField(ref _decel, value, OnValueChanged);
+        set => ValueChangedUtils.SetField(ref _decel, value, OnValueChanging, OnValueChanged);
     }
 
     public double AccelJerkRatio
     {
         get => _accelJerkRatio;
-        set => ValueChangedUtils.SetField(ref _accelJerkRatio, value, OnValueChanged);
+        set => ValueChangedUtils.SetField(ref _accelJerkRatio, value, OnValueChanging, OnValueChanged);
     }
 
     public double DecelJerkRatio
     {
         get => _decelJerkRatio;
-        set => ValueChangedUtils.SetField(ref _decelJerkRatio, value, OnValueChanged);
+        set => ValueChangedUtils.SetField(ref _decelJerkRatio, value, OnValueChanging, OnValueChanged);
     }
 
     [JsonIgnore]
@@ -68,10 +82,7 @@ public class SpeedProfile : PropertyVariable, ICloneable
 
     public object Clone()
     {
-        var clone = MemberwiseClone();
-        typeof(SpeedProfile).GetField("_valueChanged", 
-            BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(clone, null);
-        return clone;
+        return new SpeedProfile(this);
     }
 
     public override void OnDeserialized()

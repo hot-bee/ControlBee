@@ -10,6 +10,7 @@ public interface ISystemConfigurations
     public string Version { get; set; }
     string RecipeName { get; set; }
     int VisionChannelCount { get; set; }
+    bool AutoVariableSave { get; set; }
     public void Save();
     public void Load();
 }

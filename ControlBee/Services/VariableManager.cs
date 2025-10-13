@@ -19,11 +19,12 @@ public class VariableManager(
     : IVariableManager, IDisposable
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(VariableManager));
+    private readonly List<(IVariable variable, ValueChangedArgs args)> _changedArgs = [];
 
     private readonly Dictionary<Tuple<string, string>, IVariable> _variables = [];
     private bool _loading;
     private string _localName = "Default";
-
+    private bool _modified;
     private IActor? _uiActor;
 
     public VariableManager(IDatabase database, ISystemConfigurations systemConfigurations, IDeviceManager deviceManager)
@@ -35,6 +36,12 @@ public class VariableManager(
         ISystemConfigurations systemConfigurations, IDeviceManager deviceManager)
         : this(database, actorRegistry, systemConfigurations, deviceManager, null)
     {
+    }
+
+    public bool Modified
+    {
+        get => _modified;
+        private set => SetField(ref _modified, value);
     }
 
     private IActor? UiActor
@@ -59,7 +66,10 @@ public class VariableManager(
     public void Dispose()
     {
         foreach (var variable in _variables.Values)
-            variable.ValueChanged -= Variable_ValueChanged;
+        {
+            variable.ValueChanging -= VariableOnValueChanging;
+            variable.ValueChanged -= VariableOnValueChanged;
+        }
     }
 
     public string LocalName
@@ -88,7 +98,8 @@ public class VariableManager(
             throw new ApplicationException(
                 "The 'ItemPath' is already being used by another variable."
             );
-        variable.ValueChanged += Variable_ValueChanged;
+        variable.ValueChanging += VariableOnValueChanging;
+        variable.ValueChanged += VariableOnValueChanged;
         variable.UserInfo = userInfo;
     }
 
@@ -102,16 +113,17 @@ public class VariableManager(
             LocalName = localName;
         }
 
-        foreach (var ((groupName, uid), variable) in _variables)
+        foreach (var ((actorName, uid), variable) in _variables)
         {
             if (localNameChanged && variable.Scope != VariableScope.Local) continue;
             if (!(localNameChanged || variable.Dirty)) continue;
-            variable.Dirty = false;
-            var jsonString = variable.ToJson();
-            var dbLocalName = variable.Scope == VariableScope.Local ? LocalName : "";
-            var id = database.WriteVariables(variable.Scope, dbLocalName, groupName, uid, jsonString);
-            variable.Id = id;
+            Save(actorName, uid, variable);
         }
+
+        foreach (var (variable, args) in _changedArgs)
+            database.WriteVariableChange(variable, args);
+        _changedArgs.Clear();
+        Modified = false;
 
         if (localNameChanged)
         {
@@ -125,6 +137,7 @@ public class VariableManager(
     public void Load(string? localName = null)
     {
         Logger.Info($"Load. ({localName})");
+        DiscardChanges();
         _loading = true;
         try
         {
@@ -135,17 +148,8 @@ public class VariableManager(
                 LocalName = localName;
             }
 
-            foreach (var ((groupName, uid), variable) in _variables)
-            {
-                var dbLocalName = variable.Scope == VariableScope.Local ? LocalName : "";
-                var row = database.Read(dbLocalName, groupName, uid);
-                if (row.HasValue)
-                {
-                    variable.Id = row.Value.id;
-                    variable.FromJson(row.Value.value);
-                    variable.Dirty = false;
-                }
-            }
+            foreach (var ((actorName, uid), variable) in _variables)
+                Load(actorName, uid, variable);
 
             if (localNameChanged)
             {
@@ -173,6 +177,77 @@ public class VariableManager(
         return database.ReadVariableChanges();
     }
 
+    public void SaveTemporaryVariables()
+    {
+        Logger.Info("SaveTemporary.");
+        foreach (var ((actorName, uid), variable) in _variables)
+        {
+            if (variable.Scope != VariableScope.Temporary || !variable.Dirty) continue;
+            Save(actorName, uid, variable);
+        }
+    }
+
+    public void DiscardChanges()
+    {
+        Logger.Info("DiscardChanges.");
+        foreach (var ((actorName, uid), variable) in _variables)
+        {
+            if (variable.Scope == VariableScope.Temporary) continue;
+            if (!variable.Dirty) continue;
+            Load(actorName, uid, variable);
+        }
+        _changedArgs.Clear();
+        Modified = false;
+    }
+
+    public void Save(IVariable variableToSave)
+    {
+        foreach (var ((actorName, uid), variable) in _variables)
+            if (variable == variableToSave)
+            {
+                Save(actorName, uid, variable);
+                return;
+            }
+
+        Logger.Warn("Couldn't find the variable in _variables in Save().");
+    }
+
+    private void Load(IVariable variableToLoad)
+    {
+        foreach (var ((actorName, uid), variable) in _variables)
+            if (variable == variableToLoad)
+            {
+                Load(actorName, uid, variable);
+                return;
+            }
+
+        Logger.Warn("Couldn't find the variable in _variables in Load().");
+    }
+
+    private void Save(string actorName, string uid, IVariable variable)
+    {
+        variable.Dirty = false;
+        var jsonString = variable.ToJson();
+        var dbLocalName = variable.Scope == VariableScope.Local ? LocalName : "";
+        var id = database.WriteVariables(variable.Scope, dbLocalName, actorName, uid, jsonString);
+        variable.Id = id;
+    }
+
+    private void Load(string actorName, string uid, IVariable variable)
+    {
+        var dbLocalName = variable.Scope == VariableScope.Local ? LocalName : "";
+        var row = database.Read(dbLocalName, actorName, uid);
+        if (!row.HasValue)
+        {
+            Save(actorName, uid, variable);
+            return;
+        }
+
+        variable.Id = row.Value.id;
+        variable.FromJson(row.Value.value);
+        variable.Dirty = false;
+    }
+
     private void LoadVisionRecipe(string localName)
     {
         foreach (var device in deviceManager.GetDevices())
@@ -187,7 +262,12 @@ public class VariableManager(
                 visionDevice.SaveRecipe(localName);
     }
 
-    private void Variable_ValueChanged(object? sender, ValueChangedArgs e)
+    private void VariableOnValueChanging(object? sender, ValueChangedArgs e)
+    {
+        // Empty
+    }
+
+    private void VariableOnValueChanged(object? sender, ValueChangedArgs e)
     {
         var variable = (IVariable)sender!;
         var payload = new Dict { [nameof(ValueChangedArgs)] = e };
@@ -197,9 +277,16 @@ public class VariableManager(
 
         if (variable.Scope != VariableScope.Temporary && !_loading)
         {
-            if (variable.Id == null || variable.Dirty) Save();
-            if (variable.Id == null) Logger.Warn("Variable Id is 0 even after saving it.");
-            database.WriteVariableChange(variable, e);
+            if (systemConfigurations.AutoVariableSave)
+            {
+                Save(variable);
+                database.WriteVariableChange(variable, e);
+            }
+            else
+            {
+                _changedArgs.Add((variable, e));
+                Modified = true;
+            }
         }
     }
 

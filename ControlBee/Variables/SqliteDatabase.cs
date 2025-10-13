@@ -150,6 +150,12 @@ public class SqliteDatabase : IDatabase, IDisposable
 
     public void WriteVariableChange(IVariable variable, ValueChangedArgs valueChangedArgs)
     {
+        if (variable.Id == null)
+        {
+            Logger.Error("Variable Id is null in WriteVariableChange.");
+            return;
+        }
+
         var sql =
             "INSERT INTO variable_changes (variable_id, location, old_value, new_value) "
             + "VALUES (@variable_id, @location, @old_value, @new_value)";

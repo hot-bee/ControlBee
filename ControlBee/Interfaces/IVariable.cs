@@ -2,7 +2,7 @@
 
 namespace ControlBee.Interfaces;
 
-public interface IVariable : IActorItem, IValueChanged
+public interface IVariable : IActorItem, INotifyValueChanged
 {
     int? Id { get; set; }
     object? ValueObject { get; }

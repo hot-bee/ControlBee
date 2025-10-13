@@ -10,6 +10,9 @@ public interface IVariableManager: INotifyPropertyChanged
     void Load(string? localName = null);
     string LocalName { get; }
     string[] LocalNames { get; }
+    bool Modified { get; }
     void Delete(string localName);
     DataTable ReadVariableChanges();
+    void SaveTemporaryVariables();
+    void DiscardChanges();
 }
