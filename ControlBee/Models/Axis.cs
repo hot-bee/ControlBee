@@ -493,10 +493,8 @@ public class Axis : DeviceChannel, IAxis
         }
         catch (AxisAlarmError)
         {
-            if (string.IsNullOrEmpty(AxisAlarmError.Desc))
-                throw;
-
-            throw new AxisAlarmError(AxisAlarmError.Desc);
+            AxisAlarmError.Show();
+            throw;
         }
     }
 
@@ -674,7 +672,10 @@ public class Axis : DeviceChannel, IAxis
         while (IsMoving(type)) // Fallback
             _timeManager.Sleep(1);
         if (IsAlarmed())
-            throw new AxisAlarmError("Servo alarm");
+        {
+            AxisAlarmError.Show();
+            throw new AxisAlarmError();
+        }
     }
 
     public virtual double GetPosition(PositionType type)
@@ -882,7 +883,10 @@ public class Axis : DeviceChannel, IAxis
         if (CurrentSpeedProfile!.Velocity == 0)
             throw new ValueError("You must provide a speed greater than 0 to move the axis.");
         if (IsAlarmed())
-            throw new AxisAlarmError("Servo alarm");
+        {
+            AxisAlarmError.Show();
+            throw new AxisAlarmError();
+        }
         if (!@override)
         {
             if (!IsMoving())
