@@ -72,4 +72,9 @@ public class Dialog(DialogContextFactory dialogContextFactory, IEventManager eve
         );
         return Actor.Ui?.Send(new Message(Actor, "_displayDialog", Context)) ?? Guid.Empty;
     }
+
+    public void Close()
+    {
+        Actor.Ui?.Send(new Message(Actor, "_closeDialog", Context));
+    }
 }

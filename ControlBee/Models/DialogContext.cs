@@ -11,4 +11,15 @@ public class DialogContext : IDialogContext
     public int? Code { get; set; }
     public DialogSeverity Severity { get; set; } = DialogSeverity.Error;
     public string[] ActionButtons { get; set; } = [];
+    public event EventHandler? CloseRequested;
+
+    public void Close()
+    {
+        OnCloseRequested();
+    }
+
+    protected virtual void OnCloseRequested()
+    {
+        CloseRequested?.Invoke(this, EventArgs.Empty);
+    }
 }

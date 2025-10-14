@@ -52,4 +52,9 @@ public class DialogPlaceholder : IPlaceholder, IDialog
     {
         throw new NotImplementedException();
     }
+
+    public void Close()
+    {
+        throw new NotImplementedException();
+    }
 }

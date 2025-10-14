@@ -6,7 +6,7 @@ public class DialogDisplay
 {
     private readonly DialogViewFactory _dialogViewFactory;
 
-    private readonly HashSet<DialogContext> _onContexts = [];
+    private readonly HashSet<IDialogContext> _onContexts = [];
 
     public DialogDisplay(IActorRegistry actorRegistry, DialogViewFactory dialogViewFactory)
     {
@@ -17,13 +17,25 @@ public class DialogDisplay
 
     private void Ui_MessageArrived(object? sender, Message e)
     {
-        if (e.Name != "_displayDialog")
-            return;
-        var context = (DialogContext)e.Payload!;
-        if (_onContexts.Contains(context)) return;
-        var dialog = _dialogViewFactory.Create();
-        dialog.Show(context, e);
-        _onContexts.Add(context);
-        dialog.DialogClosed += (o, args) => { _onContexts.Remove(context); };
+        switch (e.Name)
+        {
+            case "_displayDialog":
+            {
+                var context = (IDialogContext)e.Payload!;
+                if (_onContexts.Contains(context)) return;
+                var dialog = _dialogViewFactory.Create();
+                dialog.Show(context, e);
+                _onContexts.Add(context);
+                dialog.DialogClosed += (o, args) => { _onContexts.Remove(context); };
+                break;
+            }
+            case "_closeDialog":
+            {
+                var context = (IDialogContext)e.Payload!;
+                if (!_onContexts.Contains(context)) return;
+                context.Close();
+                break;
+            }
+        }
     }
 }

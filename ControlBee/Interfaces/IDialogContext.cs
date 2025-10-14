@@ -10,4 +10,6 @@ public interface IDialogContext
     int? Code { get; set; }
     DialogSeverity Severity { get; set; }
     string[] ActionButtons { get; set; }
+    event EventHandler? CloseRequested;
+    void Close();
 }
