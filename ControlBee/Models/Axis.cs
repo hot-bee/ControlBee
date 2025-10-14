@@ -673,6 +673,7 @@ public class Axis : DeviceChannel, IAxis
             _timeManager.Sleep(1);
         if (IsAlarmed())
         {
+            Logger.Error($"Occur axis alarm error during Wait. ({ActorName}, {ItemPath})");
             AxisAlarmError.Show();
             throw new AxisAlarmError();
         }
@@ -884,6 +885,7 @@ public class Axis : DeviceChannel, IAxis
             throw new ValueError("You must provide a speed greater than 0 to move the axis.");
         if (IsAlarmed())
         {
+            Logger.Error($"Occur axis alarm error during ValidateBeforeMove. ({ActorName}, {ItemPath})");
             AxisAlarmError.Show();
             throw new AxisAlarmError();
         }
