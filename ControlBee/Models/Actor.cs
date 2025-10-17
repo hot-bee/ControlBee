@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
 using ControlBee.Interfaces;
-using ControlBee.Services;
 using ControlBee.Utils;
 using ControlBeeAbstract.Exceptions;
 using log4net;
@@ -31,6 +30,7 @@ public class Actor : IActorInternal, IDisposable
     private bool _init;
 
     private IState _initialState;
+    private long _lastTimerActivation;
 
     private int _publishStep;
 
@@ -90,7 +90,7 @@ public class Actor : IActorInternal, IDisposable
 
     public bool SkipWaitSensor { get; }
 
-    public int MessageFetchTimeout { get; set; } = -1;
+    public int TimerMilliseconds { get; set; } = -1;
 
     public IScenarioFlowTester ScenarioFlowTester { get; }
     public IEventManager EventManager { get; }
@@ -479,10 +479,23 @@ public class Actor : IActorInternal, IDisposable
         try
         {
             while (true)
+            {
+                var timeout = -1;
+                if (TimerMilliseconds != -1)
+                {
+                    var elapsedTime = Environment.TickCount64 - _lastTimerActivation;
+                    if (TimerMilliseconds <= elapsedTime)
+                    {
+                        _lastTimerActivation = Environment.TickCount64;
+                        MessageHandler(new TimerMessage(this));
+                    }
+                    timeout = (int)Math.Max(TimerMilliseconds - elapsedTime, 10);
+                }
+
                 if (
                     _mailbox.TryTake(
                         out var message,
-                        MessageFetchTimeout,
+                        timeout,
                         _cancellationTokenSource.Token
                     )
                 )
@@ -495,10 +508,7 @@ public class Actor : IActorInternal, IDisposable
 
                     MessageHandler(message);
                 }
-                else
-                {
-                    MessageHandler(new TimeoutMessage(this));
-                }
+            }
         }
         catch (OperationCanceledException e)
         {
@@ -566,7 +576,7 @@ public class Actor : IActorInternal, IDisposable
                     !result
                     && message.GetType() != typeof(DroppedMessage)
                     && message.GetType() != typeof(StateEntryMessage)
-                    && message.GetType() != typeof(TimeoutMessage)
+                    && message.GetType() != typeof(TimerMessage)
                 )
                     message.Sender.Send(new DroppedMessage(message.Id, this));
                 break;
