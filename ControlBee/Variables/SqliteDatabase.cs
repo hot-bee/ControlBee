@@ -205,6 +205,11 @@ public class SqliteDatabase : IDatabase, IDisposable
         return dt;
     }
 
+    public object GetConnection()
+    {
+        return _connection;
+    }
+
     public void Dispose()
     {
         _connection.Close();
