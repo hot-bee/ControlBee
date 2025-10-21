@@ -54,4 +54,8 @@ public interface IAxis : IDeviceChannel
     bool IsVelocityMoving();
     void BuiltinInitialize();
     void SpecialCommand(Dict data);
+    void SetSoftwareLimit(bool enable, double negativeLimit, double positiveLimit);
+    bool GetUseSoftwareLimit();
+    double GetPositiveSoftwareLimitPosition();
+    double GetNegativeSoftwareLimitPosition();
 }

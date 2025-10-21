@@ -18,12 +18,12 @@ public class Axis : DeviceChannel, IAxis
     private Action _initializeAction;
     private bool _initializing;
     protected bool _velocityMoving;
+    public IDialog AxisAlarmError = new DialogPlaceholder();
 
     protected SpeedProfile? CurrentSpeedProfile;
 
     public Variable<int> DisableDelay = new(VariableScope.Global, 200);
     public Variable<int> EnableDelay = new(VariableScope.Global, 200);
-    public IDialog AxisAlarmError = new DialogPlaceholder();
     public IDialog HomeSensorTimeoutError = new DialogPlaceholder();
 
     public AxisDirection InitDirection = AxisDirection.Positive;
@@ -67,6 +67,8 @@ public class Axis : DeviceChannel, IAxis
 
     public IDialog NegativeLimitSensorTimeoutError = new DialogPlaceholder();
 
+    public Variable<double> NegativeSoftwareLimitPosition = new(VariableScope.Global);
+
     public Variable<SpeedProfile> NormalSpeed = new(
         VariableScope.Global,
         new SpeedProfile
@@ -81,6 +83,8 @@ public class Axis : DeviceChannel, IAxis
 
     public IDialog PositiveLimitSensorTimeoutError = new DialogPlaceholder();
 
+    public Variable<double> PositiveSoftwareLimitPosition = new(VariableScope.Global);
+
     public bool ResetEnableToClearPosition;
 
     public Variable<double> Resolution = new(VariableScope.Global, 1.0);
@@ -89,6 +93,8 @@ public class Axis : DeviceChannel, IAxis
         VariableScope.Global,
         new Array1D<double>([0.1, 0.5, 1.0])
     );
+
+    public Variable<bool> UseSoftwareLimit = new(VariableScope.Global);
 
     public Axis(IDeviceManager deviceManager, ITimeManager timeManager)
         : base(deviceManager)
@@ -201,7 +207,7 @@ public class Axis : DeviceChannel, IAxis
                         var jogStep = (JogStep)message.DictPayload!["JogStep"]!;
                         var customStepSize = (double?)message.DictPayload!.GetValueOrDefault("CustomStepSize");
                         double step;
-                        if(jogStep == JogStep.Custom)
+                        if (jogStep == JogStep.Custom)
                             step = customStepSize!.Value * (int)direction;
                         else
                             step = StepJogSizes.Value[(int)jogStep] * (int)direction;
@@ -612,6 +618,32 @@ public class Axis : DeviceChannel, IAxis
         SetPosition(0.0, type);
     }
 
+    public bool GetUseSoftwareLimit()
+    {
+        return UseSoftwareLimit.Value;
+    }
+
+    public double GetPositiveSoftwareLimitPosition()
+    {
+        return PositiveSoftwareLimitPosition.Value;
+    }
+
+    public double GetNegativeSoftwareLimitPosition()
+    {
+        return NegativeSoftwareLimitPosition.Value;
+    }
+
+    public void SetSoftwareLimit(bool enable, double negativeLimit, double positiveLimit)
+    {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        MotionDevice.SetSoftwareLimit(Channel, enable, negativeLimit, positiveLimit);
+    }
+
     public virtual void SetPosition(
         double position,
         PositionType type = PositionType.CommandAndActual
@@ -889,6 +921,7 @@ public class Axis : DeviceChannel, IAxis
             AxisAlarmError.Show();
             throw new AxisAlarmError();
         }
+
         if (!@override)
         {
             if (!IsMoving())
