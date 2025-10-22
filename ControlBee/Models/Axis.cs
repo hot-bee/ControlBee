@@ -641,7 +641,7 @@ public class Axis : DeviceChannel, IAxis
             return;
         }
 
-        MotionDevice.SetSoftwareLimit(Channel, enable, negativeLimit, positiveLimit);
+        MotionDevice.SetSoftwareLimit(Channel, enable, negativeLimit * Resolution.Value, positiveLimit * Resolution.Value);
     }
 
     public virtual void SetPosition(

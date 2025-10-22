@@ -27,6 +27,7 @@ public class InitializeSequence(
         axis.Enable(false);
         axis.Enable(true);
         axis.OnBeforeInitialize();
+        axis.SetSoftwareLimit(false, 0.0, 0.0);
 
         switch (sensorType)
         {
