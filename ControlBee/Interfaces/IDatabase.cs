@@ -26,4 +26,5 @@ public interface IDatabase
     void DeleteLocal(string localName);
     void WriteVariableChange(IVariable variable, ValueChangedArgs valueChangedArgs);
     DataTable ReadVariableChanges();
+    object GetConnection();
 }

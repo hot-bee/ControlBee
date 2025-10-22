@@ -26,6 +26,11 @@ public class EventManager(IDatabase db) : IEventManager
         });
     }
 
+    public IDatabase GetDatabase()
+    {
+        return db;
+    }
+
     public DataTable ReadAll(string tableName)
     {
         return db.ReadAll(tableName);

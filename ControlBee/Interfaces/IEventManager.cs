@@ -13,6 +13,8 @@ public interface IEventManager
         string? desc = null
     );
 
-    public DataTable ReadAll(string tableName);
+    public IDatabase GetDatabase();
+    DataTable ReadAll(string tableName);
     event EventHandler<EventMessage>? EventOccured;
+
 }
