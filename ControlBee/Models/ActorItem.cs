@@ -1,12 +1,14 @@
-﻿using System.ComponentModel;
+﻿using ControlBee.Interfaces;
+using System.ComponentModel;
+using System.Reflection;
 using System.Runtime.CompilerServices;
-using ControlBee.Interfaces;
 
 namespace ControlBee.Models;
 
 public abstract class ActorItem : IActorItem, IActorItemModifier
 {
     private string _name = string.Empty;
+    private bool _visible = true;
     public string ActorName => Actor.Name;
     protected ITimeManager TimeManager => Actor.TimeManager;
 
@@ -16,7 +18,27 @@ public abstract class ActorItem : IActorItem, IActorItemModifier
         set => _name = value;
     }
     public string Desc { get; set; } = string.Empty;
-    public bool Visible { get; set; } = true;
+
+    public bool Visible
+    {
+        get => _visible;
+        set 
+        {
+            _visible = value;
+
+            var type = GetType();
+
+            foreach (var _field in type.GetFields())
+            {
+                if (typeof(IActorItem).IsAssignableFrom(_field.FieldType))
+                {
+                    var fieldValue = _field.GetValue(this) as IActorItem;
+                    if (fieldValue != null)
+                        fieldValue.Visible = value;
+                }
+            }
+        }
+    }
 
     public IActorInternal Actor { get; set; } = EmptyActor.Instance;
     public string ItemPath { get; set; } = string.Empty;

@@ -13,7 +13,7 @@ public class VisionPlaceholder : IPlaceholder, IVision
     public string ItemPath { get; set; }
     public string Name { get; }
     public string Desc { get; }
-    public bool Visible { get; }
+    public bool Visible { get; set; }
 
     public bool ProcessMessage(ActorItemMessage message)
     {
