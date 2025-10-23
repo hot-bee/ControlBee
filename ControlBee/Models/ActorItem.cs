@@ -22,20 +22,16 @@ public abstract class ActorItem : IActorItem, IActorItemModifier
     public bool Visible
     {
         get => _visible;
-        set 
+        set
         {
             _visible = value;
 
-            var type = GetType();
-
-            foreach (var _field in type.GetFields())
+            foreach (var field in GetType().GetFields())
             {
-                if (typeof(IActorItem).IsAssignableFrom(_field.FieldType))
-                {
-                    var fieldValue = _field.GetValue(this) as IActorItem;
-                    if (fieldValue != null)
-                        fieldValue.Visible = value;
-                }
+                var fieldValue = field.GetValue(this);
+                if (fieldValue is null) continue;
+                if (fieldValue is IActorItemModifier actorItemModifier)
+                    actorItemModifier.Visible = _visible;
             }
         }
     }

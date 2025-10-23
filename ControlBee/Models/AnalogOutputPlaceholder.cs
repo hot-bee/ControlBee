@@ -12,7 +12,7 @@ public class AnalogOutputPlaceholder : IPlaceholder, IAnalogOutput
     public string ItemPath { get; set; } = string.Empty;
     public string Name { get; } = string.Empty;
     public string Desc { get; } = string.Empty;
-    public bool Visible { get; set; }
+    public bool Visible { get; }
 
     public bool ProcessMessage(ActorItemMessage message)
     {
