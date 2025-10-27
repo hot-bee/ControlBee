@@ -1,11 +1,12 @@
 ﻿using ControlBee.Interfaces;
+using ControlBee.Variables;
 using Microsoft.Data.Sqlite;
 
 namespace ControlBee.Services;
 
 public class UserManager : IUserInfo
 {
-    private readonly string _dbPath;
+    private readonly SqliteConnection _connection;
 
     public int Id { get; private set; }
     public string UserId { get; private set; } = string.Empty;
@@ -13,9 +14,9 @@ public class UserManager : IUserInfo
     public string Name { get; private set; } = string.Empty;
     public int Level { get; private set; }
 
-    public UserManager()
+    public UserManager(IDatabase database)
     {
-        _dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "machine.db");
+        _connection = (SqliteConnection)database.GetConnection();
     }
 
     // Written by GPT.
@@ -26,10 +27,7 @@ public class UserManager : IUserInfo
 
         try
         {
-            using var connection = new SqliteConnection($"Data Source={_dbPath};Cache=Shared");
-            connection.Open();
-
-            using var command = connection.CreateCommand();
+            using var command = _connection.CreateCommand();
             command.CommandText = @"
                 SELECT id, user_id, password, name, level, created_at, updated_at
                 FROM users
@@ -38,7 +36,7 @@ public class UserManager : IUserInfo
             command.Parameters.AddWithValue("@user_id", userId);
 
             using var reader = command.ExecuteReader();
-            if (!reader.Read()) 
+            if (!reader.Read())
                 return false;
 
             var dbPassword = reader.GetString(2);
