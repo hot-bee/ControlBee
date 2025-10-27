@@ -245,6 +245,15 @@ public class SqliteDatabase : IDatabase, IDisposable
                           desc TEXT NULL,
                           severity TEXT NOT NULL
                       );
+                  CREATE TABLE IF NOT EXISTS users(
+                      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                      user_id     TEXT    NOT NULL UNIQUE,
+                      password    TEXT    NOT NULL,
+                      name        TEXT    NOT NULL,
+                      level       INTEGER NOT NULL DEFAULT 0,
+                      created_at  TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
+                      updated_at  TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+                  );
                   """;
         using var command = new SqliteCommand(sql, _connection);
         command.ExecuteNonQuery();
