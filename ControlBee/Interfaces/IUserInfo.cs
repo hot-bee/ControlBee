@@ -8,9 +8,4 @@ public interface IUserInfo : INotifyPropertyChanged
     string UserId { get; }
     string Name { get; }
     int Level { get; }
-
-    bool IsLoggedIn { get; }
-    string UserLevelName { get; }
-
-    void UpdateFromLogin(int id, string userId, string name, int level);
 }

@@ -7,73 +7,55 @@ namespace ControlBee.Services;
 public class UserInfo : IUserInfo
 {
     private int _id;
-    private string _userId = string.Empty;
-    private string _name = string.Empty;
+    private string _userId;
+    private string _name;
     private int _level;
+
+    public UserInfo(int id, string userId, string name, int level)
+    {
+        _id = id;
+        _userId = userId;
+        _name = name;
+        _level = level;
+    }
 
     public int Id
     {
         get => _id;
-        private set
-        {
-            if (Set(ref _id, value))
-                OnPropertyChanged(nameof(IsLoggedIn));
-        }
+        set => SetField(ref _id, value);
     }
 
     public string UserId
     {
         get => _userId;
-        private set => Set(ref _userId, value);
+        set => SetField(ref _userId, value);
     }
 
     public string Name
     {
         get => _name;
-        set => Set(ref _name, value);
+        set => SetField(ref _name, value);
     }
 
     public int Level
     {
         get => _level;
-        private set
-        {
-            if (Set(ref _level, value))
-                OnPropertyChanged(nameof(UserLevelName));
-        }
+        set => SetField(ref _level, value);
     }
-
-    public bool IsLoggedIn => Id > 0;
-
-    public string UserLevelName => Level switch
-    {
-        0 => "Guest",
-        1 => "Operator",
-        3 => "Maintenance",
-        5 => "Manager",
-        7 => "Manufacturer Engineer",
-        9 => "Software Engineer",
-        _ => $"Level {Level}"
-    };
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    protected bool Set<T>(ref T field, T value, [CallerMemberName] string? name = null)
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
-        if (Equals(field, value)) return false;
-        field = value;
-        OnPropertyChanged(name);
-        return true;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    protected void OnPropertyChanged([CallerMemberName] string? name = null)
-        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
-    public void UpdateFromLogin(int id, string userId, string name, int level)
+    protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
-        Id = id;
-        UserId = userId;
-        Name = name;
-        Level = level;
+        if (EqualityComparer<T>.Default.Equals(field, value))
+            return false;
+        field = value;
+        OnPropertyChanged(propertyName);
+        return true;
     }
 }
