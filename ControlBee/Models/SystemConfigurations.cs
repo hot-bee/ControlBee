@@ -11,7 +11,7 @@ public class SystemConfigurations : ISystemConfigurations
 
     public string RecipeName { get; set; } = "Default";
 
-    public bool FakeMode { get; set; } // TODO: setter should be removed
+    public bool FakeMode { get; set; } = true; // TODO: setter should be removed
     public bool SkipWaitSensor { get; set; } // TODO: setter should be removed
     public bool TimeEmulationMode { get; set; } // TODO: setter should be removed
     public string DataFolder { get; set; } = "";
