@@ -1,12 +1,16 @@
-﻿namespace ControlBee.Interfaces;
+﻿using System.ComponentModel;
 
-public interface IUserInfo
+namespace ControlBee.Interfaces;
+
+public interface IUserInfo : INotifyPropertyChanged
 {
     int Id { get; }
     string UserId { get; }
-    string Password { get; }
     string Name { get; }
     int Level { get; }
 
-    bool ValidateUser(string userId, string userPassword);
+    bool IsLoggedIn { get; }
+    string UserLevelName { get; }
+
+    void UpdateFromLogin(int id, string userId, string name, int level);
 }
