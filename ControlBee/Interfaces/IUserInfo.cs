@@ -8,4 +8,5 @@ public interface IUserInfo : INotifyPropertyChanged
     string UserId { get; }
     string Name { get; }
     int Level { get; }
+    string LevelName { get; }
 }

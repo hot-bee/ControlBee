@@ -6,5 +6,4 @@ public interface IUserManager
     bool Login(string userId, string userPassword);
     IUserInfo? CurrentUser { get; }
     event EventHandler? CurrentUserChanged;
-    string GetCurrentUserLevelName { get; }
 }

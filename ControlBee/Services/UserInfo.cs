@@ -6,13 +6,16 @@ namespace ControlBee.Services;
 
 public class UserInfo : IUserInfo
 {
+    private readonly IAuthorityLevels _authorityLevels;
+
     private int _id;
     private string _userId;
     private string _name;
     private int _level;
 
-    public UserInfo(int id, string userId, string name, int level)
+    public UserInfo(IAuthorityLevels authorityLevels, int id, string userId, string name, int level)
     {
+        _authorityLevels = authorityLevels;
         _id = id;
         _userId = userId;
         _name = name;
@@ -40,7 +43,11 @@ public class UserInfo : IUserInfo
     public int Level
     {
         get => _level;
-        set => SetField(ref _level, value);
+        set
+        {
+            if (SetField(ref _level, value))
+                OnPropertyChanged(nameof(LevelName));
+        }
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -58,4 +65,6 @@ public class UserInfo : IUserInfo
         OnPropertyChanged(propertyName);
         return true;
     }
+
+    public string LevelName => _authorityLevels?.GetLevelName(Level) ?? "Guest";
 }

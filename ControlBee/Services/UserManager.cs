@@ -31,9 +31,6 @@ public class UserManager : IUserManager
         _authorityLevels = authorityLevels;
     }
 
-    public string GetCurrentUserLevelName
-        => _currentUser is null ? "Guest" : _authorityLevels.GetLevelName(_currentUser.Level);
-
     // Written by GPT
     public bool Register(string userId, string rawPassword, string name, int level = 0)
     {
@@ -121,7 +118,7 @@ public class UserManager : IUserManager
             if (!BCrypt.Net.BCrypt.Verify(userPassword, dbPasswordHash))
                 return null;
 
-            return new UserInfo(dbId, dbUserId, dbName, dbLevel);
+            return new UserInfo(_authorityLevels, dbId, dbUserId, dbName, dbLevel);
         }
         catch (Exception ex)
         {
