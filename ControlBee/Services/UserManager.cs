@@ -9,18 +9,31 @@ public class UserManager : IUserManager
     private static readonly ILog Logger = LogManager.GetLogger(nameof(UserManager));
 
     private readonly SqliteConnection _connection;
+    private readonly IAuthorityLevels _authorityLevels;
 
     private IUserInfo? _currentUser;
-    public IUserInfo? CurrentUser => _currentUser;
+    public IUserInfo? CurrentUser
+    {
+        get => _currentUser;
+        set
+        {   
+            if (ReferenceEquals(_currentUser, value)) return;
+            _currentUser = value;
+            CurrentUserChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
     public event EventHandler? CurrentUserChanged;
 
-    private void OnCurrentUserChanged() => CurrentUserChanged?.Invoke(this, EventArgs.Empty);
-
-    public UserManager(IDatabase database)
+    public UserManager(IDatabase database, IAuthorityLevels authorityLevels)
     {
         _connection = (SqliteConnection)database.GetConnection();
+        _authorityLevels = authorityLevels;
     }
-    
+
+    public string GetCurrentUserLevelName
+        => _currentUser is null ? "Guest" : _authorityLevels.GetLevelName(_currentUser.Level);
+
     // Written by GPT
     public bool Register(string userId, string rawPassword, string name, int level = 0)
     {
@@ -70,8 +83,7 @@ public class UserManager : IUserManager
             if (user is null)
                 return false;
 
-            _currentUser = user;
-            OnCurrentUserChanged();
+            CurrentUser = user;
             return true;
         }
         catch (Exception ex)
@@ -81,7 +93,7 @@ public class UserManager : IUserManager
         }
     }
 
-    public IUserInfo? GetLoginUser(string userId, string userPassword)
+    private IUserInfo? GetLoginUser(string userId, string userPassword)
     {
         if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(userPassword))
             return null;
