@@ -24,7 +24,7 @@ public class LocalizationManager
             _translations = JObject.Parse(json);
 
         }
-        catch (FileNotFoundException)
+        catch (IOException)
         {
             Logger.Warn($"File not found. (${jsonPath})");
         }
