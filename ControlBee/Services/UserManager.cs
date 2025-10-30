@@ -1,4 +1,4 @@
-﻿using ControlBee.Constants;
+﻿using Dict = System.Collections.Generic.Dictionary<string, object?>;
 using ControlBee.Interfaces;
 using log4net;
 using Microsoft.Data.Sqlite;
@@ -128,9 +128,9 @@ public class UserManager : IUserManager
         }
     }
 
-    public List<UserListItem> GetUserBelowCurrentLevel()
+    public List<IUserInfo> GetUserBelowCurrentLevel()
     {
-        var list = new List<UserListItem>();
+        var list = new List<IUserInfo>();
         var current = CurrentUser;
         if (current is null) return list;
 
@@ -147,28 +147,25 @@ public class UserManager : IUserManager
         using var reader = command.ExecuteReader();
         while (reader.Read())
         {
-            list.Add(new UserListItem(
-                reader.GetInt32(0),
-                reader.GetString(1),
-                reader.GetString(2),
-                reader.GetInt32(3)
-            ));
+            int id = reader.GetInt32(0);
+            string userId = reader.GetString(1);
+            string name = reader.GetString(2);
+            int level = reader.GetInt32(3);
+
+            list.Add(new UserInfo(_authorityLevels, id, userId, name, level));
         }
 
         return list;
     }
 
-    public UserUpdateResult UpdateUsersDetailed(IEnumerable<UserUpdate> updates)
+    public bool UpdateUsers(IEnumerable<Dict> userUpdates)
     {
-        var skippedList = new List<SkippedUserUpdate>();
-        int updatedCount = 0;
-        var currentUser = CurrentUser;
-
-        if (currentUser is null)
-            return new UserUpdateResult(0, [new SkippedUserUpdate(0, UserUpdateSkipReason.TargetNotFound)]);
-
         try
         {
+            var currentUser = CurrentUser;
+            if (currentUser is null)
+                return false;
+
             using var transaction = _connection.BeginTransaction();
 
             using var selectLevel = _connection.CreateCommand();
@@ -199,67 +196,69 @@ public class UserManager : IUserManager
             var levelWithPassword = commandWithPassword.Parameters.Add("@level", SqliteType.Integer);
             var idWithPassword = commandWithPassword.Parameters.Add("@id", SqliteType.Integer);
 
-            foreach (var update in updates)
+            foreach (var userUpdateItem in userUpdates)
             {
-                bool isSelf = update.Id == currentUser.Id;
-                parameterTargetUserId.Value = update.Id;
+                var dict = userUpdateItem;
+
+                int id = Convert.ToInt32(dict["Id"]);
+                string name = (string)dict["Name"]!;
+                int level = (int)dict["Level"]!;
+
+                string? rawPassword = null;
+                if (dict.TryGetValue("RawPassword", out var pwObj))
+                    rawPassword = Convert.ToString(pwObj);
+
+                bool isSelf = id == currentUser.Id;
+
+                parameterTargetUserId.Value = id;
                 var targetUserCurrentLevel = selectLevel.ExecuteScalar();
 
                 if (targetUserCurrentLevel is null)
                 {
-                    skippedList.Add(new SkippedUserUpdate(update.Id, UserUpdateSkipReason.TargetNotFound));
+                    Logger.Warn($"Skip: user id {id} not found.");
                     continue;
                 }
 
-                int targetLevel = Convert.ToInt32(targetUserCurrentLevel);
-
-                if (isSelf)
+                if (!isSelf)
                 {
-                    if (update.Level != currentUser.Level)
+                    if (level >= currentUser.Level)
                     {
-                        skippedList.Add(new SkippedUserUpdate(update.Id, UserUpdateSkipReason.SelfLevelChangeNotAllowed));
+                        Logger.Warn($"Skip: cannot assign higher/equal level {level} to user id {id} (myLevel={currentUser.Level})");
                         continue;
                     }
                 }
                 else
                 {
-                    if (targetLevel >= currentUser.Level)
-                    {
-                        skippedList.Add(new SkippedUserUpdate(update.Id, UserUpdateSkipReason.CannotEditPeerOrHigher));
-                        continue;
-                    }
+                    if (level != currentUser.Level)
+                        Logger.Warn($"Ignore: self level change requested (id={id}). Fixed to current level {currentUser.Level}.");
 
-                    if (update.Level >= currentUser.Level)
-                    {
-                        skippedList.Add(new SkippedUserUpdate(update.Id, UserUpdateSkipReason.LevelMustBeLowerThanCurrentUser));
-                        continue;
-                    }
+                    level = currentUser.Level;
                 }
 
-                if (string.IsNullOrWhiteSpace(update.RawPassword))
+                if (string.IsNullOrWhiteSpace(rawPassword))
                 {
-                    nameWithoutPassword.Value = update.Name;
-                    levelWithoutPassword.Value = update.Level;
-                    idWithoutPassword.Value = update.Id;
-                    updatedCount += commandWithoutPassword.ExecuteNonQuery();
+                    nameWithoutPassword.Value = name;
+                    levelWithoutPassword.Value = level;
+                    idWithoutPassword.Value = id;
+                    commandWithoutPassword.ExecuteNonQuery();
                 }
                 else
                 {
-                    nameWithPassword.Value = update.Name;
-                    password.Value = BCrypt.Net.BCrypt.HashPassword(update.RawPassword);
-                    levelWithPassword.Value = update.Level;
-                    idWithPassword.Value = update.Id;
-                    updatedCount += commandWithPassword.ExecuteNonQuery();
+                    nameWithPassword.Value = name;
+                    password.Value = BCrypt.Net.BCrypt.HashPassword(rawPassword);
+                    levelWithPassword.Value = level;
+                    idWithPassword.Value = id;
+                    commandWithPassword.ExecuteNonQuery();
                 }
             }
 
             transaction.Commit();
+            return true;
         }
         catch (Exception ex)
         {
-            Logger.Error("UpdateUsersDetailed Error", ex);
+            Logger.Error("Update Users Error", ex);
+            return false;
         }
-
-        return new UserUpdateResult(updatedCount, skippedList);
     }
 }

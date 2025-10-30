@@ -1,4 +1,4 @@
-﻿using ControlBee.Constants;
+﻿using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Interfaces;
 
@@ -8,11 +8,6 @@ public interface IUserManager
     bool Login(string userId, string userPassword);
     IUserInfo? CurrentUser { get; }
     event EventHandler? CurrentUserChanged;
-    List<UserListItem> GetUserBelowCurrentLevel();
-    UserUpdateResult UpdateUsersDetailed(IEnumerable<UserUpdate> userUpdates);
+    List<IUserInfo> GetUserBelowCurrentLevel();
+    bool UpdateUsers(IEnumerable<Dict> userUpdates);
 }
-
-public readonly record struct UserListItem(int Id, string UserId, string Name, int Level);
-public readonly record struct UserUpdate(int Id, string Name, string? RawPassword, int Level);
-public sealed record UserUpdateResult(int UpdatedCount, IReadOnlyList<SkippedUserUpdate> Skipped);
-public sealed record SkippedUserUpdate(int UserId, UserUpdateSkipReason Reason);
