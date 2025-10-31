@@ -1,4 +1,4 @@
-﻿using Dict = System.Collections.Generic.Dictionary<string, object?>;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 using ControlBee.Interfaces;
 using log4net;
 using Microsoft.Data.Sqlite;
@@ -128,6 +128,48 @@ public class UserManager : IUserManager
         }
     }
 
+    public void Logout()
+    {
+        if (CurrentUser != null)
+            CurrentUser = null;
+    }
+
+    public bool Delete(int id)
+    {
+        var current = CurrentUser;
+        if (current is null) return false;
+
+        try
+        {
+            using var transaction = _connection.BeginTransaction();
+
+            using var command = _connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = @"
+            UPDATE users
+            SET is_deleted = 1,
+                updated_at = datetime('now','localtime')
+            WHERE id = @id;";
+            command.Parameters.AddWithValue("@id", id);
+
+            int affected = command.ExecuteNonQuery();
+            transaction.Commit();
+
+            if (id == current.Id && affected == 1)
+            {
+                CurrentUser = null;
+                Logger.Info("Current user soft-deleted. Logged out.");
+            }
+
+            return affected == 1;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Delete error.", ex);
+            return false;
+        }
+    }
+
     public List<IUserInfo> GetUserBelowCurrentLevel()
     {
         var list = new List<IUserInfo>();
@@ -135,12 +177,12 @@ public class UserManager : IUserManager
         if (current is null) return list;
 
         using var command = _connection.CreateCommand();
-        command.CommandText = """
+        command.CommandText = @"
             SELECT id, user_id, name, level
             FROM users
-            WHERE level < @myLevel OR id = @myId
-            ORDER BY id DESC;
-        """;
+            WHERE is_deleted = 0
+                AND (level < @myLevel OR id = @myId)
+            ORDER BY id DESC;";
         command.Parameters.AddWithValue("@myLevel", current.Level);
         command.Parameters.AddWithValue("@myId", current.Id);
 
@@ -175,22 +217,22 @@ public class UserManager : IUserManager
 
             using var commandWithoutPassword = _connection.CreateCommand();
             commandWithoutPassword.Transaction = transaction;
-            commandWithoutPassword.CommandText = """
+            commandWithoutPassword.CommandText = @"
                 UPDATE users
                 SET name=@name, level=@level, updated_at=datetime('now','localtime')
                 WHERE id=@id;
-            """;
+            ";
             var nameWithoutPassword = commandWithoutPassword.Parameters.Add("@name", SqliteType.Text);
             var levelWithoutPassword = commandWithoutPassword.Parameters.Add("@level", SqliteType.Integer);
             var idWithoutPassword = commandWithoutPassword.Parameters.Add("@id", SqliteType.Integer);
 
             using var commandWithPassword = _connection.CreateCommand();
             commandWithPassword.Transaction = transaction;
-            commandWithPassword.CommandText = """
+            commandWithPassword.CommandText = @"
                 UPDATE users
                 SET name=@name, password=@password, level=@level, updated_at=datetime('now','localtime')
                 WHERE id=@id;
-            """;
+            ";
             var nameWithPassword = commandWithPassword.Parameters.Add("@name", SqliteType.Text);
             var password = commandWithPassword.Parameters.Add("@password", SqliteType.Text);
             var levelWithPassword = commandWithPassword.Parameters.Add("@level", SqliteType.Integer);
