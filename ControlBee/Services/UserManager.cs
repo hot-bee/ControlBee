@@ -1,4 +1,5 @@
-﻿using ControlBee.Interfaces;
+﻿using Dict = System.Collections.Generic.Dictionary<string, object?>;
+using ControlBee.Interfaces;
 using log4net;
 using Microsoft.Data.Sqlite;
 
@@ -124,6 +125,140 @@ public class UserManager : IUserManager
         {
             Logger.Error("GetLoginUser Error", ex);
             return null;
+        }
+    }
+
+    public List<IUserInfo> GetUserBelowCurrentLevel()
+    {
+        var list = new List<IUserInfo>();
+        var current = CurrentUser;
+        if (current is null) return list;
+
+        using var command = _connection.CreateCommand();
+        command.CommandText = """
+            SELECT id, user_id, name, level
+            FROM users
+            WHERE level < @myLevel OR id = @myId
+            ORDER BY id DESC;
+        """;
+        command.Parameters.AddWithValue("@myLevel", current.Level);
+        command.Parameters.AddWithValue("@myId", current.Id);
+
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            int id = reader.GetInt32(0);
+            string userId = reader.GetString(1);
+            string name = reader.GetString(2);
+            int level = reader.GetInt32(3);
+
+            list.Add(new UserInfo(_authorityLevels, id, userId, name, level));
+        }
+
+        return list;
+    }
+
+    public bool UpdateUsers(IEnumerable<Dict> userUpdates)
+    {
+        try
+        {
+            var currentUser = CurrentUser;
+            if (currentUser is null)
+                return false;
+
+            using var transaction = _connection.BeginTransaction();
+
+            using var selectLevel = _connection.CreateCommand();
+            selectLevel.Transaction = transaction;
+            selectLevel.CommandText = "SELECT level FROM users WHERE id=@id;";
+            var parameterTargetUserId = selectLevel.Parameters.Add("@id", SqliteType.Integer);
+
+            using var commandWithoutPassword = _connection.CreateCommand();
+            commandWithoutPassword.Transaction = transaction;
+            commandWithoutPassword.CommandText = """
+                UPDATE users
+                SET name=@name, level=@level, updated_at=datetime('now','localtime')
+                WHERE id=@id;
+            """;
+            var nameWithoutPassword = commandWithoutPassword.Parameters.Add("@name", SqliteType.Text);
+            var levelWithoutPassword = commandWithoutPassword.Parameters.Add("@level", SqliteType.Integer);
+            var idWithoutPassword = commandWithoutPassword.Parameters.Add("@id", SqliteType.Integer);
+
+            using var commandWithPassword = _connection.CreateCommand();
+            commandWithPassword.Transaction = transaction;
+            commandWithPassword.CommandText = """
+                UPDATE users
+                SET name=@name, password=@password, level=@level, updated_at=datetime('now','localtime')
+                WHERE id=@id;
+            """;
+            var nameWithPassword = commandWithPassword.Parameters.Add("@name", SqliteType.Text);
+            var password = commandWithPassword.Parameters.Add("@password", SqliteType.Text);
+            var levelWithPassword = commandWithPassword.Parameters.Add("@level", SqliteType.Integer);
+            var idWithPassword = commandWithPassword.Parameters.Add("@id", SqliteType.Integer);
+
+            foreach (var userUpdateItem in userUpdates)
+            {
+                var dict = userUpdateItem;
+
+                int id = Convert.ToInt32(dict["Id"]);
+                string name = (string)dict["Name"]!;
+                int level = (int)dict["Level"]!;
+
+                string? rawPassword = null;
+                if (dict.TryGetValue("RawPassword", out var pwObj))
+                    rawPassword = Convert.ToString(pwObj);
+
+                bool isSelf = id == currentUser.Id;
+
+                parameterTargetUserId.Value = id;
+                var targetUserCurrentLevel = selectLevel.ExecuteScalar();
+
+                if (targetUserCurrentLevel is null)
+                {
+                    Logger.Warn($"Skip: user id {id} not found.");
+                    continue;
+                }
+
+                if (!isSelf)
+                {
+                    if (level >= currentUser.Level)
+                    {
+                        Logger.Warn($"Skip: cannot assign higher/equal level {level} to user id {id} (myLevel={currentUser.Level})");
+                        continue;
+                    }
+                }
+                else
+                {
+                    if (level != currentUser.Level)
+                        Logger.Warn($"Ignore: self level change requested (id={id}). Fixed to current level {currentUser.Level}.");
+
+                    level = currentUser.Level;
+                }
+
+                if (string.IsNullOrWhiteSpace(rawPassword))
+                {
+                    nameWithoutPassword.Value = name;
+                    levelWithoutPassword.Value = level;
+                    idWithoutPassword.Value = id;
+                    commandWithoutPassword.ExecuteNonQuery();
+                }
+                else
+                {
+                    nameWithPassword.Value = name;
+                    password.Value = BCrypt.Net.BCrypt.HashPassword(rawPassword);
+                    levelWithPassword.Value = level;
+                    idWithPassword.Value = id;
+                    commandWithPassword.ExecuteNonQuery();
+                }
+            }
+
+            transaction.Commit();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Update Users Error", ex);
+            return false;
         }
     }
 }

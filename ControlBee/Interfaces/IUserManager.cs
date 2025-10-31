@@ -1,4 +1,6 @@
-﻿namespace ControlBee.Interfaces;
+﻿using Dict = System.Collections.Generic.Dictionary<string, object?>;
+
+namespace ControlBee.Interfaces;
 
 public interface IUserManager
 {
@@ -6,4 +8,6 @@ public interface IUserManager
     bool Login(string userId, string userPassword);
     IUserInfo? CurrentUser { get; }
     event EventHandler? CurrentUserChanged;
+    List<IUserInfo> GetUserBelowCurrentLevel();
+    bool UpdateUsers(IEnumerable<Dict> userUpdates);
 }
