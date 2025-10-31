@@ -103,6 +103,7 @@ public class UserManager : IUserManager
                     SELECT id, user_id, password, name, level
                     FROM users
                     WHERE user_id = @user_id
+                        AND is_deleted = 0
                     LIMIT 1;";
             command.Parameters.AddWithValue("@user_id", userId);
 
