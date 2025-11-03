@@ -26,6 +26,9 @@ public class UserManager : IUserManager
 
     public event EventHandler? CurrentUserChanged;
 
+    public event EventHandler? UserListUpdated;
+    protected virtual void OnUserListUpdated() => UserListUpdated?.Invoke(this, EventArgs.Empty);
+
     public UserManager(IDatabase database, IAuthorityLevels authorityLevels)
     {
         _connection = (SqliteConnection)database.GetConnection();
@@ -63,6 +66,8 @@ public class UserManager : IUserManager
 
             var rows = command.ExecuteNonQuery();
             beginTransaction.Commit();
+
+            OnUserListUpdated();
 
             return rows == 1;
         }
@@ -161,6 +166,8 @@ public class UserManager : IUserManager
                 CurrentUser = null;
                 Logger.Info("Current user soft-deleted. Logged out.");
             }
+
+            OnUserListUpdated();
 
             return affected == 1;
         }
@@ -296,6 +303,9 @@ public class UserManager : IUserManager
             }
 
             transaction.Commit();
+
+            OnUserListUpdated();
+
             return true;
         }
         catch (Exception ex)

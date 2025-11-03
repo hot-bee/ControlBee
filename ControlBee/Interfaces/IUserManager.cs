@@ -10,6 +10,7 @@ public interface IUserManager
     bool Delete(int id);
     IUserInfo? CurrentUser { get; }
     event EventHandler? CurrentUserChanged;
+    event EventHandler? UserListUpdated;
     List<IUserInfo> GetUserBelowCurrentLevel();
     bool UpdateUsers(IEnumerable<Dict> userUpdates);
 }
