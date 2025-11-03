@@ -556,10 +556,6 @@ public class Actor : IActorInternal, IDisposable
                 OnMessageProcessed((message, oldState, State, result));
                 if (oldState != State)
                 {
-                    if (!result)
-                        throw new PlatformException(
-                            "State has changed but ProcessMessage() returns false."
-                        );
                     var newStateHashes = new HashSet<IState>(_stateStack);
                     oldStateHashes.ExceptWith(newStateHashes);
                     oldStateHashes.ToList().ForEach(x => x.Dispose());
