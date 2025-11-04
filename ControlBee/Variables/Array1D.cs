@@ -14,7 +14,9 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
     private T[] _value;
 
     public Array1D()
-        : this(0) { }
+        : this(0)
+    {
+    }
 
     public Array1D(int size)
     {
@@ -24,6 +26,7 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
             _value[i] = new T();
             Subscribe(i);
         }
+
         UpdateSubItem();
     }
 
@@ -40,6 +43,7 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
             _value[i] = otherValue;
             Subscribe(i);
         }
+
         UpdateSubItem();
     }
 
@@ -63,8 +67,6 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
         }
     }
 
-    public int Size => _value.Length;
-
     public override IEnumerable<object?> Items
     {
         get
@@ -74,15 +76,17 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
         }
     }
 
-    public object? GetValue(int index)
-    {
-        return _value[index];
-    }
-
     public void Dispose()
     {
         for (var i = 0; i < Size; i++)
             Unsubscribe(i);
+    }
+
+    public int Size => _value.Length;
+
+    public object? GetValue(int index)
+    {
+        return _value[index];
     }
 
     public void WriteData(ItemDataWriteArgs args)
@@ -94,6 +98,11 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
             (this[index] as IWriteData)?.WriteData(
                 new ItemDataWriteArgs(args.Location[1..], args.NewValue)
             );
+    }
+
+    public T[] ToArray()
+    {
+        return (T[])_value.Clone();
     }
 
     public override void OnDeserialized()
@@ -147,6 +156,7 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
             notify.ValueChanged -= NotifyOnValueChanged;
         }
     }
+
     private void NotifyOnValueChanging(object? sender, ValueChangedArgs e)
     {
         var index = Array.IndexOf(_value, sender);
@@ -158,12 +168,13 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
 
         OnValueChanging(
             new ValueChangedArgs(
-                ((object[])[index]).Concat(e.Location).ToArray(),
+                ((object[]) [index]).Concat(e.Location).ToArray(),
                 e.OldValue,
                 e.NewValue
             )
         );
     }
+
     private void NotifyOnValueChanged(object? sender, ValueChangedArgs e)
     {
         var index = Array.IndexOf(_value, sender);
@@ -175,7 +186,7 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
 
         OnValueChanged(
             new ValueChangedArgs(
-                ((object[])[index]).Concat(e.Location).ToArray(),
+                ((object[]) [index]).Concat(e.Location).ToArray(),
                 e.OldValue,
                 e.NewValue
             )

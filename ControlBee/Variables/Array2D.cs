@@ -24,6 +24,11 @@ public class Array2D<T> : ArrayBase, IIndex2D
         UpdateSubItem();
     }
 
+    public T[,] ToArray()
+    {
+        return (T[,])_value.Clone();
+    }
+
     public Array2D(Array2D<T> other)
     {
         Actor = other.Actor;

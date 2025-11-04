@@ -12,7 +12,9 @@ public class Array3D<T> : ArrayBase, IIndex3D
     private T[,,] _value;
 
     public Array3D()
-        : this(0, 0, 0) { }
+        : this(0, 0, 0)
+    {
+    }
 
     public Array3D(int size1, int size2, int size3)
     {
@@ -72,6 +74,11 @@ public class Array3D<T> : ArrayBase, IIndex3D
     public object? GetValue(int index1, int index2, int index3)
     {
         return _value[index1, index2, index3];
+    }
+
+    public T[,,] ToArray()
+    {
+        return (T[,,])_value.Clone();
     }
 
     public override bool ProcessMessage(ActorItemMessage message)
