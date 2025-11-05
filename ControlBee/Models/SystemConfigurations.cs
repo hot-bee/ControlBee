@@ -17,6 +17,8 @@ public class SystemConfigurations : ISystemConfigurations
     public string DataFolder { get; set; } = "";
     public string Version { get; set; } = "0.0.0"; // TODO: Relocate this to somewhere
     public bool AutoVariableSave { get; set; } = true;
+    public bool IsTopLevelLogin { get; set; } = true;
+    public int AdminLevel { get; set; } = 0;
 
     public void Save()
     {
