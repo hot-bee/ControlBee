@@ -12,4 +12,6 @@ public interface ISystemConfigurations
     bool AutoVariableSave { get; set; }
     public void Save();
     public void Load();
+    public bool DevMode { get; }
+    public int AdminLevel { get; set; }
 }
