@@ -7,7 +7,7 @@ using ControlBee.Models;
 namespace ControlBee.Variables;
 
 [JsonConverter(typeof(ArrayBaseConverter))]
-public class Array2D<T> : ArrayBase, IIndex2D
+public class Array2D<T> : ArrayBase, IIndex2D, IWriteData
     where T : new()
 {
     private T[,] _value;
@@ -129,5 +129,16 @@ public class Array2D<T> : ArrayBase, IIndex2D
     public void SetValue(int index1, int index2, object value)
     {
         this[index1, index2] = (T)value;
+    }
+
+    public void WriteData(ItemDataWriteArgs args)
+    {
+        var index = ((int, int))args.Location[0];
+        if (args.Location.Length == 1)
+            this[index.Item1, index.Item2] = (T)args.NewValue;
+        else
+            (this[index.Item1, index.Item2] as IWriteData)?.WriteData(
+                new ItemDataWriteArgs(args.Location[1..], args.NewValue)
+            );
     }
 }

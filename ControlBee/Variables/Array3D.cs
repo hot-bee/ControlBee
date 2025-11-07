@@ -6,7 +6,7 @@ using ControlBee.Models;
 namespace ControlBee.Variables;
 
 [JsonConverter(typeof(ArrayBaseConverter))]
-public class Array3D<T> : ArrayBase, IIndex3D
+public class Array3D<T> : ArrayBase, IIndex3D, IWriteData
     where T : new()
 {
     private T[,,] _value;
@@ -74,6 +74,17 @@ public class Array3D<T> : ArrayBase, IIndex3D
     public object? GetValue(int index1, int index2, int index3)
     {
         return _value[index1, index2, index3];
+    }
+
+    public void WriteData(ItemDataWriteArgs args)
+    {
+        var index = ((int, int, int))args.Location[0];
+        if (args.Location.Length == 1)
+            this[index.Item1, index.Item2, index.Item3] = (T)args.NewValue;
+        else
+            (this[index.Item1, index.Item2, index.Item3] as IWriteData)?.WriteData(
+                new ItemDataWriteArgs(args.Location[1..], args.NewValue)
+            );
     }
 
     public T[,,] ToArray()
