@@ -210,6 +210,11 @@ public class SqliteDatabase : IDatabase, IDisposable
         {
             var connection = new SqliteConnection($"Data Source={DbFilePath}");
             connection.Open();
+
+            using var command = connection.CreateCommand();
+            command.CommandText = "PRAGMA busy_timeout=60000;";
+            command.ExecuteNonQuery();
+
             return connection;
         });
     }
