@@ -186,7 +186,7 @@ public class Axis : DeviceChannel, IAxis
                         }
                         else if (DictPath.Start(message.DictPayload)["JogSpeedRatio"].Value is double jogSpeedRatio)
                         {
-                            var speed = (SpeedProfile)GetJogSpeed(JogSpeedLevel.Fast).Clone();
+                            var speed = GetClonedJogSpeed();
                             speed.Velocity *= jogSpeedRatio;
                             SetSpeed(speed);
                         }
@@ -254,11 +254,16 @@ public class Axis : DeviceChannel, IAxis
         TimeManager.Sleep(value ? EnableDelay.Value : DisableDelay.Value);
         RefreshCache();
     }
-
-    public SpeedProfile GetJogSpeed(JogSpeedLevel jogSpeedLevel)
+    public SpeedProfile GetClonedJogSpeed()
     {
         var jogSpeed = (SpeedProfile)JogSpeed.ValueObject!;
         jogSpeed = (SpeedProfile)jogSpeed.Clone();
+        return jogSpeed;
+    }
+
+    public SpeedProfile GetJogSpeed(JogSpeedLevel jogSpeedLevel)
+    {
+        var jogSpeed = GetClonedJogSpeed();
         switch (jogSpeedLevel)
         {
             case JogSpeedLevel.Slow:
