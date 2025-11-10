@@ -28,6 +28,7 @@ public class SqliteDatabase : IDatabase, IDisposable
         string itemPath,
         string value)
     {
+        long id = -1;
         var sql = """
                   INSERT INTO variables (scope, local_name, actor_name, item_path, value)
                   VALUES (@scope, @local_name, @actor_name, @item_path, @value)
@@ -37,14 +38,23 @@ public class SqliteDatabase : IDatabase, IDisposable
                   RETURNING id;
                   """;
 
-        using var command = new SqliteCommand(sql, GetConnection());
-        command.Parameters.AddWithValue("@scope", scope);
-        command.Parameters.AddWithValue("@local_name", localName);
-        command.Parameters.AddWithValue("@actor_name", actorName);
-        command.Parameters.AddWithValue("@item_path", itemPath);
-        command.Parameters.AddWithValue("@value", value);
+        try
+        {
 
-        var id = (long)command.ExecuteScalar()!;
+            using var command = new SqliteCommand(sql, GetConnection());
+            command.Parameters.AddWithValue("@scope", scope);
+            command.Parameters.AddWithValue("@local_name", localName);
+            command.Parameters.AddWithValue("@actor_name", actorName);
+            command.Parameters.AddWithValue("@item_path", itemPath);
+            command.Parameters.AddWithValue("@value", value);
+
+            id = (long)command.ExecuteScalar()!;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"WriteVariables failed. {ex.Message}");
+        }
+
         return (int)id;
     }
 

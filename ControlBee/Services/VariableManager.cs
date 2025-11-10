@@ -230,7 +230,8 @@ public class VariableManager(
         var jsonString = variable.ToJson();
         var dbLocalName = variable.Scope == VariableScope.Local ? LocalName : "";
         var id = database.WriteVariables(variable.Scope, dbLocalName, actorName, uid, jsonString);
-        variable.Id = id;
+        if (id != -1)
+            variable.Id = id;
     }
 
     private void Load(string actorName, string uid, IVariable variable)
