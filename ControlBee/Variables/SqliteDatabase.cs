@@ -1,23 +1,23 @@
-﻿using System.Data;
-using ControlBee.Interfaces;
+﻿using ControlBee.Interfaces;
 using log4net;
 using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
+using System.Collections.Concurrent;
+using System.Data;
+using ControlBeeAbstract.Exceptions;
 
 namespace ControlBee.Variables;
 
 public class SqliteDatabase : IDatabase, IDisposable
 {
+    private readonly ConcurrentDictionary<Thread, SqliteConnection> _connections = new();
     private const string DbFileName = "machine.db";
     private static readonly ILog Logger = LogManager.GetLogger("SqliteDatabase");
-    private readonly SqliteConnection _connection;
     private readonly ISystemConfigurations _systemConfigurations;
 
     public SqliteDatabase(ISystemConfigurations systemConfigurations)
     {
         _systemConfigurations = systemConfigurations;
-        _connection = new SqliteConnection($"Data Source={DbFilePath}");
-        _connection.Open();
         CreateTables();
     }
 
@@ -38,15 +38,23 @@ public class SqliteDatabase : IDatabase, IDisposable
                   RETURNING id;
                   """;
 
-        using var command = new SqliteCommand(sql, _connection);
-        command.Parameters.AddWithValue("@scope", scope);
-        command.Parameters.AddWithValue("@local_name", localName);
-        command.Parameters.AddWithValue("@actor_name", actorName);
-        command.Parameters.AddWithValue("@item_path", itemPath);
-        command.Parameters.AddWithValue("@value", value);
+        try
+        {
+            using var command = new SqliteCommand(sql, GetConnection());
+            command.Parameters.AddWithValue("@scope", scope);
+            command.Parameters.AddWithValue("@local_name", localName);
+            command.Parameters.AddWithValue("@actor_name", actorName);
+            command.Parameters.AddWithValue("@item_path", itemPath);
+            command.Parameters.AddWithValue("@value", value);
 
-        var id = (long)command.ExecuteScalar()!;
-        return (int)id;
+            var id = (long)command.ExecuteScalar()!;
+            return (int)id;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"WriteVariables failed. {ex.Message}");
+            throw new DatabaseError(ex.Message);
+        }
     }
 
     public void WriteEvents(
@@ -61,7 +69,7 @@ public class SqliteDatabase : IDatabase, IDisposable
             "INSERT OR REPLACE INTO events (actor_name, name, code, desc, severity) "
             + "VALUES (@actor_name, @name, @code, @desc, @severity)";
 
-        using var command = new SqliteCommand(sql, _connection);
+        using var command = new SqliteCommand(sql, GetConnection());
         command.Parameters.AddWithValue("@actor_name", actorName);
         command.Parameters.AddWithValue("@name", name);
         command.Parameters.AddWithValue("@code", code ?? (object)DBNull.Value);
@@ -79,7 +87,7 @@ public class SqliteDatabase : IDatabase, IDisposable
         var dt = new DataTable();
         try
         {
-            using var command = new SqliteCommand(sql, _connection);
+            using var command = new SqliteCommand(sql, GetConnection());
             using var reader = command.ExecuteReader();
             dt.Load(reader);
         }
@@ -97,7 +105,7 @@ public class SqliteDatabase : IDatabase, IDisposable
             "SELECT id, value FROM variables "
             + "WHERE actor_name = @actor_name and item_path = @item_path and local_name = @local_name";
 
-        using var command = new SqliteCommand(sql, _connection);
+        using var command = new SqliteCommand(sql, GetConnection());
         command.Parameters.AddWithValue("@local_name", localName);
         command.Parameters.AddWithValue("@actor_name", actorName);
         command.Parameters.AddWithValue("@item_path", itemPath);
@@ -126,7 +134,7 @@ public class SqliteDatabase : IDatabase, IDisposable
                   FROM variables
                   GROUP BY local_name;
                   """;
-        using var command = new SqliteCommand(sql, _connection);
+        using var command = new SqliteCommand(sql, GetConnection());
         using var reader = command.ExecuteReader();
         var list = new List<string>();
         while (reader.Read())
@@ -143,7 +151,7 @@ public class SqliteDatabase : IDatabase, IDisposable
         if (string.IsNullOrEmpty(localName)) return;
         const string sql = "DELETE FROM variables where local_name=@local_name";
 
-        using var command = new SqliteCommand(sql, _connection);
+        using var command = new SqliteCommand(sql, GetConnection());
         command.Parameters.AddWithValue("@local_name", localName);
         command.ExecuteNonQuery();
     }
@@ -160,7 +168,7 @@ public class SqliteDatabase : IDatabase, IDisposable
             "INSERT INTO variable_changes (variable_id, location, old_value, new_value) "
             + "VALUES (@variable_id, @location, @old_value, @new_value)";
 
-        using var command = new SqliteCommand(sql, _connection);
+        using var command = new SqliteCommand(sql, GetConnection());
         try
         {
             var location = JsonConvert.SerializeObject(valueChangedArgs.Location);
@@ -193,7 +201,7 @@ public class SqliteDatabase : IDatabase, IDisposable
         var dt = new DataTable();
         try
         {
-            using var command = new SqliteCommand(sql, _connection);
+            using var command = new SqliteCommand(sql, GetConnection());
             using var reader = command.ExecuteReader();
             dt.Load(reader);
         }
@@ -205,14 +213,42 @@ public class SqliteDatabase : IDatabase, IDisposable
         return dt;
     }
 
-    public object GetConnection()
+    private SqliteConnection GetConnection()
     {
-        return _connection;
+        return _connections.GetOrAdd(Thread.CurrentThread, _ =>
+        {
+            var connection = new SqliteConnection($"Data Source={DbFilePath}");
+            connection.Open();
+
+            using var command = connection.CreateCommand();
+            command.CommandText = "PRAGMA busy_timeout=60000;";
+            command.ExecuteNonQuery();
+
+            return connection;
+        });
+    }
+
+    object IDatabase.GetConnection()
+    {
+        return GetConnection();
     }
 
     public void Dispose()
     {
-        _connection.Close();
+        foreach (var connection in _connections)
+        {
+            try
+            {
+                connection.Value.Close();
+                connection.Value.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"Dispose failed. {ex.Message}");
+            }
+        }
+
+        _connections.Clear();
     }
 
     private void CreateTables()
@@ -256,7 +292,7 @@ public class SqliteDatabase : IDatabase, IDisposable
                       is_deleted  INTEGER NOT NULL DEFAULT 0
                   );
                   """;
-        using var command = new SqliteCommand(sql, _connection);
+        using var command = new SqliteCommand(sql, GetConnection());
         command.ExecuteNonQuery();
     }
 }
