@@ -4,6 +4,7 @@ using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using System.Data;
+using ControlBeeAbstract.Exceptions;
 
 namespace ControlBee.Variables;
 
@@ -28,7 +29,6 @@ public class SqliteDatabase : IDatabase, IDisposable
         string itemPath,
         string value)
     {
-        long id = -1;
         var sql = """
                   INSERT INTO variables (scope, local_name, actor_name, item_path, value)
                   VALUES (@scope, @local_name, @actor_name, @item_path, @value)
@@ -40,7 +40,6 @@ public class SqliteDatabase : IDatabase, IDisposable
 
         try
         {
-
             using var command = new SqliteCommand(sql, GetConnection());
             command.Parameters.AddWithValue("@scope", scope);
             command.Parameters.AddWithValue("@local_name", localName);
@@ -48,14 +47,14 @@ public class SqliteDatabase : IDatabase, IDisposable
             command.Parameters.AddWithValue("@item_path", itemPath);
             command.Parameters.AddWithValue("@value", value);
 
-            id = (long)command.ExecuteScalar()!;
+            var id = (long)command.ExecuteScalar()!;
+            return (int)id;
         }
         catch (Exception ex)
         {
             Logger.Error($"WriteVariables failed. {ex.Message}");
+            throw new DatabaseError(ex.Message);
         }
-
-        return (int)id;
     }
 
     public void WriteEvents(
@@ -243,9 +242,9 @@ public class SqliteDatabase : IDatabase, IDisposable
                 connection.Value.Close();
                 connection.Value.Dispose();
             }
-            catch
+            catch (Exception ex)
             {
-                // ignored
+                Logger.Warn($"Dispose failed. {ex.Message}");
             }
         }
 

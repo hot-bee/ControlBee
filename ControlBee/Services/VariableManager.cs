@@ -5,6 +5,7 @@ using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
+using ControlBeeAbstract.Exceptions;
 using log4net;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
@@ -229,9 +230,16 @@ public class VariableManager(
         variable.Dirty = false;
         var jsonString = variable.ToJson();
         var dbLocalName = variable.Scope == VariableScope.Local ? LocalName : "";
-        var id = database.WriteVariables(variable.Scope, dbLocalName, actorName, uid, jsonString);
-        if (id != -1)
+
+        try
+        {
+            var id = database.WriteVariables(variable.Scope, dbLocalName, actorName, uid, jsonString);
             variable.Id = id;
+        }
+        catch (DatabaseError error)
+        {
+            Logger.Error($"Save failed. {error.Message}");
+        }
     }
 
     private void Load(string actorName, string uid, IVariable variable)
