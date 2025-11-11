@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using ControlBee.Constants;
+﻿using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBeeAbstract.Exceptions;
@@ -27,7 +26,9 @@ public abstract class Position : INotifyValueChanged, IActorItemSub, IWriteData,
 
     protected abstract int Rank { get; }
 
-    [JsonIgnore]
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
     public IAxis[] Axes => Actor.PositionAxesMap.Get(ItemPath);
 
     protected DenseVector InternalVector
@@ -47,7 +48,8 @@ public abstract class Position : INotifyValueChanged, IActorItemSub, IWriteData,
         }
     }
 
-    [JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
     public DenseVector Vector
     {
         get => InternalVector;
@@ -83,10 +85,12 @@ public abstract class Position : INotifyValueChanged, IActorItemSub, IWriteData,
         }
     }
 
-    [JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
     public string ItemPath { get; set; } = string.Empty;
 
-    [JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
     public IActorInternal Actor { get; set; } = EmptyActor.Instance;
 
     public void UpdateSubItem() { }

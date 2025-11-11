@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using ControlBee.Interfaces;
+﻿using ControlBee.Interfaces;
 using ControlBee.Models;
 using log4net;
 
@@ -19,9 +18,13 @@ public abstract class PropertyVariable : IActorItemSub, INotifyValueChanged, IWr
         ItemPath = source.ItemPath;
     }
 
-    [JsonIgnore] public IActorInternal Actor { get; set; } = null!;
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public IActorInternal Actor { get; set; } = null!;
 
-    [JsonIgnore] public string ItemPath { get; set; } = null!;
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public string ItemPath { get; set; } = null!;
 
     public void UpdateSubItem()
     {

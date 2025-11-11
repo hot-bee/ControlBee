@@ -1,13 +1,14 @@
-﻿using System.Text.Json.Serialization;
-using ControlBee.Models;
+﻿using ControlBee.Models;
 
 namespace ControlBee.Interfaces;
 
 public interface IActorItemSub
 {
-    [JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
     IActorInternal Actor { get; set; }
-    [JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
     string ItemPath { get; set; }
     void UpdateSubItem();
     void OnDeserialized();

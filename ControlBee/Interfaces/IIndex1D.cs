@@ -1,10 +1,9 @@
-﻿using System.Text.Json.Serialization;
-
-namespace ControlBee.Interfaces;
+﻿namespace ControlBee.Interfaces;
 
 public interface IIndex1D
 {
-    [JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
     public int Size { get; }
     object? GetValue(int index);
 }

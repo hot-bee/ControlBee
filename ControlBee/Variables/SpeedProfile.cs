@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-using System.Text.Json.Serialization;
-using ControlBee.Utils;
+﻿using ControlBee.Utils;
 using log4net;
 
 namespace ControlBee.Variables;
@@ -58,7 +56,8 @@ public class SpeedProfile : PropertyVariable, ICloneable
         set => ValueChangedUtils.SetField(ref _decelJerkRatio, value, OnValueChanging, OnValueChanged);
     }
 
-    [JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
     public double AccelJerk
     {
         get
@@ -69,7 +68,8 @@ public class SpeedProfile : PropertyVariable, ICloneable
         }
     }
 
-    [JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
     public double DecelJerk
     {
         get
