@@ -91,7 +91,7 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         }
     }
 
-    public void SaveImage(string triggerId, string savePath)
+    public void SaveImage(string savePath, string? triggerId)
     {
         if (VisionDevice == null)
         {
@@ -101,7 +101,7 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
 
         try
         {
-            VisionDevice.SaveImage(Channel, triggerId, savePath);
+            VisionDevice.SaveImage(Channel, savePath, triggerId);
         }
         catch (ConnectionError)
         {

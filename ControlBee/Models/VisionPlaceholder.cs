@@ -115,7 +115,7 @@ public class VisionPlaceholder : IPlaceholder, IVision
         throw new NotImplementedException();
     }
 
-    public void SaveImage(string triggerId, string savePath)
+    public void SaveImage(string savePath, string? triggerId)
     {
         throw new NotImplementedException();
     }
