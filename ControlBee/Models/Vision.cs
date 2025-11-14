@@ -110,6 +110,11 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         }
     }
 
+    public void SaveImage(string savePath)
+    {
+        SaveImage(savePath, null);
+    }
+
     public void SetLightValue(int inspectionIndex, int lightChannel, double value)
     {
         if (VisionDevice == null)

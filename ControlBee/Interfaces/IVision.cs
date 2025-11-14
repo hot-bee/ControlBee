@@ -19,5 +19,6 @@ public interface IVision : IDeviceChannel
     JObject? GetResult(int inspectionIndex);
     JObject? GetResult(string triggerId);
     void SaveImage(string savePath, string? triggerId);
+    void SaveImage(string savePath);
     void SetLightValue(int inspectionIndex, int lightChannel, double value);
 }
