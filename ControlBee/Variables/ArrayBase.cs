@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 
@@ -14,8 +15,9 @@ public abstract class ArrayBase : INotifyValueChanged, IActorItemSub, ICloneable
         ArrayBase value,
         JsonSerializerOptions options
     );
-
+    [JsonIgnore]
     public IActorInternal Actor { get; set; } = EmptyActor.Instance;
+    [JsonIgnore]
     public string ItemPath { get; set; } = string.Empty;
     public abstract IEnumerable<object?> Items { get; }
 
