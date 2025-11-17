@@ -91,6 +91,30 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         }
     }
 
+    public void SaveImage(string savePath, string? triggerId)
+    {
+        if (VisionDevice == null)
+        {
+            Logger.Error($"VisionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        try
+        {
+            VisionDevice.SaveImage(Channel, savePath, triggerId);
+        }
+        catch (ConnectionError)
+        {
+            ConnectionError.Show();
+            throw;
+        }
+    }
+
+    public void SaveImage(string savePath)
+    {
+        SaveImage(savePath, null);
+    }
+
     public void SetLightValue(int inspectionIndex, int lightChannel, double value)
     {
         if (VisionDevice == null)
