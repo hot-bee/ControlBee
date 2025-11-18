@@ -224,9 +224,6 @@ public class FakeAxis : Axis, IDisposable
 
     public override void RefreshCache(bool alwaysUpdate = false)
     {
-        base.RefreshCache();
-        if (MotionDevice == null)
-            return;
         RefreshCacheImpl();
     }
 
