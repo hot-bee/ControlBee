@@ -305,7 +305,7 @@ public class Axis : DeviceChannel, IAxis
         Enable(false);
     }
 
-    public bool IsAlarmed()
+    public virtual bool IsAlarmed()
     {
         if (MotionDevice == null)
         {

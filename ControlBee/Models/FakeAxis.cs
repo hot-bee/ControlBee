@@ -211,6 +211,11 @@ public class FakeAxis : Axis, IDisposable
         base.WaitSensor(type, waitingValue, millisecondsTimeout);
     }
 
+    public override bool IsAlarmed()
+    {
+        return false;
+    }
+
     public override bool IsEnabled()
     {
         return _isEnabled;
