@@ -71,6 +71,6 @@ public class EmptyVariableManager : IVariableManager
 
     public void WriteVariable(string localName, string actorName, string itemPath, string value)
     {
-
+        // Empty
     }
 }

@@ -316,20 +316,24 @@ public class VariableManager(
     {
         var row = database.Read(localName, actorName, itemPath);
         if (!row.HasValue)
-            return null!;
+            throw new InvalidOperationException("Variable not found");
 
         return row.Value.value;
     }
 
     public void WriteVariable(string localName, string actorName, string itemPath, string value)
     {
+        if (string.IsNullOrWhiteSpace(localName))
+            throw new ArgumentException(nameof(localName));
+
         try
         {
-            var id = database.WriteVariables(VariableScope.Local, localName, actorName, itemPath, value);
+            database.WriteVariables(VariableScope.Local, localName, actorName, itemPath, value);
         }
         catch (DatabaseError error)
         {
             Logger.Error($"Write failed. {error.Message}");
+            throw;
         }
     }
 }
