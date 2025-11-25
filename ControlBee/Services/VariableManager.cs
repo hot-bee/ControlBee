@@ -311,4 +311,25 @@ public class VariableManager(
         OnPropertyChanged(propertyName);
         return true;
     }
+
+    public string ReadVariable(string localName, string actorName, string itemPath)
+    {
+        var row = database.Read(localName, actorName, itemPath);
+        if (!row.HasValue)
+            return null!;
+
+        return row.Value.value;
+    }
+
+    public void WriteVariable(string localName, string actorName, string itemPath, string value)
+    {
+        try
+        {
+            var id = database.WriteVariables(VariableScope.Local, localName, actorName, itemPath, value);
+        }
+        catch (DatabaseError error)
+        {
+            Logger.Error($"Write failed. {error.Message}");
+        }
+    }
 }
