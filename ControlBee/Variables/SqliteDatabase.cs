@@ -19,6 +19,7 @@ public class SqliteDatabase : IDatabase, IDisposable
     {
         _systemConfigurations = systemConfigurations;
         CreateTables();
+        CreateIndices();
     }
 
     private string DbFilePath => Path.Combine(_systemConfigurations.DataFolder, DbFileName);
@@ -249,6 +250,14 @@ public class SqliteDatabase : IDatabase, IDisposable
         }
 
         _connections.Clear();
+    }
+
+    private void CreateIndices()
+    {
+        var sql = "CREATE INDEX IF NOT EXISTS idx_events_code_created_at ON events(code, created_at DESC);";
+
+        using var command = new SqliteCommand(sql, GetConnection());
+        command.ExecuteNonQuery();
     }
 
     private void CreateTables()
