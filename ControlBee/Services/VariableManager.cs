@@ -311,4 +311,29 @@ public class VariableManager(
         OnPropertyChanged(propertyName);
         return true;
     }
+
+    public string ReadVariable(string localName, string actorName, string itemPath)
+    {
+        var row = database.Read(localName, actorName, itemPath);
+        if (!row.HasValue)
+            throw new InvalidOperationException("Variable not found");
+
+        return row.Value.value;
+    }
+
+    public void WriteVariable(string localName, string actorName, string itemPath, string value)
+    {
+        if (string.IsNullOrWhiteSpace(localName))
+            throw new ArgumentException(nameof(localName));
+
+        try
+        {
+            database.WriteVariables(VariableScope.Local, localName, actorName, itemPath, value);
+        }
+        catch (DatabaseError error)
+        {
+            Logger.Error($"Write failed. {error.Message}");
+            throw;
+        }
+    }
 }

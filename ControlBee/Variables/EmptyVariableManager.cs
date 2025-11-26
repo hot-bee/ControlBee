@@ -63,4 +63,14 @@ public class EmptyVariableManager : IVariableManager
         OnPropertyChanged(propertyName);
         return true;
     }
+
+    public string ReadVariable(string localName, string actorName, string itemPath)
+    {
+        return "";
+    }
+
+    public void WriteVariable(string localName, string actorName, string itemPath, string value)
+    {
+        // Empty
+    }
 }
