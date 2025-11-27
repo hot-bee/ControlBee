@@ -64,9 +64,9 @@ public class EmptyVariableManager : IVariableManager
         return true;
     }
 
-    public string ReadVariable(string localName, string actorName, string itemPath)
+    public T ReadVariable<T>(string localName, string actorName, string itemPath)
     {
-        return "";
+        throw new NotImplementedException();
     }
 
     public void WriteVariable(string localName, string actorName, string itemPath, string value)
