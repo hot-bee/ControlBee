@@ -7,7 +7,6 @@ using log4net;
 using System.ComponentModel;
 using System.Data;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Services;
@@ -314,6 +313,7 @@ public class VariableManager(
     }
 
     public T ReadVariable<T>(string localName, string actorName, string itemPath)
+        where T : new()
     {
         var row = database.Read(localName, actorName, itemPath);
         if (!row.HasValue)
@@ -321,9 +321,9 @@ public class VariableManager(
 
         var json = row.Value.value;
 
-        return JsonSerializer.Deserialize<T>(json)
-               ?? throw new InvalidOperationException(
-                   $"Invalid JSON for type {typeof(T).Name}");
+        var variable = new Variable<T>();
+        variable.FromJson(json);
+        return variable.Value;
     }
 
     public void WriteVariable(string localName, string actorName, string itemPath, string value)

@@ -65,6 +65,7 @@ public class EmptyVariableManager : IVariableManager
     }
 
     public T ReadVariable<T>(string localName, string actorName, string itemPath)
+        where T : new()
     {
         throw new NotImplementedException();
     }
