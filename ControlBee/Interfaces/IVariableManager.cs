@@ -15,6 +15,6 @@ public interface IVariableManager: INotifyPropertyChanged
     DataTable ReadVariableChanges();
     void SaveTemporaryVariables();
     void DiscardChanges();
-    string ReadVariable(string localName, string actorName, string itemPath);
+    T ReadVariable<T>(string localName, string actorName, string itemPath) where T : new();
     void WriteVariable(string localName, string actorName, string itemPath, string value);
 }

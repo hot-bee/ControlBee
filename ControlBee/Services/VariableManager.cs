@@ -1,12 +1,12 @@
-﻿using System.ComponentModel;
-using System.Data;
-using System.Runtime.CompilerServices;
-using ControlBee.Interfaces;
+﻿using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
 using log4net;
+using System.ComponentModel;
+using System.Data;
+using System.Runtime.CompilerServices;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Services;
@@ -312,13 +312,18 @@ public class VariableManager(
         return true;
     }
 
-    public string ReadVariable(string localName, string actorName, string itemPath)
+    public T ReadVariable<T>(string localName, string actorName, string itemPath)
+        where T : new()
     {
         var row = database.Read(localName, actorName, itemPath);
         if (!row.HasValue)
             throw new InvalidOperationException("Variable not found");
 
-        return row.Value.value;
+        var json = row.Value.value;
+
+        var variable = new Variable<T>();
+        variable.FromJson(json);
+        return variable.Value;
     }
 
     public void WriteVariable(string localName, string actorName, string itemPath, string value)
