@@ -365,7 +365,7 @@ public class VariableManager(
 
     public void RenameLocalName(string sourceLocalName, string targetLocalName)
     {
-        bool isCurrent = string.Equals(LocalName, sourceLocalName, StringComparison.Ordinal);
+        bool isCurrent = LocalName == sourceLocalName;
         database.RenameLocalName(sourceLocalName, targetLocalName);
         if (isCurrent)
             Load(targetLocalName);
