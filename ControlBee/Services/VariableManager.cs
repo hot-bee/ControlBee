@@ -362,4 +362,12 @@ public class VariableManager(
             throw;
         }
     }
+
+    public void RenameLocalName(string sourceLocalName, string targetLocalName)
+    {
+        bool isCurrent = LocalName == sourceLocalName;
+        database.RenameLocalName(sourceLocalName, targetLocalName);
+        if (isCurrent)
+            Load(targetLocalName);
+    }
 }
