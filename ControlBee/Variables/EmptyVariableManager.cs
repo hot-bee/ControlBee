@@ -89,4 +89,9 @@ public class EmptyVariableManager : IVariableManager
     {
         throw new NotImplementedException();
     }
+
+    public void Reload()
+    {
+        throw new NotImplementedException();
+    }
 }

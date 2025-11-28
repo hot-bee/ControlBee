@@ -135,6 +135,12 @@ public class VariableManager(
         }
     }
 
+    public void Reload()
+    {
+        Logger.Info($"Reload.");
+        Load(LocalName);
+    }
+
     public void Load(string? localName = null)
     {
         Logger.Info($"Load. ({localName})");
