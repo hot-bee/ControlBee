@@ -315,17 +315,32 @@ public class VariableManager(
     public T ReadVariable<T>(string localName, string actorName, string itemPath)
         where T : new()
     {
+        return (T)ReadVariable(typeof(T), localName, actorName, itemPath);
+    }
+
+    public object ReadVariable(Type variableType, string localName, string actorName, string itemPath)
+    {
         var row = database.Read(localName, actorName, itemPath);
         if (!row.HasValue)
             throw new InvalidOperationException("Variable not found");
 
         var json = row.Value.value;
-
-        var variable = new Variable<T>();
+        var variable = VariableFactory.CreateVariable(variableType);
         variable.FromJson(json);
-        return variable.Value;
+        return variable.ValueObject!;
     }
 
+    public void WriteVariable(Type variableType, string localName, string actorName, string itemPath, object value)
+    {
+        var variable = VariableFactory.CreateVariable(variableType);
+        variable.ValueObject = value;
+        var jsonValue = variable.ToJson();
+        WriteVariable(localName, actorName, itemPath, jsonValue);
+    }
+    public void WriteVariable<T>(string localName, string actorName, string itemPath, T value) where T : new()
+    {
+        WriteVariable(typeof(T), localName, actorName, itemPath, value!);
+    }
     public void WriteVariable(string localName, string actorName, string itemPath, string value)
     {
         if (string.IsNullOrWhiteSpace(localName))

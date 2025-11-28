@@ -7,4 +7,5 @@ public interface IIndex1D
     [JsonIgnore]
     public int Size { get; }
     object? GetValue(int index);
+    void SetValue(int index, object value);
 }

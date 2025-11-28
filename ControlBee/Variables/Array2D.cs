@@ -126,6 +126,11 @@ public class Array2D<T> : ArrayBase, IIndex2D, IWriteData
         return _value[index1, index2];
     }
 
+    public void SetValue((int, int) index, object value)
+    {
+        SetValue(index.Item1, index.Item2, value);
+    }
+
     public void SetValue(int index1, int index2, object value)
     {
         this[index1, index2] = (T)value;

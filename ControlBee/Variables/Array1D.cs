@@ -89,6 +89,11 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
         return _value[index];
     }
 
+    public void SetValue(int index, object value)
+    {
+        this[index] = (T)value;
+    }
+
     public void WriteData(ItemDataWriteArgs args)
     {
         var index = (int)args.Location[0];

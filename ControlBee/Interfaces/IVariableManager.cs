@@ -17,4 +17,7 @@ public interface IVariableManager: INotifyPropertyChanged
     void DiscardChanges();
     T ReadVariable<T>(string localName, string actorName, string itemPath) where T : new();
     void WriteVariable(string localName, string actorName, string itemPath, string value);
+    void WriteVariable<T>(string localName, string actorName, string itemPath, T value) where T : new();
+    object ReadVariable(Type variableType, string localName, string actorName, string itemPath);
+    void WriteVariable(Type variableType, string localName, string actorName, string itemPath, object value);
 }

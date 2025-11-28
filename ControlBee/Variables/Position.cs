@@ -212,6 +212,11 @@ public abstract class Position : INotifyValueChanged, IActorItemSub, IWriteData,
         return this[index];
     }
 
+    public void SetValue(int index, object value)
+    {
+        this[index] = (double)value;
+    }
+
     public void MoveToHomePos()
     {
         for (var i = Axes.Length - 1; i >= 0; i--)

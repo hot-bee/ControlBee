@@ -74,4 +74,19 @@ public class EmptyVariableManager : IVariableManager
     {
         // Empty
     }
+
+    public void WriteVariable<T>(string localName, string actorName, string itemPath, T value) where T : new()
+    {
+        // Empty
+    }
+
+    public object ReadVariable(Type variableType, string localName, string actorName, string itemPath)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void WriteVariable(Type variableType, string localName, string actorName, string itemPath, object value)
+    {
+        throw new NotImplementedException();
+    }
 }

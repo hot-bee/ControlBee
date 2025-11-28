@@ -86,14 +86,18 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
     public event EventHandler<ValueChangedArgs>? ValueChanged;
 
     public int? Id { get; set; }
-    public object? ValueObject => Value;
+
+    public object? ValueObject
+    {
+        get => Value;
+        set => Value = (T)value!;
+    }
     public VariableScope Scope { get; }
 
     public IUserInfo? UserInfo { get; set; }
 
     public string ToJson()
     {
-        CheckSanity();
         return JsonSerializer.Serialize(Value);
     }
 
