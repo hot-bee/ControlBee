@@ -94,4 +94,9 @@ public class EmptyVariableManager : IVariableManager
     {
         throw new NotImplementedException();
     }
+
+    public void RenameLocalName(string sourceLocalName, string targetLocalName)
+    {
+        // Empty
+    }
 }

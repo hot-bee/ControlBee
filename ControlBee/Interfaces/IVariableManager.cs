@@ -21,4 +21,5 @@ public interface IVariableManager: INotifyPropertyChanged
     object ReadVariable(Type variableType, string localName, string actorName, string itemPath);
     void WriteVariable(Type variableType, string localName, string actorName, string itemPath, object value);
     void Reload();
+    void RenameLocalName(string sourceLocalName, string targetLocalName);
 }

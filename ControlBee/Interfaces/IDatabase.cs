@@ -24,6 +24,7 @@ public interface IDatabase
     (int id, string value)? Read(string localName, string actorName, string itemPath);
     string[] GetLocalNames();
     void DeleteLocal(string localName);
+    void RenameLocalName(string sourceLocalName, string targetLocalName);
     void WriteVariableChange(IVariable variable, ValueChangedArgs valueChangedArgs);
     DataTable ReadVariableChanges();
     object GetConnection();

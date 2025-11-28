@@ -156,6 +156,30 @@ public class SqliteDatabase : IDatabase, IDisposable
         command.ExecuteNonQuery();
     }
 
+    public void RenameLocalName(string sourceLocalName, string targetLocalName)
+    {
+        const string sql = """
+                           UPDATE variables
+                           SET local_name = @target,
+                               updated_at = datetime('now','localtime')
+                           WHERE local_name = @source;
+                           """;
+
+        try
+        {
+            using var command = new SqliteCommand(sql, GetConnection());
+            command.Parameters.AddWithValue("@source", sourceLocalName);
+            command.Parameters.AddWithValue("@target", targetLocalName);
+
+            command.ExecuteNonQuery();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"RenameLocalName failed. {ex.Message}");
+            throw new DatabaseError(ex.Message);
+        }
+    }
+
     public void WriteVariableChange(IVariable variable, ValueChangedArgs valueChangedArgs)
     {
         if (variable.Id == null)
