@@ -205,6 +205,7 @@ public abstract class Position : INotifyValueChanged, IActorItemSub, IWriteData,
         ValueChanged?.Invoke(this, e);
     }
 
+    [JsonIgnore]
     public int Size => InternalVector.Count;
 
     public object? GetValue(int index)

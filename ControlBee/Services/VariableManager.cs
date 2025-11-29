@@ -258,9 +258,16 @@ public class VariableManager(
             return;
         }
 
-        variable.Id = row.Value.id;
-        variable.FromJson(row.Value.value);
-        variable.Dirty = false;
+        try
+        {
+            variable.Id = row.Value.id;
+            variable.FromJson(row.Value.value);
+            variable.Dirty = false;
+        }
+        catch (FallbackException)
+        {
+            Save(actorName, uid, variable);
+        }
     }
 
     private void LoadVisionRecipe(string localName)
@@ -329,10 +336,17 @@ public class VariableManager(
         var row = database.Read(localName, actorName, itemPath);
         if (!row.HasValue)
             throw new InvalidOperationException("Variable not found");
-
+        
         var json = row.Value.value;
         var variable = VariableFactory.CreateVariable(variableType);
-        variable.FromJson(json);
+        try
+        {
+            variable.FromJson(json);
+        }
+        catch (FallbackException)
+        {
+            WriteVariable(localName, actorName, itemPath, variable.ToJson());
+        }
         return variable.ValueObject!;
     }
 

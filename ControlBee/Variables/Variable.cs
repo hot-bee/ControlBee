@@ -1,12 +1,24 @@
-﻿using System.Text.Json;
-using ControlBee.Interfaces;
+﻿using ControlBee.Interfaces;
 using ControlBee.Models;
+using ControlBee.Utils;
+using ControlBeeAbstract.Exceptions;
 using log4net;
+using Newtonsoft.Json;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace ControlBee.Variables;
 
-public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
+public class Variable : ActorItem
+{
+    protected static readonly JsonSerializerSettings JsonSettings = new()
+    {
+        ContractResolver = new RespectSystemTextJsonIgnoreResolver(),
+        Formatting = Formatting.Indented
+    };
+}
+
+public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
     where T : new()
 {
     private static readonly ILog Logger = LogManager.GetLogger("Variable");
@@ -68,7 +80,8 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
             var newValue = value;
             if (value is ICloneable cloneable)
                 newValue = (T)cloneable.Clone();
-            var valueChangedArgs = new ValueChangedArgs([], oldValue, newValue);  // TODO: Not sure why we need to cloned value here.
+            var valueChangedArgs =
+                new ValueChangedArgs([], oldValue, newValue); // TODO: Not sure why we need to cloned value here.
             OnValueChanging(valueChangedArgs);
             Unsubscribe();
             _value = value;
@@ -92,23 +105,37 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
         get => Value;
         set => Value = (T)value!;
     }
+
     public VariableScope Scope { get; }
 
     public IUserInfo? UserInfo { get; set; }
 
     public string ToJson()
     {
-        return JsonSerializer.Serialize(Value);
+        return JsonConvert.SerializeObject(new DataV2(DataV2.ValidVersion, Value), JsonSettings);
     }
 
     public bool Dirty { get; set; }
 
     public void FromJson(string data)
     {
-        var value = JsonSerializer.Deserialize<T>(data)!;
-        if (value is IActorItemSub actorItemSub)
-            actorItemSub.OnDeserialized();
-        Value = value;
+        try
+        {
+            var value = JsonConvert.DeserializeObject<DataV2>(data)!;
+            if (value.Version != DataV2.ValidVersion) throw new JsonException();
+            if (value.Value is IActorItemSub actorItemSub)
+                actorItemSub.OnDeserialized();
+            Value = value.Value;
+        }
+        catch (JsonException)
+        {
+            // Fallback to previous format.
+            var value = JsonSerializer.Deserialize<T>(data)!;
+            if (value is IActorItemSub actorItemSub)
+                actorItemSub.OnDeserialized();
+            Value = value;
+            throw new FallbackException();
+        }
     }
 
     public override bool ProcessMessage(ActorItemMessage message)
@@ -240,5 +267,10 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
     protected virtual void OnValueChanging(ValueChangedArgs e)
     {
         ValueChanging?.Invoke(this, e);
+    }
+
+    private record DataV2(int Version, T Value)
+    {
+        public const int ValidVersion = 2;
     }
 }
