@@ -10,65 +10,63 @@ namespace ControlBee.Variables;
 public class Array2D<T> : ArrayBase, IIndex2D, IWriteData
     where T : new()
 {
-    public T[,] Values { get; set; }
+    private T[,] _value;
 
     public Array2D()
         : this(0, 0) { }
 
     public Array2D(int size1, int size2)
     {
-        Values = new T[size1, size2];
+        _value = new T[size1, size2];
         for (var i = 0; i < Size.Item1; i++)
         for (var j = 0; j < Size.Item2; j++)
-            Values[i, j] = new T();
+            _value[i, j] = new T();
         UpdateSubItem();
     }
 
     public T[,] ToArray()
     {
-        return (T[,])Values.Clone();
+        return (T[,])_value.Clone();
     }
 
     public Array2D(Array2D<T> other)
     {
         Actor = other.Actor;
         ItemPath = other.ItemPath;
-        Values = (T[,])other.Values.Clone();
+        _value = (T[,])other._value.Clone();
         for (var i = 0; i < Size.Item1; i++)
         for (var j = 0; j < Size.Item2; j++)
         {
             var otherValue = other[i, j];
             if (otherValue is ICloneable cloneable)
                 otherValue = (T)cloneable.Clone();
-            Values[i, j] = otherValue;
+            _value[i, j] = otherValue;
         }
         UpdateSubItem();
     }
 
     public T this[int x, int y]
     {
-        get => Values[x, y];
+        get => _value[x, y];
         set
         {
-            var oldValue = Values[x, y];
+            var oldValue = _value[x, y];
             var valueChangedArgs = new ValueChangedArgs([(x, y)], oldValue, value);
             OnValueChanging(valueChangedArgs);
-            Values[x, y] = value;
+            _value[x, y] = value;
             OnValueChanged(valueChangedArgs);
         }
     }
 
-    [JsonIgnore]
-    public Tuple<int, int> Size => new(Values.GetLength(0), Values.GetLength(1));
+    public Tuple<int, int> Size => new(_value.GetLength(0), _value.GetLength(1));
 
-    [Obsolete]
     public override void ReadJson(JsonDocument jsonDoc)
     {
         var size = new List<int>();
         var sizeProp = jsonDoc.RootElement.GetProperty("Size");
         foreach (var x in sizeProp.EnumerateArray())
             size.Add(x.GetInt32());
-        Values = new T[size[0], size[1]];
+        _value = new T[size[0], size[1]];
 
         var valuesProp = jsonDoc.RootElement.GetProperty("Values");
         var values = valuesProp.Deserialize<T[]>()!;
@@ -76,10 +74,9 @@ public class Array2D<T> : ArrayBase, IIndex2D, IWriteData
         var idx = 0;
         for (var i = 0; i < size[0]; i++)
         for (var j = 0; j < size[1]; j++)
-            Values[i, j] = values[idx++];
+            _value[i, j] = values[idx++];
     }
 
-    [Obsolete]
     public override void WriteJson(
         Utf8JsonWriter writer,
         ArrayBase value,
@@ -89,13 +86,13 @@ public class Array2D<T> : ArrayBase, IIndex2D, IWriteData
         writer.WriteStartObject();
 
         writer.WriteStartArray("Size");
-        for (var i = 0; i < Values.Rank; i++)
-            writer.WriteNumberValue(Values.GetLength(i));
+        for (var i = 0; i < _value.Rank; i++)
+            writer.WriteNumberValue(_value.GetLength(i));
         writer.WriteEndArray();
 
-        var linearValue = new T[Values.Length];
+        var linearValue = new T[_value.Length];
         var idx = 0;
-        foreach (var x in Values)
+        foreach (var x in _value)
             linearValue[idx++] = x;
 
         writer.WritePropertyName("Values");
@@ -104,14 +101,13 @@ public class Array2D<T> : ArrayBase, IIndex2D, IWriteData
         writer.WriteEndObject();
     }
 
-    [JsonIgnore]
     public override IEnumerable<object?> Items
     {
         get
         {
             for (var i = 0; i < Size.Item1; i++)
             for (var j = 0; j < Size.Item2; j++)
-                yield return Values[i, j];
+                yield return _value[i, j];
         }
     }
 
@@ -127,7 +123,7 @@ public class Array2D<T> : ArrayBase, IIndex2D, IWriteData
 
     public object? GetValue(int index1, int index2)
     {
-        return Values[index1, index2];
+        return _value[index1, index2];
     }
 
     public void SetValue((int, int) index, object value)

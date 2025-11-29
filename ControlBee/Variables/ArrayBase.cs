@@ -9,9 +9,7 @@ public abstract class ArrayBase : INotifyValueChanged, IActorItemSub, ICloneable
 {
     public event EventHandler<ValueChangedArgs>? ValueChanging;
     public event EventHandler<ValueChangedArgs>? ValueChanged;
-    [Obsolete]
     public abstract void ReadJson(JsonDocument jsonDoc);
-    [Obsolete]
     public abstract void WriteJson(
         Utf8JsonWriter writer,
         ArrayBase value,
@@ -21,7 +19,6 @@ public abstract class ArrayBase : INotifyValueChanged, IActorItemSub, ICloneable
     public IActorInternal Actor { get; set; } = EmptyActor.Instance;
     [JsonIgnore]
     public string ItemPath { get; set; } = string.Empty;
-    [JsonIgnore]
     public abstract IEnumerable<object?> Items { get; }
 
     public void UpdateSubItem()

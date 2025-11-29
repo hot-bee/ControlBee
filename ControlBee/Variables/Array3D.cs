@@ -9,6 +9,8 @@ namespace ControlBee.Variables;
 public class Array3D<T> : ArrayBase, IIndex3D, IWriteData
     where T : new()
 {
+    private T[,,] _value;
+
     public Array3D()
         : this(0, 0, 0)
     {
@@ -16,11 +18,11 @@ public class Array3D<T> : ArrayBase, IIndex3D, IWriteData
 
     public Array3D(int size1, int size2, int size3)
     {
-        Values = new T[size1, size2, size3];
+        _value = new T[size1, size2, size3];
         for (var i = 0; i < Size.Item1; i++)
         for (var j = 0; j < Size.Item2; j++)
         for (var k = 0; k < Size.Item3; k++)
-            Values[i, j, k] = new T();
+            _value[i, j, k] = new T();
         UpdateSubItem();
     }
 
@@ -28,7 +30,7 @@ public class Array3D<T> : ArrayBase, IIndex3D, IWriteData
     {
         Actor = other.Actor;
         ItemPath = other.ItemPath;
-        Values = (T[,,])other.Values.Clone();
+        _value = (T[,,])other._value.Clone();
         for (var i = 0; i < Size.Item1; i++)
         for (var j = 0; j < Size.Item2; j++)
         for (var k = 0; k < Size.Item3; k++)
@@ -36,7 +38,7 @@ public class Array3D<T> : ArrayBase, IIndex3D, IWriteData
             var otherValue = other[i, j, k];
             if (otherValue is ICloneable cloneable)
                 otherValue = (T)cloneable.Clone();
-            Values[i, j, k] = otherValue;
+            _value[i, j, k] = otherValue;
         }
 
         UpdateSubItem();
@@ -44,22 +46,20 @@ public class Array3D<T> : ArrayBase, IIndex3D, IWriteData
 
     public T this[int x, int y, int z]
     {
-        get => Values[x, y, z];
+        get => _value[x, y, z];
         set
         {
-            var oldValue = Values[x, y, z];
+            var oldValue = _value[x, y, z];
             var valueChangedArgs = new ValueChangedArgs([(x, y, z)], oldValue, value);
             OnValueChanging(valueChangedArgs);
-            Values[x, y, z] = value;
+            _value[x, y, z] = value;
             OnValueChanged(valueChangedArgs);
         }
     }
 
-    [JsonIgnore]
     public Tuple<int, int, int> Size =>
-        new(Values.GetLength(0), Values.GetLength(1), Values.GetLength(2));
+        new(_value.GetLength(0), _value.GetLength(1), _value.GetLength(2));
 
-    [JsonIgnore]
     public override IEnumerable<object?> Items
     {
         get
@@ -67,15 +67,13 @@ public class Array3D<T> : ArrayBase, IIndex3D, IWriteData
             for (var i = 0; i < Size.Item1; i++)
             for (var j = 0; j < Size.Item2; j++)
             for (var k = 0; k < Size.Item3; k++)
-                yield return Values[i, j, k];
+                yield return _value[i, j, k];
         }
     }
 
-    public T[,,] Values { get; set; }
-
     public object? GetValue(int index1, int index2, int index3)
     {
-        return Values[index1, index2, index3];
+        return _value[index1, index2, index3];
     }
 
     public void WriteData(ItemDataWriteArgs args)
@@ -91,7 +89,7 @@ public class Array3D<T> : ArrayBase, IIndex3D, IWriteData
 
     public T[,,] ToArray()
     {
-        return (T[,,])Values.Clone();
+        return (T[,,])_value.Clone();
     }
 
     public override bool ProcessMessage(ActorItemMessage message)
@@ -104,14 +102,13 @@ public class Array3D<T> : ArrayBase, IIndex3D, IWriteData
         return new Array3D<T>(this);
     }
 
-    [Obsolete]
     public override void ReadJson(JsonDocument jsonDoc)
     {
         var size = new List<int>();
         var sizeProp = jsonDoc.RootElement.GetProperty("Size");
         foreach (var x in sizeProp.EnumerateArray())
             size.Add(x.GetInt32());
-        Values = new T[size[0], size[1], size[2]];
+        _value = new T[size[0], size[1], size[2]];
 
         var valuesProp = jsonDoc.RootElement.GetProperty("Values");
         var values = valuesProp.Deserialize<T[]>()!;
@@ -120,10 +117,9 @@ public class Array3D<T> : ArrayBase, IIndex3D, IWriteData
         for (var i = 0; i < size[0]; i++)
         for (var j = 0; j < size[1]; j++)
         for (var k = 0; k < size[2]; k++)
-            Values[i, j, k] = values[idx++];
+            _value[i, j, k] = values[idx++];
     }
 
-    [Obsolete]
     public override void WriteJson(
         Utf8JsonWriter writer,
         ArrayBase value,
@@ -133,13 +129,13 @@ public class Array3D<T> : ArrayBase, IIndex3D, IWriteData
         writer.WriteStartObject();
 
         writer.WriteStartArray("Size");
-        for (var i = 0; i < Values.Rank; i++)
-            writer.WriteNumberValue(Values.GetLength(i));
+        for (var i = 0; i < _value.Rank; i++)
+            writer.WriteNumberValue(_value.GetLength(i));
         writer.WriteEndArray();
 
-        var linearValue = new T[Values.Length];
+        var linearValue = new T[_value.Length];
         var idx = 0;
-        foreach (var x in Values)
+        foreach (var x in _value)
             linearValue[idx++] = x;
 
         writer.WritePropertyName("Values");

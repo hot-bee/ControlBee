@@ -3,7 +3,6 @@ using System.Text.Json.Serialization;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using log4net;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace ControlBee.Variables;
 
@@ -12,6 +11,7 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
     where T : new()
 {
     private static readonly ILog Logger = LogManager.GetLogger("Array1D");
+    private T[] _value;
 
     public Array1D()
         : this(0)
@@ -20,10 +20,10 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
 
     public Array1D(int size)
     {
-        Values = new T[size];
+        _value = new T[size];
         for (var i = 0; i < Size; i++)
         {
-            Values[i] = new T();
+            _value[i] = new T();
             Subscribe(i);
         }
 
@@ -34,48 +34,45 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
     {
         Actor = other.Actor;
         ItemPath = other.ItemPath;
-        Values = (T[])other.Values.Clone();
+        _value = (T[])other._value.Clone();
         for (var i = 0; i < Size; i++)
         {
             var otherValue = other[i];
             if (otherValue is ICloneable cloneable)
                 otherValue = (T)cloneable.Clone();
-            Values[i] = otherValue;
+            _value[i] = otherValue;
             Subscribe(i);
         }
 
         UpdateSubItem();
     }
 
-    public Array1D(T[] values)
+    public Array1D(T[] value)
     {
-        Values = values;
+        _value = value;
         UpdateSubItem();
     }
 
-    public T[] Values { get; set; }
-
     public T this[int x]
     {
-        get => Values[x];
+        get => _value[x];
         set
         {
-            var oldValue = Values[x];
+            var oldValue = _value[x];
             OnValueChanging(new ValueChangedArgs([x], oldValue, value));
             Unsubscribe(x);
-            Values[x] = value;
+            _value[x] = value;
             Subscribe(x);
             OnValueChanged(new ValueChangedArgs([x], oldValue, value));
         }
     }
 
-    [JsonIgnore]
     public override IEnumerable<object?> Items
     {
         get
         {
             for (var i = 0; i < Size; i++)
-                yield return Values[i];
+                yield return _value[i];
         }
     }
 
@@ -85,12 +82,11 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
             Unsubscribe(i);
     }
 
-    [JsonIgnore]
-    public int Size => Values.Length;
+    public int Size => _value.Length;
 
     public object? GetValue(int index)
     {
-        return Values[index];
+        return _value[index];
     }
 
     public void SetValue(int index, object value)
@@ -111,7 +107,7 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
 
     public T[] ToArray()
     {
-        return (T[])Values.Clone();
+        return (T[])_value.Clone();
     }
 
     public override void OnDeserialized()
@@ -119,7 +115,7 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
         base.OnDeserialized();
         for (var i = 0; i < Size; i++)
         {
-            if (Values[i] is IActorItemSub actorItemSub)
+            if (_value[i] is IActorItemSub actorItemSub)
                 actorItemSub.OnDeserialized();
             Subscribe(i);
         }
@@ -130,7 +126,7 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
         if (message is VariableActorItemMessage variableActorItemMessage)
         {
             var index = (int)variableActorItemMessage.Location[0];
-            if (Values[index] is IActorItemSub actorItemSub)
+            if (_value[index] is IActorItemSub actorItemSub)
             {
                 var partialLocation = variableActorItemMessage.Location[1..];
                 var partialMessage = new VariableActorItemMessage(message.Sender, message.ItemPath, partialLocation,
@@ -150,7 +146,7 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
 
     private void Subscribe(int index)
     {
-        if (Values[index] is INotifyValueChanged notify)
+        if (_value[index] is INotifyValueChanged notify)
         {
             notify.ValueChanging += NotifyOnValueChanging;
             notify.ValueChanged += NotifyOnValueChanged;
@@ -159,7 +155,7 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
 
     private void Unsubscribe(int index)
     {
-        if (Values[index] is INotifyValueChanged notify)
+        if (_value[index] is INotifyValueChanged notify)
         {
             notify.ValueChanging -= NotifyOnValueChanging;
             notify.ValueChanged -= NotifyOnValueChanged;
@@ -168,7 +164,7 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
 
     private void NotifyOnValueChanging(object? sender, ValueChangedArgs e)
     {
-        var index = Array.IndexOf(Values, sender);
+        var index = Array.IndexOf(_value, sender);
         if (index == -1)
         {
             Logger.Warn($"Couldn't find index of the changed value. ({sender})");
@@ -186,7 +182,7 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
 
     private void NotifyOnValueChanged(object? sender, ValueChangedArgs e)
     {
-        var index = Array.IndexOf(Values, sender);
+        var index = Array.IndexOf(_value, sender);
         if (index == -1)
         {
             Logger.Warn($"Couldn't find index of the changed value. ({sender})");
@@ -202,15 +198,13 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
         );
     }
 
-    [Obsolete]
     public override void ReadJson(JsonDocument jsonDoc)
     {
         var valuesProp = jsonDoc.RootElement.GetProperty("Values");
         var values = valuesProp.Deserialize<T[]>()!;
-        Values = values;
+        _value = values;
     }
 
-    [Obsolete]
     public override void WriteJson(
         Utf8JsonWriter writer,
         ArrayBase value,
@@ -220,13 +214,13 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
         writer.WriteStartObject();
 
         writer.WriteStartArray("Size");
-        for (var i = 0; i < Values.Rank; i++)
-            writer.WriteNumberValue(Values.GetLength(i));
+        for (var i = 0; i < _value.Rank; i++)
+            writer.WriteNumberValue(_value.GetLength(i));
         writer.WriteEndArray();
 
-        var linearValue = new T[Values.Length];
+        var linearValue = new T[_value.Length];
         var idx = 0;
-        foreach (var x in Values)
+        foreach (var x in _value)
             linearValue[idx++] = x;
 
         writer.WritePropertyName("Values");
