@@ -116,6 +116,7 @@ public abstract class Position : INotifyValueChanged, IActorItemSub, IWriteData,
 
     public void WriteData(ItemDataWriteArgs args)
     {
+        args.EnsureNewValueInRange();
         var index = (int)args.Location[0];
         this[index] = (double)args.NewValue;
         if (args.Location.Length > 1)

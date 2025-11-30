@@ -53,16 +53,26 @@ public abstract class PropertyVariable : IActorItemSub, INotifyValueChanged, IWr
         {
             var location = (ValueTuple<int, int>)args.Location[1];
             var propertyValue = (IIndex2D)propertyType.GetValue(this)!;
+            args.EnsureNewValueInRange();
             propertyValue.SetValue(location.Item1, location.Item2, args.NewValue);
             return;
         }
 
         if (args.Location.Length == 1)
+        {
+            args.EnsureNewValueInRange();
             propertyType.SetValue(this, args.NewValue);
+        }
         else
+        {
             (propertyType.GetValue(this) as IWriteData)?.WriteData(
-                new ItemDataWriteArgs(args.Location[1..], args.NewValue)
+                new ItemDataWriteArgs(args)
+                {
+                    Location = args.Location[1..],
+                    NewValue = args.NewValue
+                }
             );
+        }
     }
 
     protected virtual void OnValueChanged(ValueChangedArgs e)

@@ -102,11 +102,20 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
     {
         var index = (int)args.Location[0];
         if (args.Location.Length == 1)
+        {
+            args.EnsureNewValueInRange();
             this[index] = (T)args.NewValue;
+        }
         else
+        {
             (this[index] as IWriteData)?.WriteData(
-                new ItemDataWriteArgs(args.Location[1..], args.NewValue)
+                new ItemDataWriteArgs(args)
+                {
+                    Location = args.Location[1..],
+                    NewValue = args.NewValue
+                }
             );
+        }
     }
 
     public T[] ToArray()

@@ -144,10 +144,19 @@ public class Array2D<T> : ArrayBase, IIndex2D, IWriteData
     {
         var index = ((int, int))args.Location[0];
         if (args.Location.Length == 1)
+        {
+            args.EnsureNewValueInRange();
             this[index.Item1, index.Item2] = (T)args.NewValue;
+        }
         else
+        {
             (this[index.Item1, index.Item2] as IWriteData)?.WriteData(
-                new ItemDataWriteArgs(args.Location[1..], args.NewValue)
+                new ItemDataWriteArgs(args)
+                {
+                    Location = args.Location[1..],
+                    NewValue = args.NewValue
+                }
             );
+        }
     }
 }

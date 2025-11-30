@@ -68,6 +68,8 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
     public string Unit { get; private set; } = string.Empty;
     public int? ReadLevel { get; private set; }
     public int? WriteLevel { get; private set; }
+    public double? MinValue { get; private set; }
+    public double? MaxValue { get; private set; }
 
     public T Value
     {
@@ -148,7 +150,9 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
                 {
                     [nameof(Name)] = Name,
                     [nameof(Unit)] = Unit,
-                    [nameof(Desc)] = Desc
+                    [nameof(Desc)] = Desc,
+                    [nameof(MinValue)] = MinValue,
+                    [nameof(MaxValue)] = MaxValue,
                 };
                 message.Sender.Send(
                     new ActorItemMessage(message.Id, Actor, ItemPath, "_itemMetaData", payload)
@@ -177,7 +181,19 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
                 if (WriteLevel.HasValue && UserInfo != null)
                     if (WriteLevel.Value < UserInfo.Level)
                         return false;
-                WriteData((ItemDataWriteArgs)message.Payload!);
+                var args = new ItemDataWriteArgs((ItemDataWriteArgs)message.Payload!)
+                {
+                    MinValue = MinValue,
+                    MaxValue = MaxValue
+                };
+                try
+                {
+                    WriteData(args);
+                }
+                catch (ValueError error)
+                {
+                    Logger.Warn(error);
+                }
                 return true;
             }
         }
@@ -208,14 +224,23 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
             ReadLevel = int.Parse(readLevel);
         if (dataSource.GetValue(ActorName, ItemPath, nameof(WriteLevel)) is string writeLevel)
             WriteLevel = int.Parse(writeLevel);
+        if (dataSource.GetValue(ActorName, ItemPath, nameof(MinValue)) is string minValue)
+            MinValue = double.Parse(minValue);
+        if (dataSource.GetValue(ActorName, ItemPath, nameof(MaxValue)) is string maxValue)
+            MaxValue = double.Parse(maxValue);
     }
 
     public void WriteData(ItemDataWriteArgs args)
     {
         if (args.Location.Length == 0)
+        {
+            args.EnsureNewValueInRange();
             Value = (T)args.NewValue;
+        }
         else
+        {
             (Value as IWriteData)?.WriteData(args);
+        }
     }
 
     private void OnAfterValueChange()
