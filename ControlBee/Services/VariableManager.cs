@@ -16,7 +16,7 @@ public class VariableManager(
     IActorRegistry actorRegistry,
     ISystemConfigurations systemConfigurations,
     IDeviceManager deviceManager,
-    IUserInfo? userInfo)
+    IUserManager? userManager)
     : IVariableManager, IDisposable
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(VariableManager));
@@ -101,7 +101,7 @@ public class VariableManager(
             );
         variable.ValueChanging += VariableOnValueChanging;
         variable.ValueChanged += VariableOnValueChanged;
-        variable.UserInfo = userInfo;
+        variable.UserManager = userManager;
     }
 
     public void Save(string? localName = null)
