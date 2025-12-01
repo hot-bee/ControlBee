@@ -1,6 +1,9 @@
 ﻿using System.Text.Json;
 using ControlBee.Interfaces;
 using ControlBee.Models;
+using ControlBee.Services;
+using ControlBee.Utils;
+using ControlBeeAbstract.Exceptions;
 using log4net;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
@@ -11,6 +14,7 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
 {
     private static readonly ILog Logger = LogManager.GetLogger("Variable");
     private T _value;
+    private IUserManager? _userManager;
 
     public Variable(VariableScope scope, T initialValue)
     {
@@ -94,7 +98,37 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
     }
     public VariableScope Scope { get; }
 
-    public IUserInfo? UserInfo { get; set; }
+    public IUserManager? UserManager
+    {
+        get => _userManager;
+        set
+        {
+            if (_userManager != null)
+                _userManager.CurrentUserChanged -= OnCurrentUserChanged;
+
+            _userManager = value;
+
+            if (_userManager != null)
+                _userManager.CurrentUserChanged += OnCurrentUserChanged;
+        }
+    }
+
+    public bool IsVisibleByUserLevel => ReadLevel.HasValue && ReadLevel <= _userManager?.CurrentUser?.Level;
+
+    private void OnCurrentUserChanged(object? sender, EventArgs e)
+    {
+        if (_userManager?.CurrentUser == null) return;
+        if (!ReadLevel.HasValue) return;
+        if (VisibilityOverride == IsVisibleByUserLevel) return;
+
+        VisibilityOverride = IsVisibleByUserLevel;
+        Actor.Ui?.Send(new ActorItemMessage(Actor, ItemPath, "_itemMetaData", new Dict()
+        {
+            [nameof(Name)] = Name,
+            [nameof(ItemPath)] = ItemPath,
+            [nameof(Visible)] = Visible,
+        }));
+    }
 
     public string ToJson()
     {
@@ -130,8 +164,8 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
             }
             case "_itemDataRead":
             {
-                if (ReadLevel.HasValue && UserInfo != null)
-                    if (ReadLevel.Value < UserInfo.Level)
+                if (ReadLevel.HasValue && _userManager?.CurrentUser != null)
+                    if (_userManager?.CurrentUser.Level < ReadLevel)
                         return false;
                 var newValue = _value;
                 if (_value is ICloneable cloneable)
@@ -147,8 +181,8 @@ public class Variable<T> : ActorItem, IVariable, IWriteData, IDisposable
             }
             case "_itemDataWrite":
             {
-                if (WriteLevel.HasValue && UserInfo != null)
-                    if (WriteLevel.Value < UserInfo.Level)
+                if (WriteLevel.HasValue && _userManager?.CurrentUser != null)
+                    if (_userManager?.CurrentUser?.Level < WriteLevel)
                         return false;
                 WriteData((ItemDataWriteArgs)message.Payload!);
                 return true;
