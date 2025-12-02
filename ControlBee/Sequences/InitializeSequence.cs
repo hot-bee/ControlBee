@@ -1,4 +1,5 @@
-﻿using ControlBee.Constants;
+﻿using System.Diagnostics;
+using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Variables;
@@ -63,13 +64,25 @@ public class InitializeSequence(
         axis.SearchZPhase(0);
     }
 
-    public void RunNormal()
+    public void SearchEntry(bool reverse)
     {
+        var timeoutWatch = new Stopwatch();
+        var searchDirection = direction;
+        if (reverse) searchDirection = (AxisDirection)((int)direction * -1);
         try
         {
             axis.SetSpeed(initSpeed);
-            if (axis.GetSensorValue(sensorType) != true) axis.VelocityMove(direction);
-            axis.WaitSensor(sensorType, true, 3 * 60 * 1000);
+            if (axis.GetSensorValue(sensorType) != true)
+                axis.VelocityMove(searchDirection);
+            timeoutWatch.Restart();
+            while (true)
+            {
+                if (axis.GetSensorValue(sensorType)) break;
+                if (!reverse && sensorType == AxisSensorType.Home &&
+                    (axis.GetSensorValue(AxisSensorType.PositiveLimit) ||
+                     axis.GetSensorValue(AxisSensorType.NegativeLimit))) throw new LimitTouchException();
+                if (timeoutWatch.ElapsedMilliseconds > 3 * 60 * 1000) throw new TimeoutError();
+            }
         }
         catch (TimeoutError)
         {
@@ -81,7 +94,44 @@ public class InitializeSequence(
             axis.EStop();
             axis.Wait();
         }
+    }
 
+    public void RunNormal()
+    {
+        try
+        {
+            SearchEntry(false);
+        }
+        catch (LimitTouchException)
+        {
+            SearchEntry(true);
+        }
+
+        SearchExit();
+        SearchReentry();
+    }
+
+    private void SearchReentry()
+    {
+        try
+        {
+            axis.VelocityMove(direction);
+            axis.WaitSensor(sensorType, true, 3 * 60 * 1000);
+        }
+        catch (TimeoutError)
+        {
+            SensorReentryTimeout.Show();
+            throw new SequenceError();
+        }
+        finally
+        {
+            axis.EStop();
+            axis.Wait();
+        }
+    }
+
+    private void SearchExit()
+    {
         try
         {
             var halfHomingSpeed = (SpeedProfile)initSpeed.Value.Clone();
@@ -100,26 +150,14 @@ public class InitializeSequence(
             axis.EStop();
             axis.Wait();
         }
-
-        try
-        {
-            axis.VelocityMove(direction);
-            axis.WaitSensor(sensorType, true, 3 * 60 * 1000);
-        }
-        catch (TimeoutError)
-        {
-            SensorReentryTimeout.Show();
-            throw new SequenceError();
-        }
-        finally
-        {
-            axis.EStop();
-            axis.Wait();
-        }
     }
 
     public override void InjectProperties(ISystemPropertiesDataSource dataSource)
     {
         // TODO
+    }
+
+    public class LimitTouchException : Exception
+    {
     }
 }
