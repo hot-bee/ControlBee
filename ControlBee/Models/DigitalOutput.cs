@@ -2,7 +2,6 @@
 using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
 using log4net;
-using log4net.Repository.Hierarchy;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
@@ -45,27 +44,21 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
             Logger.Warn("DigitalIoDevice is null.");
             return;
         }
+
         if (InternalOn == on)
             return;
         InternalOn = on;
 
         DigitalIoDevice.SetDigitalOutputBit(Channel, on);
-        var delay = on ? OnDelay.Value : OffDelay.Value;
-        _task = TimeManager.RunTask(() =>
-        {
-            var watch = timeManager.CreateWatch();
-            while (true)
-            {
-                if (watch.ElapsedMilliseconds >= delay)
-                    break;
-
-                timeManager.Sleep(1);
-            }
-
-            _isOn = InternalOn;
-            SendDataToUi(Guid.Empty);
-        });
         SendDataToUi(Guid.Empty);
+        var delay = on ? OnDelay.Value : OffDelay.Value;
+        if (delay > 0) Thread.Sleep(delay);
+        if (_isOn != on)
+        {
+            _isOn = on;
+            OnIsOnChanged(on);
+            SendDataToUi(Guid.Empty);
+        }
     }
 
     public void On()
@@ -120,6 +113,14 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         Wait();
     }
 
+    public override void PostInit()
+    {
+        base.PostInit();
+        Sync();
+    }
+
+    public event EventHandler<bool>? IsOnChanged;
+
     public override void Sync()
     {
         if (DigitalIoDevice == null)
@@ -127,8 +128,13 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
             Logger.Warn("DigitalIoDevice is null.");
             return;
         }
+
         InternalOn = DigitalIoDevice.GetDigitalOutputBit(Channel);
-        _isOn = InternalOn;
+        if (_isOn != InternalOn)
+        {
+            _isOn = InternalOn;
+            OnIsOnChanged(InternalOn);
+        }
     }
 
     private void SendDataToUi(Guid requestId)
@@ -139,9 +145,8 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         );
     }
 
-    public override void PostInit()
+    protected virtual void OnIsOnChanged(bool e)
     {
-        base.PostInit();
-        Sync();
+        IsOnChanged?.Invoke(this, e);
     }
 }

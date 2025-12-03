@@ -12,4 +12,5 @@ public interface IDigitalOutput : IDigitalIO
     void Wait();
     void OnAndWait();
     void OffAndWait();
+    event EventHandler<bool>? IsOnChanged;
 }

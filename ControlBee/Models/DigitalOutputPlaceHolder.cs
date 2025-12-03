@@ -119,4 +119,6 @@ public class DigitalOutputPlaceholder : IPlaceholder, IDigitalOutput
     {
         throw new UnimplementedByDesignError();
     }
+
+    public event EventHandler<bool>? IsOnChanged;
 }
