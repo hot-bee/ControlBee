@@ -7,4 +7,9 @@ public class FakeDigitalOutput(ITimeManager timeManager)
     : DigitalOutput(EmptyDeviceManager.Instance, timeManager)
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(DigitalOutput));
+
+    public override void SetOn(bool on)
+    {
+        SetOnImpl(on);
+    }
 }

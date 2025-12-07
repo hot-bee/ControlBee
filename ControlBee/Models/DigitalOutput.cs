@@ -64,19 +64,13 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         return base.ProcessMessage(message);
     }
 
-    public virtual void SetOn(bool on)
+    protected virtual void SetOnImpl(bool on)
     {
-        if (DigitalIoDevice == null)
-        {
-            Logger.Warn("DigitalIoDevice is null.");
-            return;
-        }
-
         if (CommandOn == on)
             return;
         CommandOn = on;
 
-        DigitalIoDevice.SetDigitalOutputBit(Channel, on);
+        DigitalIoDevice?.SetDigitalOutputBit(Channel, on);
         var delay = on ? OnDelay.Value : OffDelay.Value;
         _task = TimeManager.RunTask(() =>
         {
@@ -93,6 +87,16 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
             SendDataToUi(Guid.Empty);
         });
         SendDataToUi(Guid.Empty);
+    }
+    public virtual void SetOn(bool on)
+    {
+        if (DigitalIoDevice == null)
+        {
+            Logger.Warn("DigitalIoDevice is null.");
+            return;
+        }
+
+        SetOnImpl(on);
     }
 
     public void On()
