@@ -1,8 +1,9 @@
-﻿using ControlBee.Interfaces;
+﻿using ControlBee.Constants;
+using ControlBee.Interfaces;
 using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
+using ControlBeeAbstract.Exceptions;
 using log4net;
-using log4net.Repository.Hierarchy;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
@@ -12,13 +13,38 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         IDigitalOutput
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(DigitalOutput));
-    private bool? _isOn;
+    private bool? _actualOn;
+    private bool _commandOn;
     private Task? _task;
-    protected bool InternalOn;
     public Variable<int> OffDelay = new(VariableScope.Global, 0);
     public Variable<int> OnDelay = new(VariableScope.Global, 0);
 
     protected virtual IDigitalIoDevice? DigitalIoDevice => Device as IDigitalIoDevice;
+
+    public bool CommandOn
+    {
+        get => _commandOn;
+        set
+        {
+            if (_commandOn.Equals(value)) return;
+            _commandOn = value;
+            OnCommandOnChanged(_commandOn);
+        }
+    }
+
+    public bool? ActualOn
+    {
+        get => _actualOn;
+        set
+        {
+            if (Equals(_actualOn, value)) return;
+            _actualOn = value;
+            OnActualOnChanged(_actualOn);
+        }
+    }
+
+    public event EventHandler<bool>? CommandOnChanged;
+    public event EventHandler<bool?>? ActualOnChanged;
 
     public override bool ProcessMessage(ActorItemMessage message)
     {
@@ -45,9 +71,10 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
             Logger.Warn("DigitalIoDevice is null.");
             return;
         }
-        if (InternalOn == on)
+
+        if (CommandOn == on)
             return;
-        InternalOn = on;
+        CommandOn = on;
 
         DigitalIoDevice.SetDigitalOutputBit(Channel, on);
         var delay = on ? OnDelay.Value : OffDelay.Value;
@@ -62,7 +89,7 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
                 timeManager.Sleep(1);
             }
 
-            _isOn = InternalOn;
+            ActualOn = CommandOn;
             SendDataToUi(Guid.Empty);
         });
         SendDataToUi(Guid.Empty);
@@ -78,26 +105,24 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         SetOn(false);
     }
 
-    public bool? IsOn()
+    public bool? IsOn(CommandActualType type = CommandActualType.Actual)
     {
-        if (_task is { IsCompleted: true })
-            _task = null;
-        return _isOn;
+        switch (type)
+        {
+            case CommandActualType.Command:
+                return CommandOn;
+            case CommandActualType.Actual:
+                if (_task is { IsCompleted: true })
+                    _task = null;
+                return ActualOn;
+        }
+
+        throw new ValueError();
     }
 
-    public bool? IsOff()
+    public bool? IsOff(CommandActualType type = CommandActualType.Actual)
     {
-        return !IsOn();
-    }
-
-    public bool IsCommandOn()
-    {
-        return InternalOn;
-    }
-
-    public bool IsCommandOff()
-    {
-        return !InternalOn;
+        return !IsOn(type);
     }
 
     public void Wait()
@@ -120,6 +145,12 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         Wait();
     }
 
+    public override void PostInit()
+    {
+        base.PostInit();
+        Sync();
+    }
+
     public override void Sync()
     {
         if (DigitalIoDevice == null)
@@ -127,21 +158,26 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
             Logger.Warn("DigitalIoDevice is null.");
             return;
         }
-        InternalOn = DigitalIoDevice.GetDigitalOutputBit(Channel);
-        _isOn = InternalOn;
+
+        CommandOn = DigitalIoDevice.GetDigitalOutputBit(Channel);
+        ActualOn = CommandOn;
     }
 
     private void SendDataToUi(Guid requestId)
     {
-        var payload = new Dict { ["On"] = InternalOn, ["IsOn"] = IsOn() };
+        var payload = new Dict { ["CommandOn"] = CommandOn, ["ActualOn"] = IsOn() };
         Actor.Ui?.Send(
             new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)
         );
     }
 
-    public override void PostInit()
+    protected virtual void OnCommandOnChanged(bool e)
     {
-        base.PostInit();
-        Sync();
+        CommandOnChanged?.Invoke(this, e);
+    }
+
+    protected virtual void OnActualOnChanged(bool? e)
+    {
+        ActualOnChanged?.Invoke(this, e);
     }
 }

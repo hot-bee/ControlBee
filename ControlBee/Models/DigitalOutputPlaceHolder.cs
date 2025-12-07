@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
@@ -85,24 +86,14 @@ public class DigitalOutputPlaceholder : IPlaceholder, IDigitalOutput
         throw new UnimplementedByDesignError();
     }
 
-    public bool? IsOn()
+    public bool? IsOn(CommandActualType type = CommandActualType.Actual)
     {
-        throw new UnimplementedByDesignError();
+        throw new NotImplementedException();
     }
 
-    public bool? IsOff()
+    public bool? IsOff(CommandActualType type = CommandActualType.Actual)
     {
-        throw new UnimplementedByDesignError();
-    }
-
-    public bool IsCommandOn()
-    {
-        throw new UnimplementedByDesignError();
-    }
-
-    public bool IsCommandOff()
-    {
-        throw new UnimplementedByDesignError();
+        throw new NotImplementedException();
     }
 
     public void Wait()
@@ -119,4 +110,7 @@ public class DigitalOutputPlaceholder : IPlaceholder, IDigitalOutput
     {
         throw new UnimplementedByDesignError();
     }
+
+    public event EventHandler<bool>? CommandOnChanged;
+    public event EventHandler<bool?>? ActualOnChanged;
 }
