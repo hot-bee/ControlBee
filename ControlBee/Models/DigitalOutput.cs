@@ -21,7 +21,7 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
 
     protected virtual IDigitalIoDevice? DigitalIoDevice => Device as IDigitalIoDevice;
 
-    public bool CommandOn
+    protected bool CommandOn
     {
         get => _commandOn;
         set
@@ -33,7 +33,7 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         }
     }
 
-    public bool? ActualOn
+    protected bool? ActualOn
     {
         get => _actualOn;
         set

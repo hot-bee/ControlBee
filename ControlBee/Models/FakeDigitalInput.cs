@@ -15,7 +15,7 @@ public class FakeDigitalInput(
 
     public bool On
     {
-        set => InternalIsOn = value;
+        set => ActualOn = value;
     }
 
     public bool Off

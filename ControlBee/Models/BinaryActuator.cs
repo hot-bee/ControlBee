@@ -43,7 +43,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         Subscribe();
     }
 
-    public bool? ActualOn
+    protected bool? ActualOn
     {
         get => _actualOn;
         set
@@ -54,7 +54,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         }
     }
 
-    public bool CommandOn
+    protected bool CommandOn
     {
         get => _commandOn;
         set
@@ -216,20 +216,20 @@ public class BinaryActuator : ActorItem, IBinaryActuator
     private void Unsubscribe()
     {
         if (_inputOff != null)
-            _inputOff.PropertyChanged -= InputOnPropertyChanged;
+            _inputOff.ActualOnChanged -= InputOffOnActualOnChanged;
         if (_inputOn != null)
-            _inputOn.PropertyChanged -= InputOnPropertyChanged;
+            _inputOn.ActualOnChanged -= InputOffOnActualOnChanged;
     }
 
     private void Subscribe()
     {
         if (_inputOff != null)
-            _inputOff.PropertyChanged += InputOnPropertyChanged;
+            _inputOff.ActualOnChanged += InputOffOnActualOnChanged;
         if (_inputOn != null)
-            _inputOn.PropertyChanged += InputOnPropertyChanged;
+            _inputOn.ActualOnChanged += InputOffOnActualOnChanged;
     }
 
-    private void InputOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void InputOffOnActualOnChanged(object? sender, bool e)
     {
         SendDataToUi(Guid.Empty);
     }

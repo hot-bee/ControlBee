@@ -11,7 +11,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(DigitalInput));
 
-    private bool _isOn;
+    private bool _actualOn;
 
     #region Cache
 
@@ -19,13 +19,15 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
 
     #endregion
 
-    protected bool InternalIsOn
+    protected bool ActualOn
     {
-        get => _isOn;
+        get => _actualOn;
         set
         {
-            if (SetField(ref _isOn, value))
-                SendDataToUi(Guid.Empty);
+            if (_actualOn == value) return;
+            _actualOn = value;
+            OnActualOnChanged(_actualOn);
+            SendDataToUi(Guid.Empty);
         }
     }
 
@@ -44,12 +46,12 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     {
         if (DigitalIoDevice == null)
             //Logger.Warn("DigitalIoDevice is null.");
-            return InternalIsOn;
+            return ActualOn;
 
         var inputValue = DigitalIoDevice.GetDigitalInputBit(Channel);
         if (Reversed) inputValue = !inputValue;
-        InternalIsOn = inputValue;
-        return InternalIsOn;
+        ActualOn = inputValue;
+        return ActualOn;
     }
 
     public bool IsOff()
@@ -110,17 +112,6 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         RefreshCacheImpl();
     }
 
-    protected virtual bool IsOnOffOrValue(bool on)
-    {
-        if (DigitalIoDevice == null)
-        {
-            Logger.Warn("DigitalIoDevice is null.");
-            return on;
-        }
-
-        return IsOn();
-    }
-
     public void WaitOn(int millisecondsTimeout, bool showErrorDialog)
     {
         try
@@ -145,6 +136,19 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
             if (showErrorDialog) OffTimeoutError.Show();
             throw;
         }
+    }
+
+    public event EventHandler<bool>? ActualOnChanged;
+
+    protected virtual bool IsOnOffOrValue(bool on)
+    {
+        if (DigitalIoDevice == null)
+        {
+            Logger.Warn("DigitalIoDevice is null.");
+            return on;
+        }
+
+        return IsOn();
     }
 
     protected virtual void WaitSensor(bool isOn, int millisecondsTimeout)
@@ -200,6 +204,11 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
             return false;
         field = value;
         return true;
+    }
+
+    protected virtual void OnActualOnChanged(bool e)
+    {
+        ActualOnChanged?.Invoke(this, e);
     }
 
     #region Timeouts

@@ -105,6 +105,8 @@ public class DigitalInputPlaceholder : IPlaceholder, IDigitalInput
         throw new NotImplementedException();
     }
 
+    public event EventHandler<bool>? ActualOnChanged;
+
     public void WaitOn(int millisecondsTimeout)
     {
         throw new UnimplementedByDesignError();

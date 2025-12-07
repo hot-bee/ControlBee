@@ -13,4 +13,5 @@ public interface IDigitalInput : IDigitalIO
     void WaitOff(bool showErrorDialog = true);
     void WaitOn(int millisecondsTimeout, bool showErrorDialog);
     void WaitOff(int millisecondsTimeout, bool showErrorDialog);
+    event EventHandler<bool>? ActualOnChanged;
 }
