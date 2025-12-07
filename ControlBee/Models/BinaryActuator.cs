@@ -2,6 +2,7 @@
 using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Variables;
+using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
 
 namespace ControlBee.Models;
@@ -14,9 +15,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
     private IDigitalInput? _inputOff;
     private IDigitalInput? _inputOn;
 
-    private bool? _isOn;
-
-    private bool _on;
+    private bool? _actualOn;
+    private bool _commandOn;
     private IDigitalOutput? _outputOff;
     private IDigitalOutput? _outputOn;
 
@@ -42,6 +42,29 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         _inputOff = inputOff;
         Subscribe();
     }
+
+    public bool? ActualOn
+    {
+        get => _actualOn;
+        set
+        {
+            if (Equals(_actualOn, value)) return;
+            _actualOn = value;
+            SendDataToUi(Guid.Empty);
+        }
+    }
+
+    public bool CommandOn
+    {
+        get => _commandOn;
+        set
+        {
+            if (_commandOn == value) return;
+            _commandOn = value;
+            SendDataToUi(Guid.Empty);
+        }
+    }
+
     public void On()
     {
         SetOn(true);
@@ -52,7 +75,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         switch (type)
         {
             case CommandActualType.Command:
-                return _on;
+                return CommandOn;
             case CommandActualType.Actual:
                 // ReSharper disable InvertIf
                 if (_task is { IsCompleted: true })
@@ -66,7 +89,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
                     }
                 }
 
-                return _isOn;
+                return ActualOn;
                 // ReSharper restore InvertIf
         }
 
@@ -150,11 +173,11 @@ public class BinaryActuator : ActorItem, IBinaryActuator
     private void SetOn(bool on)
     {
         Wait();
-        if (_isOn == on) return;
-        _isOn = null;
-        _on = on;
-        _outputOn?.SetOn(_on);
-        _outputOff?.SetOn(!_on);
+        if (ActualOn == on) return;
+        ActualOn = null;
+        CommandOn = on;
+        _outputOn?.SetOn(CommandOn);
+        _outputOff?.SetOn(!CommandOn);
         if (_systemConfigurations.SkipWaitSensor)
         {
             if (_inputOn is FakeDigitalInput fakeInputOn)
@@ -170,9 +193,9 @@ public class BinaryActuator : ActorItem, IBinaryActuator
             var watch = _timeManager.CreateWatch();
             while (true)
             {
-                if (_on && OnDetect())
+                if (CommandOn && OnDetect())
                     break;
-                if (!_on && OffDetect())
+                if (!CommandOn && OffDetect())
                     break;
                 if (_inputOn == null && _inputOff == null)
                     break;
@@ -185,12 +208,9 @@ public class BinaryActuator : ActorItem, IBinaryActuator
 
             _timeManager.Sleep(delay);
 
-            _isOn = _on;
-            SendDataToUi(Guid.Empty);
+            ActualOn = CommandOn;
             return true;
         });
-
-        SendDataToUi(Guid.Empty);
     }
 
     private void Unsubscribe()
@@ -218,14 +238,31 @@ public class BinaryActuator : ActorItem, IBinaryActuator
     {
         var payload = new Dictionary<string, object?>
         {
-            ["CommandOn"] = _on,
-            ["ActualOn"] = _isOn, // Do not call IsOn, or it will cause a recursive call issue.
+            ["CommandOn"] = CommandOn,
+            ["ActualOn"] = ActualOn, // Do not call IsOn, or it will cause a recursive call issue.
             [nameof(OffDetect)] = OffDetect(),
             [nameof(OnDetect)] = OnDetect()
         };
         Actor.Ui?.Send(
             new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)
         );
+    }
+
+    public override void PostInit()
+    {
+        base.PostInit();
+        if (_outputOn != null)
+        {
+            OutputOnOnCommandOnChanged(null, _outputOn.IsOn(CommandActualType.Command) is true);
+            _outputOn.CommandOnChanged += OutputOnOnCommandOnChanged;
+        }
+    }
+
+    private void OutputOnOnCommandOnChanged(object? sender, bool e)
+    {
+        if (e == CommandOn) return;
+        CommandOn = e;
+        ActualOn = null;
     }
 
     #region Timeouts
