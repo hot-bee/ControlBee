@@ -1,13 +1,13 @@
-﻿namespace ControlBee.Interfaces;
+﻿using ControlBee.Constants;
+
+namespace ControlBee.Interfaces;
 
 public interface IBinaryActuator : IActorItem, IUsesPlaceholder
 {
-    bool? IsOn();
-    bool? IsOff();
+    bool? IsOn(CommandActualType type = CommandActualType.Actual);
+    bool? IsOff(CommandActualType type = CommandActualType.Actual);
     public bool OnDetect();
     public bool OffDetect();
-    bool GetCommandOn();
-    bool GetCommandOff();
     void On();
     void Off();
     void OnAndWait();

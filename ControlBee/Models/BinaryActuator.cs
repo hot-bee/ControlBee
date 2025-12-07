@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Variables;
 using ControlBeeAbstract.Exceptions;
@@ -41,43 +42,40 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         _inputOff = inputOff;
         Subscribe();
     }
-
-    public bool GetCommandOn()
-    {
-        return _on;
-    }
-
-    public bool GetCommandOff()
-    {
-        return !_on;
-    }
-
     public void On()
     {
         SetOn(true);
     }
 
-    public bool? IsOn()
+    public bool? IsOn(CommandActualType type = CommandActualType.Actual)
     {
-        // ReSharper disable InvertIf
-        if (_task is { IsCompleted: true })
+        switch (type)
         {
-            var success = _task.Result;
-            _task = null;
-            if (!success)
-            {
-                TimeoutError.Show();
-                throw new TimeoutError();
-            }
+            case CommandActualType.Command:
+                return _on;
+            case CommandActualType.Actual:
+                // ReSharper disable InvertIf
+                if (_task is { IsCompleted: true })
+                {
+                    var success = _task.Result;
+                    _task = null;
+                    if (!success)
+                    {
+                        TimeoutError.Show();
+                        throw new TimeoutError();
+                    }
+                }
+
+                return _isOn;
+                // ReSharper restore InvertIf
         }
 
-        return _isOn;
-        // ReSharper restore InvertIf
+        throw new ValueError();
     }
 
-    public bool? IsOff()
+    public bool? IsOff(CommandActualType type = CommandActualType.Actual)
     {
-        return !IsOn();
+        return !IsOn(type);
     }
 
     public bool OnDetect()
