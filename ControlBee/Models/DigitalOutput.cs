@@ -29,6 +29,7 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
             if (_commandOn.Equals(value)) return;
             _commandOn = value;
             OnCommandOnChanged(_commandOn);
+            SendDataToUi(Guid.Empty);
         }
     }
 
@@ -40,6 +41,7 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
             if (Equals(_actualOn, value)) return;
             _actualOn = value;
             OnActualOnChanged(_actualOn);
+            SendDataToUi(Guid.Empty);
         }
     }
 
@@ -69,7 +71,6 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         if (CommandOn == on)
             return;
         CommandOn = on;
-
         DigitalIoDevice?.SetDigitalOutputBit(Channel, on);
         var delay = on ? OnDelay.Value : OffDelay.Value;
         _task = TimeManager.RunTask(() =>
@@ -84,9 +85,7 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
             }
 
             ActualOn = CommandOn;
-            SendDataToUi(Guid.Empty);
         });
-        SendDataToUi(Guid.Empty);
     }
     public virtual void SetOn(bool on)
     {
@@ -153,6 +152,15 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
     {
         base.PostInit();
         Sync();
+        if (DigitalIoDevice != null) DigitalIoDevice.OutputBitChanged += DigitalIoDeviceOnOutputBitChanged;
+    }
+
+    private void DigitalIoDeviceOnOutputBitChanged(object? sender, (int channel, bool value) e)
+    {
+        if (e.channel != Channel) return;
+        if (CommandOn == e.value) return;
+        CommandOn = e.value;
+        ActualOn = e.value;
     }
 
     public override void Sync()
