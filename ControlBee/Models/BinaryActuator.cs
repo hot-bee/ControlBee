@@ -220,8 +220,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
     {
         var payload = new Dictionary<string, object?>
         {
-            [nameof(On)] = _on,
-            [nameof(IsOn)] = _isOn, // Do not call IsOn, or it will cause a recursive call issue.
+            ["CommandOn"] = _on,
+            ["ActualOn"] = _isOn, // Do not call IsOn, or it will cause a recursive call issue.
             [nameof(OffDetect)] = OffDetect(),
             [nameof(OnDetect)] = OnDetect()
         };

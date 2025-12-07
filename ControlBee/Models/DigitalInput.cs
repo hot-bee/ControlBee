@@ -174,7 +174,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
 
     private void SendDataToUi(Guid requestId)
     {
-        var payload = new Dict { [nameof(IsOn)] = IsOn() };
+        var payload = new Dict { ["ActualOn"] = IsOn() };
         Actor.Ui?.Send(
             new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)
         );
