@@ -32,14 +32,17 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     }
 
     protected virtual IDigitalIoDevice? DigitalIoDevice => Device as IDigitalIoDevice;
-    protected bool Reversed { get; private set; }
+    protected bool Inverted { get; private set; }
 
     public override void InjectProperties(ISystemPropertiesDataSource dataSource)
     {
         base.InjectProperties(dataSource);
-        if (dataSource.GetValue(ActorName, ItemPath, nameof(Reversed)) is string reversedValue)
+        if (dataSource.GetValue(ActorName, ItemPath, "Reversed") is string reversedValue)  // For backward compatibility
             if (bool.TryParse(reversedValue, out var reversed))
-                Reversed = reversed;
+                Inverted |= reversed;
+        if (dataSource.GetValue(ActorName, ItemPath, nameof(Inverted)) is string invertedValue)
+            if (bool.TryParse(invertedValue, out var inverted))
+                Inverted |= inverted;
     }
 
     public bool IsOn()
@@ -49,7 +52,6 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
             return ActualOn;
 
         var inputValue = DigitalIoDevice.GetDigitalInputBit(Channel);
-        if (Reversed) inputValue = !inputValue;
         ActualOn = inputValue;
         return ActualOn;
     }
@@ -209,6 +211,12 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     protected virtual void OnActualOnChanged(bool e)
     {
         ActualOnChanged?.Invoke(this, e);
+    }
+
+    public override void PostInit()
+    {
+        base.PostInit();
+        if (Inverted) DigitalIoDevice?.SetDigitalInputBitInverted(Channel, Inverted);
     }
 
     #region Timeouts
