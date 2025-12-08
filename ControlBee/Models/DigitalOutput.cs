@@ -152,7 +152,6 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
     {
         base.PostInit();
         Sync();
-        if (DigitalIoDevice != null) DigitalIoDevice.OutputBitChanged += DigitalIoDeviceOnOutputBitChanged;
     }
 
     private void DigitalIoDeviceOnOutputBitChanged(object? sender, (int channel, bool value) e)
@@ -173,6 +172,7 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
 
         CommandOn = DigitalIoDevice.GetDigitalOutputBit(Channel);
         ActualOn = CommandOn;
+        if (DigitalIoDevice != null) DigitalIoDevice.OutputBitChanged += DigitalIoDeviceOnOutputBitChanged;
     }
 
     private void SendDataToUi(Guid requestId)
