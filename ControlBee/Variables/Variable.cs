@@ -196,16 +196,15 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
 
                     var payload = new Dict
                     {
-                        [nameof(ValueChangedArgs)] = new ValueChangedArgs([], null, _value),
                         ["ErrorMessage"] = $"Value out of range.\nEntered: {args.NewValue}\nAllowed: {args.MinValue} ~ {args.MaxValue}"
                     };
 
-                    message.Sender.Send(
+                        message.Sender.Send(
                         new ActorItemMessage(
                             message.Id,
                             Actor,
                             ItemPath,
-                            "_itemDataChanged",
+                            "_errorItemDataWrite",
                             payload
                         )
                     );
