@@ -37,6 +37,7 @@ public class ActorItemBinder : IDisposable
 
     public event EventHandler<Dict>? MetaDataChanged;
     public event EventHandler<Dict>? DataChanged;
+    public event EventHandler<Dict>? ErrorOccurred;
 
     private void _uiActor_MessageArrived(object? sender, Message e)
     {
@@ -49,6 +50,13 @@ public class ActorItemBinder : IDisposable
             if (actorItemMessage.ActorName == _actorName && actorItemMessage.ItemPath == _itemPath)
                 OnDataChanged((Dict)e.Payload!);
         }
+
+        if (e.Name == "_errorItemDataWrite")
+        {
+            var actorItemMessage = (ActorItemMessage)e;
+            if (actorItemMessage.ActorName == _actorName && actorItemMessage.ItemPath == _itemPath)
+                OnErrorOccurred((Dict)e.Payload!);
+        }
     }
 
     protected virtual void OnDataChanged(Dict e)
@@ -59,5 +67,10 @@ public class ActorItemBinder : IDisposable
     protected virtual void OnMetaDataChanged(Dict e)
     {
         MetaDataChanged?.Invoke(this, e);
+    }
+
+    protected virtual void OnErrorOccurred(Dict e)
+    {
+        ErrorOccurred?.Invoke(this, e);
     }
 }

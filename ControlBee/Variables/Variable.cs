@@ -70,7 +70,7 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
     public int? WriteLevel { get; private set; }
     public double? MinValue { get; private set; }
     public double? MaxValue { get; private set; }
-
+    
     public T Value
     {
         get => _value;
@@ -193,6 +193,21 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
                 catch (ValueError error)
                 {
                     Logger.Warn(error);
+
+                    var payload = new Dict
+                    {
+                        ["ErrorMessage"] = $"Value out of range.\nEntered: {args.NewValue}\nAllowed: {args.MinValue} ~ {args.MaxValue}"
+                    };
+
+                    message.Sender.Send(
+                        new ActorItemMessage(
+                            message.Id,
+                            Actor,
+                            ItemPath,
+                            "_errorItemDataWrite",
+                            payload
+                        )
+                    );
                 }
                 return true;
             }
