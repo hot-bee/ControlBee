@@ -25,7 +25,6 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
     private static readonly ILog Logger = LogManager.GetLogger("Variable");
     private T _value;
     private IUserManager? _userManager;
-    private int? _userLevel;
 
     public Variable(VariableScope scope, T initialValue)
     {
@@ -128,16 +127,16 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
         }
     }
 
+    public bool IsVisibleByUserLevel => ReadLevel.HasValue && ReadLevel <= _userManager?.CurrentUser?.Level;
+
     private void OnCurrentUserChanged(object? sender, EventArgs e)
     {
         if (_userManager?.CurrentUser == null) return;
         if (!ReadLevel.HasValue) return;
+        if (VisibilityOverride == IsVisibleByUserLevel) return;
 
-        _userLevel = _userManager?.CurrentUser?.Level;
-        if (Visible == ReadLevel <= _userLevel) return;
-
-        Visible = ReadLevel <= _userLevel;
-        Actor.Ui?.Send(new ActorItemMessage(Actor, ItemPath, "_itemMetaDataChanged", new Dict()
+        VisibilityOverride = IsVisibleByUserLevel;
+        Actor.Ui?.Send(new ActorItemMessage(Actor, ItemPath, "_itemMetaData", new Dict()
         {
             [nameof(Name)] = Name,
             [nameof(ItemPath)] = ItemPath,
@@ -194,8 +193,8 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
             }
             case "_itemDataRead":
             {
-                if (ReadLevel.HasValue && _userLevel.HasValue)
-                    if (_userLevel < ReadLevel)
+                if (ReadLevel.HasValue && _userManager?.CurrentUser != null)
+                    if (_userManager?.CurrentUser.Level < ReadLevel)
                         return false;
                 var newValue = _value;
                 if (_value is ICloneable cloneable)
@@ -211,8 +210,8 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
             }
             case "_itemDataWrite":
             {
-                if (WriteLevel.HasValue && _userLevel.HasValue)
-                    if (_userLevel < WriteLevel)
+                if (WriteLevel.HasValue && _userManager?.CurrentUser != null)
+                    if (_userManager?.CurrentUser?.Level < WriteLevel)
                         return false;
                 var args = new ItemDataWriteArgs((ItemDataWriteArgs)message.Payload!)
                 {

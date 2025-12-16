@@ -18,10 +18,9 @@ public abstract class ActorItem : IActorItem, IActorItemModifier
         set => _name = value;
     }
     public string Desc { get; set; } = string.Empty;
-
     public bool Visible
     {
-        get => _visible;
+        get => _visible & VisibilityOverride;
         set
         {
             _visible = value;
@@ -35,6 +34,7 @@ public abstract class ActorItem : IActorItem, IActorItemModifier
             }
         }
     }
+    public bool VisibilityOverride { get; set; } = true;
 
     public IActorInternal Actor { get; set; } = EmptyActor.Instance;
     public string ItemPath { get; set; } = string.Empty;
