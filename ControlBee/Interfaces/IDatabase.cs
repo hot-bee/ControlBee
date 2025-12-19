@@ -28,4 +28,5 @@ public interface IDatabase
     void WriteVariableChange(IVariable variable, ValueChangedArgs valueChangedArgs);
     DataTable ReadVariableChanges();
     object GetConnection();
+    DataTable ReadLatestVariableChanges();
 }

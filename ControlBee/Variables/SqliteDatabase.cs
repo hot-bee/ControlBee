@@ -211,6 +211,33 @@ public class SqliteDatabase : IDatabase, IDisposable
         }
     }
 
+    public DataTable ReadLatestVariableChanges()
+    {
+        var sql = """
+                  SELECT *
+                  FROM variable_changes
+                  WHERE id IN (
+                      SELECT MAX(id)
+                      FROM variable_changes
+                      GROUP BY variable_id, location
+                  );
+                  """;
+
+        var dt = new DataTable();
+        try
+        {
+            using var command = new SqliteCommand(sql, GetConnection());
+            using var reader = command.ExecuteReader();
+            dt.Load(reader);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Failed to read variable changes. {ex}");
+        }
+
+        return dt;
+    }
+
     public DataTable ReadVariableChanges()
     {
         var sql = """

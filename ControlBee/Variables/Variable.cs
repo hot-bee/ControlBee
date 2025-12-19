@@ -23,6 +23,7 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
 {
     private static readonly ILog Logger = LogManager.GetLogger("Variable");
     private T _value;
+    private T _oldValue;
 
     public Variable(VariableScope scope, T initialValue)
     {
@@ -70,20 +71,35 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
     public int? WriteLevel { get; private set; }
     public double? MinValue { get; private set; }
     public double? MaxValue { get; private set; }
-    
+
+    public T OldValue
+    {
+        get => _oldValue;
+        set
+        {
+            _oldValue = value;
+            var clonedValue = _value;
+            if (_value is ICloneable cloneable)
+                clonedValue = (T)cloneable.Clone();
+            var valueChangedArgs =
+                new ValueChangedArgs([], _oldValue, clonedValue);
+            ValueChanged?.Invoke(this, valueChangedArgs);
+        }
+    }
+
     public T Value
     {
         get => _value;
         set
         {
-            var oldValue = _value;
-            if (EqualityComparer<T>.Default.Equals(oldValue, value))
+            if (EqualityComparer<T>.Default.Equals(_value, value))
                 return;
-            var newValue = value;
+            _oldValue = _value;
+            var clonedValue = value;
             if (value is ICloneable cloneable)
-                newValue = (T)cloneable.Clone();
+                clonedValue = (T)cloneable.Clone();
             var valueChangedArgs =
-                new ValueChangedArgs([], oldValue, newValue); // TODO: Not sure why we need to cloned value here.
+                new ValueChangedArgs([], _oldValue, clonedValue);
             OnValueChanging(valueChangedArgs);
             Unsubscribe();
             _value = value;
@@ -106,6 +122,12 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
     {
         get => Value;
         set => Value = (T)value!;
+    }
+
+    public object? OldValueObject
+    {
+        get => OldValue;
+        set => OldValue = (T)value!;
     }
 
     public VariableScope Scope { get; }
@@ -169,7 +191,7 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
                     newValue = (T)cloneable.Clone();
                 var payload = new Dict
                 {
-                    [nameof(ValueChangedArgs)] = new ValueChangedArgs([], null, newValue)
+                    [nameof(ValueChangedArgs)] = new ValueChangedArgs([], OldValue, newValue)
                 };
                 message.Sender.Send(
                     new ActorItemMessage(message.Id, Actor, ItemPath, "_itemDataChanged", payload)
@@ -306,6 +328,10 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
 
     protected virtual void OnValueChanging(ValueChangedArgs e)
     {
+        if (_oldValue is ICloneable cloneable)
+            _oldValue = (T)cloneable.Clone();
+        else
+            _oldValue = _value;
         ValueChanging?.Invoke(this, e);
     }
 

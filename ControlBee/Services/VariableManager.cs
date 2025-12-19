@@ -1,13 +1,15 @@
-﻿using ControlBee.Interfaces;
+﻿using System.ComponentModel;
+using System.Data;
+using System.Runtime.CompilerServices;
+using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
 using log4net;
-using System.ComponentModel;
-using System.Data;
-using System.Runtime.CompilerServices;
+using Newtonsoft.Json.Linq;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
+using String = ControlBee.Variables.String;
 
 namespace ControlBee.Services;
 
@@ -21,6 +23,8 @@ public class VariableManager(
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(VariableManager));
     private readonly List<(IVariable variable, ValueChangedArgs args)> _changedArgs = [];
+
+    private readonly Dictionary<int, IVariable> _variableIds = [];
 
     private readonly Dictionary<Tuple<string, string>, IVariable> _variables = [];
     private bool _loading;
@@ -37,12 +41,6 @@ public class VariableManager(
         ISystemConfigurations systemConfigurations, IDeviceManager deviceManager)
         : this(database, actorRegistry, systemConfigurations, deviceManager, null)
     {
-    }
-
-    public bool Modified
-    {
-        get => _modified;
-        private set => SetField(ref _modified, value);
     }
 
     private IActor? UiActor
@@ -71,6 +69,12 @@ public class VariableManager(
             variable.ValueChanging -= VariableOnValueChanging;
             variable.ValueChanged -= VariableOnValueChanged;
         }
+    }
+
+    public bool Modified
+    {
+        get => _modified;
+        private set => SetField(ref _modified, value);
     }
 
     public string LocalName
@@ -137,7 +141,7 @@ public class VariableManager(
 
     public void Reload()
     {
-        Logger.Info($"Reload.");
+        Logger.Info("Reload.");
         Load(LocalName);
     }
 
@@ -155,8 +159,31 @@ public class VariableManager(
                 LocalName = localName;
             }
 
+            var originalValues = new Dictionary<IVariable, string>();
             foreach (var ((actorName, uid), variable) in _variables)
+            {
                 Load(actorName, uid, variable);
+                originalValues[variable] = variable.ToJson();
+            }
+
+            var latestChanges = database.ReadLatestVariableChanges();
+            foreach (DataRow row in latestChanges.Rows)
+            {
+                var variableId = (int)row.Field<long>("variable_id");
+                var locationString = row.Field<string>("location")!;
+                var oldValueString = row.Field<string>("old_value")!;
+                var variable = _variableIds.GetValueOrDefault(variableId);
+                if (variable == null) continue;
+
+                var location = JArray.Parse(locationString);
+                var oldValue = SetAndGetOldValue(variable.OldValueObject!, oldValueString,
+                    location.ToObject<object[]>()!);
+                variable.OldValueObject = oldValue;
+            }
+
+            foreach (var ((actorName, uid), variable) in _variables)  // TODO: Remove this safety check as soon as the code is confirmed.
+                if (variable.ValueObject is not String && originalValues[variable] != variable.ToJson())
+                    throw new SystemException("Critical error. The saved data has been changed. Contact author.");
 
             if (localNameChanged)
             {
@@ -203,8 +230,92 @@ public class VariableManager(
             if (!variable.Dirty) continue;
             Load(actorName, uid, variable);
         }
+
         _changedArgs.Clear();
         Modified = false;
+    }
+
+    public T ReadVariable<T>(string localName, string actorName, string itemPath)
+        where T : new()
+    {
+        return (T)ReadVariable(typeof(T), localName, actorName, itemPath);
+    }
+
+    public object ReadVariable(Type variableType, string localName, string actorName, string itemPath)
+    {
+        var row = database.Read(localName, actorName, itemPath);
+        if (!row.HasValue)
+            throw new InvalidOperationException("Variable not found");
+
+        var json = row.Value.value;
+        var variable = VariableFactory.CreateVariable(variableType);
+        try
+        {
+            variable.FromJson(json);
+        }
+        catch (FallbackException)
+        {
+            WriteVariable(localName, actorName, itemPath, variable.ToJson());
+        }
+
+        return variable.ValueObject!;
+    }
+
+    public void WriteVariable(Type variableType, string localName, string actorName, string itemPath, object value)
+    {
+        var variable = VariableFactory.CreateVariable(variableType);
+        variable.ValueObject = value;
+        var jsonValue = variable.ToJson();
+        WriteVariable(localName, actorName, itemPath, jsonValue);
+    }
+
+    public void WriteVariable<T>(string localName, string actorName, string itemPath, T value) where T : new()
+    {
+        WriteVariable(typeof(T), localName, actorName, itemPath, value!);
+    }
+
+    public void WriteVariable(string localName, string actorName, string itemPath, string value)
+    {
+        if (string.IsNullOrWhiteSpace(localName))
+            throw new ArgumentException(nameof(localName));
+
+        try
+        {
+            database.WriteVariables(VariableScope.Local, localName, actorName, itemPath, value);
+        }
+        catch (DatabaseError error)
+        {
+            Logger.Error($"Write failed. {error.Message}");
+            throw;
+        }
+    }
+
+    public void RenameLocalName(string sourceLocalName, string targetLocalName)
+    {
+        var isCurrent = LocalName == sourceLocalName;
+        database.RenameLocalName(sourceLocalName, targetLocalName);
+        if (isCurrent)
+            Load(targetLocalName);
+    }
+
+    private object? SetAndGetOldValue(object destination, string source, object[] location)
+    {
+        if (destination is int) return int.Parse(source);
+
+        if (destination is double) return double.Parse(source);
+
+        if (destination is bool) return bool.Parse(source);
+
+        if (destination is IIndex1D index1D)
+        {
+            if (location.Length == 0) return null;
+            var index = Convert.ToInt32(location[0]);
+            var oldValue = SetAndGetOldValue(index1D.GetValue(index)!, source, location[1..]);
+            if (oldValue != null) index1D.SetValue(index, oldValue);
+            return index1D;
+        }
+
+        return null;
     }
 
     public void Save(IVariable variableToSave)
@@ -240,12 +351,18 @@ public class VariableManager(
         try
         {
             var id = database.WriteVariables(variable.Scope, dbLocalName, actorName, uid, jsonString);
-            variable.Id = id;
+            SetVariableId(variable, id);
         }
         catch (DatabaseError error)
         {
             Logger.Error($"Save failed. {error.Message}");
         }
+    }
+
+    private void SetVariableId(IVariable variable, int id)
+    {
+        _variableIds[id] = variable;
+        variable.Id = id;
     }
 
     private void Load(string actorName, string uid, IVariable variable)
@@ -260,7 +377,7 @@ public class VariableManager(
 
         try
         {
-            variable.Id = row.Value.id;
+            SetVariableId(variable, row.Value.id);
             variable.FromJson(row.Value.value);
             variable.Dirty = false;
         }
@@ -323,65 +440,5 @@ public class VariableManager(
         field = value;
         OnPropertyChanged(propertyName);
         return true;
-    }
-
-    public T ReadVariable<T>(string localName, string actorName, string itemPath)
-        where T : new()
-    {
-        return (T)ReadVariable(typeof(T), localName, actorName, itemPath);
-    }
-
-    public object ReadVariable(Type variableType, string localName, string actorName, string itemPath)
-    {
-        var row = database.Read(localName, actorName, itemPath);
-        if (!row.HasValue)
-            throw new InvalidOperationException("Variable not found");
-        
-        var json = row.Value.value;
-        var variable = VariableFactory.CreateVariable(variableType);
-        try
-        {
-            variable.FromJson(json);
-        }
-        catch (FallbackException)
-        {
-            WriteVariable(localName, actorName, itemPath, variable.ToJson());
-        }
-        return variable.ValueObject!;
-    }
-
-    public void WriteVariable(Type variableType, string localName, string actorName, string itemPath, object value)
-    {
-        var variable = VariableFactory.CreateVariable(variableType);
-        variable.ValueObject = value;
-        var jsonValue = variable.ToJson();
-        WriteVariable(localName, actorName, itemPath, jsonValue);
-    }
-    public void WriteVariable<T>(string localName, string actorName, string itemPath, T value) where T : new()
-    {
-        WriteVariable(typeof(T), localName, actorName, itemPath, value!);
-    }
-    public void WriteVariable(string localName, string actorName, string itemPath, string value)
-    {
-        if (string.IsNullOrWhiteSpace(localName))
-            throw new ArgumentException(nameof(localName));
-
-        try
-        {
-            database.WriteVariables(VariableScope.Local, localName, actorName, itemPath, value);
-        }
-        catch (DatabaseError error)
-        {
-            Logger.Error($"Write failed. {error.Message}");
-            throw;
-        }
-    }
-
-    public void RenameLocalName(string sourceLocalName, string targetLocalName)
-    {
-        bool isCurrent = LocalName == sourceLocalName;
-        database.RenameLocalName(sourceLocalName, targetLocalName);
-        if (isCurrent)
-            Load(targetLocalName);
     }
 }
