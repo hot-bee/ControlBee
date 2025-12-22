@@ -10,13 +10,13 @@ namespace ControlBee.Models;
 public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager), IAnalogInput
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(AnalogInput));
-    private long _data;
-    private long _dataCache;
+    private object _data = null!;
+    private object _dataCache = null!;
 
     public AnalogDataType DataType;
     protected virtual IAnalogIoDevice? AnalogIoDevice => Device as IAnalogIoDevice;
 
-    protected long InternalData
+    protected object InternalData
     {
         get => _data;
         set
@@ -39,8 +39,7 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
     public long Read()
     {
         if (AnalogIoDevice == null)
-            //Logger.Warn("AnalogIoDevice is null.");
-            return InternalData;
+            return (long)InternalData;
 
         switch (DataType)
         {
@@ -63,10 +62,10 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
                 InternalData = AnalogIoDevice.GetAnalogInputByte(Channel);
                 break;
             default:
-                throw new SequenceError();
+                throw new ValueError();
         }
 
-        return InternalData;
+        return (long)InternalData;
     }
 
     public override bool ProcessMessage(ActorItemMessage message)
@@ -90,6 +89,16 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
         if (AnalogIoDevice == null)
             return;
         RefreshCacheImpl(alwaysUpdate);
+    }
+
+    public double ReadDouble()
+    {
+        if (AnalogIoDevice == null)
+            return (double)InternalData;
+        if (DataType != AnalogDataType.Double)
+            throw new ValueError($"DataType must be Double. (Channel: {Channel})");
+        InternalData = AnalogIoDevice.GetAnalogInputDouble(Channel);
+        return (double)InternalData;
     }
 
     private void SendDataToUi(Guid requestId)

@@ -1,6 +1,7 @@
 ﻿using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBeeAbstract.Devices;
+using ControlBeeAbstract.Exceptions;
 using log4net;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
@@ -10,7 +11,7 @@ public class AnalogOutput(IDeviceManager deviceManager) : AnalogIO(deviceManager
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(AnalogOutput));
     public AnalogDataType DataType;
-    protected long InternalData;
+    protected object InternalData;
     protected virtual IAnalogIoDevice? AnalogIoDevice => Device as IAnalogIoDevice;
 
     public void Write(long data)
@@ -43,12 +44,15 @@ public class AnalogOutput(IDeviceManager deviceManager) : AnalogIO(deviceManager
             case AnalogDataType.Byte:
                 AnalogIoDevice.SetAnalogOutputByte(Channel, (byte)InternalData);
                 break;
+            default:
+                throw new ValueError();
         }
     }
 
+
     public long Read()
     {
-        return InternalData;
+        return (long)InternalData;
     }
 
     public override bool ProcessMessage(ActorItemMessage message)
@@ -77,6 +81,26 @@ public class AnalogOutput(IDeviceManager deviceManager) : AnalogIO(deviceManager
             is string analogDataType
         )
             Enum.TryParse(analogDataType, out DataType);
+    }
+
+    public double ReadDouble()
+    {
+        return (double)InternalData;
+    }
+
+    public void WriteDouble(double data)
+    {
+        InternalData = data;
+        SendDataToUi(Guid.Empty);
+        if (AnalogIoDevice == null)
+        {
+            Logger.Warn("AnalogIoDevice is null.");
+            return;
+        }
+
+        if (DataType != AnalogDataType.Double)
+            throw new ValueError($"DataType must be Double. (Channel: {Channel})");
+        AnalogIoDevice.SetAnalogOutputDouble(Channel, data);
     }
 
     private void SendDataToUi(Guid requestId)

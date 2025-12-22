@@ -63,4 +63,14 @@ public class AnalogOutputPlaceholder : IPlaceholder, IAnalogOutput
     {
         throw new UnimplementedByDesignError();
     }
+
+    public double ReadDouble()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void WriteDouble(double data)
+    {
+        throw new NotImplementedException();
+    }
 }

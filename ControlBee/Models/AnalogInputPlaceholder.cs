@@ -58,4 +58,9 @@ public class AnalogInputPlaceholder : IPlaceholder, IAnalogInput
     {
         throw new UnimplementedByDesignError();
     }
+
+    public double ReadDouble()
+    {
+        throw new NotImplementedException();
+    }
 }
