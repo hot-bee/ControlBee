@@ -19,6 +19,7 @@ public class Axis : DeviceChannel, IAxis
     private bool _initializing;
     protected bool _velocityMoving;
     public IDialog AxisAlarmError = new DialogPlaceholder();
+    private double _targetPosition;
 
     protected SpeedProfile? CurrentSpeedProfile;
 
@@ -490,9 +491,10 @@ public class Axis : DeviceChannel, IAxis
         try
         {
             ValidateBeforeMove(@override);
+            _targetPosition = position * Resolution.Value;
             MotionDevice.JerkRatioSCurveMove(
                 Channel,
-                position * Resolution.Value,
+                _targetPosition,
                 Math.Abs(CurrentSpeedProfile.Velocity * Resolution.Value),
                 Math.Abs(CurrentSpeedProfile.Accel * Resolution.Value),
                 Math.Abs(CurrentSpeedProfile.Decel * Resolution.Value),
@@ -733,7 +735,7 @@ public class Axis : DeviceChannel, IAxis
             case PositionType.CommandAndActual:
                 throw new ValueError();
             case PositionType.Target:
-                throw new NotImplementedException();
+                return _targetPosition / Resolution.Value;
             default:
                 throw new ValueError();
         }
