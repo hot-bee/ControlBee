@@ -34,6 +34,16 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
             is string analogDataType
         )
             Enum.TryParse(analogDataType, out DataType);
+
+        switch (DataType)
+        {
+            case AnalogDataType.Double:
+                InternalData = 0.0;
+                break;
+            default:
+                InternalData = (long)0;
+                break;
+        }
     }
 
     public long Read()
