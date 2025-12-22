@@ -49,7 +49,7 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
     public long Read()
     {
         if (AnalogIoDevice == null)
-            return (long)InternalData;
+            return 0;
 
         switch (DataType)
         {
@@ -104,7 +104,7 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
     public double ReadDouble()
     {
         if (AnalogIoDevice == null)
-            return (double)InternalData;
+            return 0.0;
         if (DataType != AnalogDataType.Double)
             throw new ValueError($"DataType must be Double. (Channel: {Channel})");
         InternalData = AnalogIoDevice.GetAnalogInputDouble(Channel);
