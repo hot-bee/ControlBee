@@ -627,7 +627,6 @@ public class Actor : IActorInternal, IDisposable
     public void InitPeers(IActor[] peerList)
     {
         var peers = peerList.ToHashSet();
-        peers.Add(this);
         if (Ui != null) peers.Add(Ui);
         foreach (var peer in peers)
         {
