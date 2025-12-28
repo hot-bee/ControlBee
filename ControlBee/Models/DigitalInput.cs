@@ -37,7 +37,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     public override void InjectProperties(ISystemPropertiesDataSource dataSource)
     {
         base.InjectProperties(dataSource);
-        if (dataSource.GetValue(ActorName, ItemPath, "Reversed") is string reversedValue)  // For backward compatibility
+        if (dataSource.GetValue(ActorName, ItemPath, "Reversed") is string reversedValue) // For backward compatibility
             if (bool.TryParse(reversedValue, out var reversed))
                 Inverted |= reversed;
         if (dataSource.GetValue(ActorName, ItemPath, nameof(Inverted)) is string invertedValue)
@@ -107,7 +107,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
 
     public override void RefreshCache(bool alwaysUpdate = false)
     {
-        base.RefreshCache();
+        base.RefreshCache(alwaysUpdate);
 
         if (DigitalIoDevice == null)
             return;
@@ -141,6 +141,12 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     }
 
     public event EventHandler<bool>? ActualOnChanged;
+
+    public override void PostInit()
+    {
+        base.PostInit();
+        Sync();
+    }
 
     protected virtual bool IsOnOffOrValue(bool on)
     {
@@ -213,10 +219,22 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         ActualOnChanged?.Invoke(this, e);
     }
 
-    public override void PostInit()
+    public override void Sync()
     {
-        base.PostInit();
-        if (Inverted) DigitalIoDevice?.SetDigitalInputBitInverted(Channel, Inverted);
+        if (DigitalIoDevice == null)
+        {
+            Logger.Warn("DigitalIoDevice is null.");
+            return;
+        }
+
+        if (Inverted) DigitalIoDevice.SetDigitalInputBitInverted(Channel, Inverted);
+        DigitalIoDevice.InputBitChanged += DigitalIoDeviceOnInputBitChanged;
+    }
+
+    private void DigitalIoDeviceOnInputBitChanged(object? sender, (int channel, bool value) e)
+    {
+        if (e.channel != Channel) return;
+        RefreshCache();
     }
 
     #region Timeouts

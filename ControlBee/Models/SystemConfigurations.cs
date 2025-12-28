@@ -19,6 +19,7 @@ public class SystemConfigurations : ISystemConfigurations
     public bool AutoVariableSave { get; set; } = true;
     public bool IsTopLevelLogin { get; set; } = true;
     public int AdminLevel { get; set; } = 0;
+    public bool MonitorDigitalInputsByDevice { get; set; }
 
     public void Save()
     {
