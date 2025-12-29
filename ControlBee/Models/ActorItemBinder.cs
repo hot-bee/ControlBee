@@ -1,5 +1,4 @@
 ﻿using ControlBee.Interfaces;
-using ControlBee.Variables;
 using log4net;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
@@ -16,6 +15,9 @@ public class ActorItemBinder : IDisposable
 
     public ActorItemBinder(IActorRegistry actorRegistry, string actorName, string itemPath)
     {
+        if (!itemPath.StartsWith("/"))
+            throw new ArgumentException(nameof(itemPath));
+
         _actorName = actorName;
         _itemPath = itemPath;
         _uiActor = (IUiActor)actorRegistry.Get("Ui")!;
