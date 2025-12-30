@@ -100,14 +100,16 @@ public class InitializeSequence(
     {
         try
         {
-            SearchEntry(false);
+            SearchEntry(reverse: false);
         }
         catch (LimitTouchException)
         {
-            SearchEntry(true);
+            SearchEntry(reverse: true);
+            SearchExit(slowSpeed: false);
+            SearchEntry(reverse: false);
         }
 
-        SearchExit();
+        SearchExit(slowSpeed: true);
         SearchReentry();
     }
 
@@ -130,12 +132,12 @@ public class InitializeSequence(
         }
     }
 
-    private void SearchExit()
+    private void SearchExit(bool slowSpeed)
     {
         try
         {
             var halfHomingSpeed = (SpeedProfile)initSpeed.Value.Clone();
-            halfHomingSpeed.Velocity /= 10;
+            if(slowSpeed) halfHomingSpeed.Velocity /= 10;
             axis.SetSpeed(halfHomingSpeed);
             axis.VelocityMove((AxisDirection)((int)direction * -1));
             axis.WaitSensor(sensorType, false, 3 * 60 * 1000);
