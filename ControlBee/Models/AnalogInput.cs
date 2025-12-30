@@ -121,7 +121,8 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
 
     protected void RefreshCacheImpl(bool alwaysUpdate = false)
     {
-        Read();
+        if (DataType == AnalogDataType.Double) ReadDouble();
+        else Read();
         var updated = false;
         lock (this)
         {
