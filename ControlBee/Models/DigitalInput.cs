@@ -48,8 +48,10 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     public bool IsOn()
     {
         if (DigitalIoDevice == null)
-            //Logger.Warn("DigitalIoDevice is null.");
+        {
+            Logger.Debug("DigitalIoDevice is null.");
             return ActualOn;
+        }
 
         var inputValue = DigitalIoDevice.GetDigitalInputBit(Channel);
         ActualOn = inputValue;
@@ -152,7 +154,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     {
         if (DigitalIoDevice == null)
         {
-            Logger.Warn("DigitalIoDevice is null.");
+            Logger.Debug("DigitalIoDevice is null.");
             return on;
         }
 
@@ -163,7 +165,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     {
         if (DigitalIoDevice == null)
         {
-            Logger.Warn("DigitalIoDevice is null.");
+            Logger.Debug("DigitalIoDevice is null.");
             return;
         }
 
@@ -223,7 +225,7 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     {
         if (DigitalIoDevice == null)
         {
-            Logger.Warn("DigitalIoDevice is null.");
+            Logger.Debug("DigitalIoDevice is null.");
             return;
         }
 

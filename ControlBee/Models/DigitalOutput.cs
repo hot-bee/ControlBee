@@ -91,7 +91,7 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
     {
         if (DigitalIoDevice == null)
         {
-            Logger.Warn("DigitalIoDevice is null.");
+            Logger.Debug("DigitalIoDevice is null.");
             return;
         }
 
@@ -166,7 +166,7 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
     {
         if (DigitalIoDevice == null)
         {
-            Logger.Warn("DigitalIoDevice is null.");
+            Logger.Debug("DigitalIoDevice is null.");
             return;
         }
 
