@@ -99,4 +99,6 @@ public class EmptyVariableManager : IVariableManager
     {
         // Empty
     }
+
+    public event EventHandler<string>? LoadCompleted;
 }

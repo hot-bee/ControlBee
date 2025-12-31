@@ -181,7 +181,8 @@ public class VariableManager(
                 variable.OldValueObject = oldValue;
             }
 
-            foreach (var ((actorName, uid), variable) in _variables)  // TODO: Remove this safety check as soon as the code is confirmed.
+            foreach (var ((actorName, uid), variable) in
+                     _variables) // TODO: Remove this safety check as soon as the code is confirmed.
                 if (variable.ValueObject is not String && originalValues[variable] != variable.ToJson())
                     throw new SystemException("Critical error. The saved data has been changed. Contact author.");
 
@@ -190,6 +191,7 @@ public class VariableManager(
                 systemConfigurations.RecipeName = LocalName;
                 systemConfigurations.Save();
                 LoadVisionRecipe(LocalName);
+                OnLoadCompleted(LocalName);
             }
         }
         finally
@@ -297,6 +299,8 @@ public class VariableManager(
         if (isCurrent)
             Load(targetLocalName);
     }
+
+    public event EventHandler<string>? LoadCompleted;
 
     private object? SetAndGetOldValue(object destination, string source, object[] location)
     {
@@ -440,5 +444,10 @@ public class VariableManager(
         field = value;
         OnPropertyChanged(propertyName);
         return true;
+    }
+
+    protected virtual void OnLoadCompleted(string e)
+    {
+        LoadCompleted?.Invoke(this, e);
     }
 }

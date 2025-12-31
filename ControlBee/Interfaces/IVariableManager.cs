@@ -3,14 +3,14 @@ using System.Data;
 
 namespace ControlBee.Interfaces;
 
-public interface IVariableManager: INotifyPropertyChanged
+public interface IVariableManager : INotifyPropertyChanged
 {
-    void Add(IVariable variable);
-    void Save(string? localName = null);
-    void Load(string? localName = null);
     string LocalName { get; }
     string[] LocalNames { get; }
     bool Modified { get; }
+    void Add(IVariable variable);
+    void Save(string? localName = null);
+    void Load(string? localName = null);
     void Delete(string localName);
     DataTable ReadVariableChanges();
     void SaveTemporaryVariables();
@@ -22,4 +22,5 @@ public interface IVariableManager: INotifyPropertyChanged
     void WriteVariable(Type variableType, string localName, string actorName, string itemPath, object value);
     void Reload();
     void RenameLocalName(string sourceLocalName, string targetLocalName);
+    event EventHandler<string>? LoadCompleted;
 }
