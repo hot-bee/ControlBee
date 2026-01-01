@@ -1,0 +1,14 @@
+repos:
+  - repo: local
+    hooks:
+      - id: csharpier
+        name: CSharpier
+        entry: csharpier format
+        language: system
+        types:
+          - c#
+      - id: xamlstyler
+        name: XamlStyler
+        entry: xstyler -d . -r
+        language: system
+        files: \.xaml$
