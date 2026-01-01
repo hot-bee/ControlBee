@@ -29,9 +29,7 @@ public class FakeAxis : Axis, IDisposable
         ITimeManager timeManager,
         IScenarioFlowTester flowTester
     )
-        : this(deviceManager, timeManager, flowTester, false)
-    {
-    }
+        : this(deviceManager, timeManager, flowTester, false) { }
 
     public FakeAxis(
         IDeviceManager deviceManager,
@@ -66,7 +64,7 @@ public class FakeAxis : Axis, IDisposable
             AxisSensorType.Home => _homeSensor,
             AxisSensorType.PositiveLimit => _positiveLimitSensor,
             AxisSensorType.NegativeLimit => _negativeLimitSensor,
-            _ => throw new ValueError()
+            _ => throw new ValueError(),
         };
     }
 

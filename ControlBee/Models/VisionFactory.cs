@@ -2,10 +2,7 @@
 
 namespace ControlBee.Models;
 
-public class VisionFactory(
-    IDeviceManager deviceManager,
-    ITimeManager timeManager
-) : IVisionFactory
+public class VisionFactory(IDeviceManager deviceManager, ITimeManager timeManager) : IVisionFactory
 {
     public IVision Create()
     {

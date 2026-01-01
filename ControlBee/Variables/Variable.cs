@@ -14,7 +14,7 @@ public class Variable : ActorItem
     protected static readonly JsonSerializerSettings JsonSettings = new()
     {
         ContractResolver = new RespectSystemTextJsonIgnoreResolver(),
-        Formatting = Formatting.Indented
+        Formatting = Formatting.Indented,
     };
 }
 
@@ -33,9 +33,7 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
     }
 
     public Variable(IActorInternal actor, string itemPath, VariableScope scope, T value)
-        : this(actor.VariableManager, actor, itemPath, scope, value)
-    {
-    }
+        : this(actor.VariableManager, actor, itemPath, scope, value) { }
 
     public Variable(
         IVariableManager variableManager,
@@ -52,19 +50,13 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
     }
 
     public Variable()
-        : this(VariableScope.Global)
-    {
-    }
+        : this(VariableScope.Global) { }
 
     public Variable(VariableScope scope)
-        : this(scope, new T())
-    {
-    }
+        : this(scope, new T()) { }
 
     public Variable(IActorInternal actor, string itemPath, VariableScope scope)
-        : this(actor, itemPath, scope, new T())
-    {
-    }
+        : this(actor, itemPath, scope, new T()) { }
 
     public string Unit { get; private set; } = string.Empty;
     public int? ReadLevel { get; private set; }
@@ -81,8 +73,7 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
             var clonedValue = _value;
             if (_value is ICloneable cloneable)
                 clonedValue = (T)cloneable.Clone();
-            var valueChangedArgs =
-                new ValueChangedArgs([], _oldValue, clonedValue);
+            var valueChangedArgs = new ValueChangedArgs([], _oldValue, clonedValue);
             ValueChanged?.Invoke(this, valueChangedArgs);
         }
     }
@@ -98,8 +89,7 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
             var clonedValue = value;
             if (value is ICloneable cloneable)
                 clonedValue = (T)cloneable.Clone();
-            var valueChangedArgs =
-                new ValueChangedArgs([], _oldValue, clonedValue);
+            var valueChangedArgs = new ValueChangedArgs([], _oldValue, clonedValue);
             OnValueChanging(valueChangedArgs);
             Unsubscribe();
             _value = value;
@@ -146,7 +136,8 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
         try
         {
             var value = JsonConvert.DeserializeObject<DataV2>(data)!;
-            if (value.Version != DataV2.ValidVersion) throw new JsonException();
+            if (value.Version != DataV2.ValidVersion)
+                throw new JsonException();
             if (value.Value is IActorItemSub actorItemSub)
                 actorItemSub.OnDeserialized();
             Value = value.Value;
@@ -191,7 +182,7 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
                     newValue = (T)cloneable.Clone();
                 var payload = new Dict
                 {
-                    [nameof(ValueChangedArgs)] = new ValueChangedArgs([], OldValue, newValue)
+                    [nameof(ValueChangedArgs)] = new ValueChangedArgs([], OldValue, newValue),
                 };
                 message.Sender.Send(
                     new ActorItemMessage(message.Id, Actor, ItemPath, "_itemDataChanged", payload)
@@ -206,7 +197,7 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
                 var args = new ItemDataWriteArgs((ItemDataWriteArgs)message.Payload!)
                 {
                     MinValue = MinValue,
-                    MaxValue = MaxValue
+                    MaxValue = MaxValue,
                 };
                 try
                 {
@@ -218,7 +209,8 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
 
                     var payload = new Dict
                     {
-                        ["ErrorMessage"] = $"Value out of range.\nEntered: {args.NewValue}\nAllowed: {args.MinValue} ~ {args.MaxValue}"
+                        ["ErrorMessage"] =
+                            $"Value out of range.\nEntered: {args.NewValue}\nAllowed: {args.MinValue} ~ {args.MaxValue}",
                     };
 
                     message.Sender.Send(

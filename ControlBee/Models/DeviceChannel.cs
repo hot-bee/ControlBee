@@ -4,7 +4,10 @@ using log4net;
 
 namespace ControlBee.Models;
 
-public abstract class DeviceChannel(IDeviceManager deviceManager) : ActorItem, IDeviceChannel, IDeviceChannelModifier
+public abstract class DeviceChannel(IDeviceManager deviceManager)
+    : ActorItem,
+        IDeviceChannel,
+        IDeviceChannelModifier
 {
     private static readonly ILog Logger = LogManager.GetLogger("General");
     protected IDevice? Device { get; set; }

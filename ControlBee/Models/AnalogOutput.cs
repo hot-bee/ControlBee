@@ -49,7 +49,6 @@ public class AnalogOutput(IDeviceManager deviceManager) : AnalogIO(deviceManager
         }
     }
 
-
     public long Read()
     {
         return (long)InternalData;
@@ -76,10 +75,7 @@ public class AnalogOutput(IDeviceManager deviceManager) : AnalogIO(deviceManager
     public override void InjectProperties(ISystemPropertiesDataSource dataSource)
     {
         base.InjectProperties(dataSource);
-        if (
-            dataSource.GetValue(ActorName, ItemPath, nameof(DataType))
-            is string analogDataType
-        )
+        if (dataSource.GetValue(ActorName, ItemPath, nameof(DataType)) is string analogDataType)
             Enum.TryParse(analogDataType, out DataType);
 
         switch (DataType)

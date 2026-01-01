@@ -26,7 +26,8 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         get => _commandOn;
         set
         {
-            if (_commandOn.Equals(value)) return;
+            if (_commandOn.Equals(value))
+                return;
             _commandOn = value;
             OnCommandOnChanged(_commandOn);
             SendDataToUi(Guid.Empty);
@@ -38,7 +39,8 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         get => _actualOn;
         set
         {
-            if (Equals(_actualOn, value)) return;
+            if (Equals(_actualOn, value))
+                return;
             _actualOn = value;
             OnActualOnChanged(_actualOn);
             SendDataToUi(Guid.Empty);
@@ -87,6 +89,7 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
             ActualOn = CommandOn;
         });
     }
+
     public virtual void SetOn(bool on)
     {
         if (DigitalIoDevice == null)
@@ -156,8 +159,10 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
 
     private void DigitalIoDeviceOnOutputBitChanged(object? sender, (int channel, bool value) e)
     {
-        if (e.channel != Channel) return;
-        if (CommandOn == e.value) return;
+        if (e.channel != Channel)
+            return;
+        if (CommandOn == e.value)
+            return;
         CommandOn = e.value;
         ActualOn = e.value;
     }
@@ -172,7 +177,8 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
 
         CommandOn = DigitalIoDevice.GetDigitalOutputBit(Channel);
         ActualOn = CommandOn;
-        if (DigitalIoDevice != null) DigitalIoDevice.OutputBitChanged += DigitalIoDeviceOnOutputBitChanged;
+        if (DigitalIoDevice != null)
+            DigitalIoDevice.OutputBitChanged += DigitalIoDeviceOnOutputBitChanged;
     }
 
     private void SendDataToUi(Guid requestId)

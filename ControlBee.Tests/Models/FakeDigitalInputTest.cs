@@ -80,15 +80,13 @@ public class FakeDigitalInputTest : ActorFactoryBase
         Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(ui);
         var actor = ActorFactory.Create<TestActor>("MyActor");
-        ScenarioFlowTester.Setup(
+        ScenarioFlowTester.Setup([
             [
-                [
-                    // ReSharper disable once AccessToDisposedClosure
-                    new ConditionStep(() => TimeManager.CurrentMilliseconds > 1000),
-                    new BehaviorStep(() => ((FakeDigitalInput)actor.MySensor).On = true),
-                ],
-            ]
-        );
+                // ReSharper disable once AccessToDisposedClosure
+                new ConditionStep(() => TimeManager.CurrentMilliseconds > 1000),
+                new BehaviorStep(() => ((FakeDigitalInput)actor.MySensor).On = true),
+            ],
+        ]);
 
         actor.Start();
         actor.Send(new Message(EmptyActor.Instance, "go"));

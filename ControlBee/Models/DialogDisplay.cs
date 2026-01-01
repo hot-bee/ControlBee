@@ -22,17 +22,22 @@ public class DialogDisplay
             case "_displayDialog":
             {
                 var context = (IDialogContext)e.Payload!;
-                if (_onContexts.Contains(context)) return;
+                if (_onContexts.Contains(context))
+                    return;
                 var dialog = _dialogViewFactory.Create();
                 dialog.Show(context, e);
                 _onContexts.Add(context);
-                dialog.DialogClosed += (o, args) => { _onContexts.Remove(context); };
+                dialog.DialogClosed += (o, args) =>
+                {
+                    _onContexts.Remove(context);
+                };
                 break;
             }
             case "_closeDialog":
             {
                 var context = (IDialogContext)e.Payload!;
-                if (!_onContexts.Contains(context)) return;
+                if (!_onContexts.Contains(context))
+                    return;
                 context.Close();
                 break;
             }

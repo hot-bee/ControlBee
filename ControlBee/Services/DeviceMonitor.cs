@@ -9,7 +9,8 @@ public class DeviceMonitor : IDeviceMonitor
     private readonly Dictionary<(string actorName, string itemPath), bool> _alwaysUpdates = [];
 
     private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private readonly Dictionary<(string actorName, string itemPath), IDeviceChannel> _channelMap = [];
+    private readonly Dictionary<(string actorName, string itemPath), IDeviceChannel> _channelMap =
+    [];
     private readonly List<IDeviceChannel> _channels = [];
     private readonly Thread _thread;
 
@@ -18,7 +19,7 @@ public class DeviceMonitor : IDeviceMonitor
         _thread = new Thread(Monitoring)
         {
             Name = nameof(DeviceMonitor),
-            Priority = ThreadPriority.BelowNormal
+            Priority = ThreadPriority.BelowNormal,
         };
     }
 
@@ -71,7 +72,7 @@ public class DeviceMonitor : IDeviceMonitor
         try
         {
             while (true)
-                foreach (var (key, channel)in _channelMap)
+                foreach (var (key, channel) in _channelMap)
                 {
                     token.ThrowIfCancellationRequested();
                     var alwaysUpdate = GetAlwaysUpdate(key.actorName, key.itemPath);

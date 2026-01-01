@@ -8,5 +8,5 @@ public enum AnalogDataType
     Word,
     SignedByte,
     Byte,
-    Double
+    Double,
 }

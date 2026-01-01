@@ -13,9 +13,8 @@ public class InitializeSequence(
     Variable<SpeedProfile> initSpeed,
     Variable<Position1D> homePosition,
     AxisSensorType sensorType,
-    AxisDirection direction)
-    : ActorItem,
-        IInitializeSequence
+    AxisDirection direction
+) : ActorItem, IInitializeSequence
 {
     public Variable<int> DelayBeforeClearPosition = new(VariableScope.Global, 0);
     public IDialog SensorEntryTimeout = new DialogPlaceholder();
@@ -53,7 +52,11 @@ public class InitializeSequence(
         var useSoftwareLimit = axis.GetUseSoftwareLimit();
         var negativeSoftwareLimitPosition = axis.GetNegativeSoftwareLimitPosition();
         var positiveSoftwareLimitPosition = axis.GetPositiveSoftwareLimitPosition();
-        axis.SetSoftwareLimit(useSoftwareLimit, negativeSoftwareLimitPosition, positiveSoftwareLimitPosition);
+        axis.SetSoftwareLimit(
+            useSoftwareLimit,
+            negativeSoftwareLimitPosition,
+            positiveSoftwareLimitPosition
+        );
 
         axis.SetSpeed(axis.GetJogSpeed(JogSpeedLevel.Fast));
         homePosition.Value.MoveAndWait();
@@ -68,7 +71,8 @@ public class InitializeSequence(
     {
         var timeoutWatch = new Stopwatch();
         var searchDirection = direction;
-        if (reverse) searchDirection = (AxisDirection)((int)direction * -1);
+        if (reverse)
+            searchDirection = (AxisDirection)((int)direction * -1);
         try
         {
             axis.SetSpeed(initSpeed);
@@ -77,11 +81,19 @@ public class InitializeSequence(
             timeoutWatch.Restart();
             while (true)
             {
-                if (axis.GetSensorValue(sensorType)) break;
-                if (!reverse && sensorType == AxisSensorType.Home &&
-                    (axis.GetSensorValue(AxisSensorType.PositiveLimit) ||
-                     axis.GetSensorValue(AxisSensorType.NegativeLimit))) throw new LimitTouchException();
-                if (timeoutWatch.ElapsedMilliseconds > 3 * 60 * 1000) throw new TimeoutError();
+                if (axis.GetSensorValue(sensorType))
+                    break;
+                if (
+                    !reverse
+                    && sensorType == AxisSensorType.Home
+                    && (
+                        axis.GetSensorValue(AxisSensorType.PositiveLimit)
+                        || axis.GetSensorValue(AxisSensorType.NegativeLimit)
+                    )
+                )
+                    throw new LimitTouchException();
+                if (timeoutWatch.ElapsedMilliseconds > 3 * 60 * 1000)
+                    throw new TimeoutError();
             }
         }
         catch (TimeoutError)
@@ -137,7 +149,8 @@ public class InitializeSequence(
         try
         {
             var halfHomingSpeed = (SpeedProfile)initSpeed.Value.Clone();
-            if(slowSpeed) halfHomingSpeed.Velocity /= 10;
+            if (slowSpeed)
+                halfHomingSpeed.Velocity /= 10;
             axis.SetSpeed(halfHomingSpeed);
             axis.VelocityMove((AxisDirection)((int)direction * -1));
             axis.WaitSensor(sensorType, false, 3 * 60 * 1000);
@@ -159,7 +172,5 @@ public class InitializeSequence(
         // TODO
     }
 
-    public class LimitTouchException : Exception
-    {
-    }
+    public class LimitTouchException : Exception { }
 }

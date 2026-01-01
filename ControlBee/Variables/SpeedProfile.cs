@@ -14,12 +14,10 @@ public class SpeedProfile : PropertyVariable, ICloneable
     private double _decelJerkRatio;
     private double _velocity;
 
-    public SpeedProfile()
-    {
-        
-    }
+    public SpeedProfile() { }
 
-    protected SpeedProfile(SpeedProfile source) : base(source)
+    protected SpeedProfile(SpeedProfile source)
+        : base(source)
     {
         Velocity = source.Velocity;
         Accel = source.Accel;
@@ -49,13 +47,15 @@ public class SpeedProfile : PropertyVariable, ICloneable
     public double AccelJerkRatio
     {
         get => _accelJerkRatio;
-        set => ValueChangedUtils.SetField(ref _accelJerkRatio, value, OnValueChanging, OnValueChanged);
+        set =>
+            ValueChangedUtils.SetField(ref _accelJerkRatio, value, OnValueChanging, OnValueChanged);
     }
 
     public double DecelJerkRatio
     {
         get => _decelJerkRatio;
-        set => ValueChangedUtils.SetField(ref _decelJerkRatio, value, OnValueChanging, OnValueChanged);
+        set =>
+            ValueChangedUtils.SetField(ref _decelJerkRatio, value, OnValueChanging, OnValueChanged);
     }
 
     [JsonIgnore]

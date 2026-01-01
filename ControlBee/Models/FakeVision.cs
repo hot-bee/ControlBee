@@ -20,6 +20,7 @@ public class FakeVision(IDeviceManager deviceManager, ITimeManager timeManager)
     {
         Logger.Info($"Wait {Channel}.");
     }
+
     public override void Wait(string triggerId, int timeout)
     {
         Logger.Info($"Wait {Channel} ({triggerId}).");

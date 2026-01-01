@@ -86,7 +86,7 @@ public class FrozenTimeManager : ITimeManager
             })
             {
                 Name = "FrozenTimeManager_TickingThread",
-                IsBackground = true
+                IsBackground = true,
             };
             _tickingThread.Start();
         }

@@ -16,5 +16,4 @@ public interface IEventManager
     public IDatabase GetDatabase();
     DataTable ReadAll(string tableName);
     event EventHandler<EventMessage>? EventOccured;
-
 }

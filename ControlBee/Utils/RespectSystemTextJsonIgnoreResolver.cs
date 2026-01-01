@@ -18,7 +18,10 @@ public class RespectSystemTextJsonIgnoreResolver : DefaultContractResolver
         return _contractCache.GetOrAdd(objectType, base.CreateContract);
     }
 
-    protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+    protected override JsonProperty CreateProperty(
+        MemberInfo member,
+        MemberSerialization memberSerialization
+    )
     {
         var prop = base.CreateProperty(member, memberSerialization);
 
@@ -31,7 +34,9 @@ public class RespectSystemTextJsonIgnoreResolver : DefaultContractResolver
 
     private static bool ShouldIgnore(MemberInfo member)
     {
-        return _ignoreCache.GetOrAdd(member, static m =>
-            m.IsDefined(typeof(JsonIgnoreAttribute), false));
+        return _ignoreCache.GetOrAdd(
+            member,
+            static m => m.IsDefined(typeof(JsonIgnoreAttribute), false)
+        );
     }
 }

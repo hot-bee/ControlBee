@@ -5,7 +5,9 @@ using log4net;
 
 namespace ControlBee.Models;
 
-public class Dialog(DialogContextFactory dialogContextFactory, IEventManager eventManager) : ActorItem, IDialog
+public class Dialog(DialogContextFactory dialogContextFactory, IEventManager eventManager)
+    : ActorItem,
+        IDialog
 {
     private static readonly ILog Logger = LogManager.GetLogger("General");
 
@@ -61,8 +63,10 @@ public class Dialog(DialogContextFactory dialogContextFactory, IEventManager eve
 
     public Guid Show(string[]? actionButtons, string? desc)
     {
-        if (actionButtons != null) Context.ActionButtons = actionButtons;
-        if (desc != null) Context.Desc = desc;
+        if (actionButtons != null)
+            Context.ActionButtons = actionButtons;
+        if (desc != null)
+            Context.Desc = desc;
         eventManager.Write(
             Context.ActorName,
             Context.Name,

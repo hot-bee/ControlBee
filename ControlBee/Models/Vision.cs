@@ -9,7 +9,8 @@ using Dict = System.Collections.Generic.Dictionary<string, object?>;
 namespace ControlBee.Models;
 
 public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
-    : DeviceChannel(deviceManager), IVision
+    : DeviceChannel(deviceManager),
+        IVision
 {
     private const int Timeout = 5000;
     private static readonly ILog Logger = LogManager.GetLogger(nameof(Vision));
@@ -30,7 +31,8 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
 
         try
         {
-            if (PreDelay.Value > 0) Thread.Sleep(PreDelay.Value);
+            if (PreDelay.Value > 0)
+                Thread.Sleep(PreDelay.Value);
             VisionDevice.Trigger(Channel, inspectionIndex, triggerId, options);
         }
         catch (ConnectionError)

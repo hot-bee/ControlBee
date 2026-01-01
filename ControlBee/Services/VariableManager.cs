@@ -18,8 +18,8 @@ public class VariableManager(
     IActorRegistry actorRegistry,
     ISystemConfigurations systemConfigurations,
     IDeviceManager deviceManager,
-    IUserInfo? userInfo)
-    : IVariableManager, IDisposable
+    IUserInfo? userInfo
+) : IVariableManager, IDisposable
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(VariableManager));
     private readonly List<(IVariable variable, ValueChangedArgs args)> _changedArgs = [];
@@ -32,16 +32,20 @@ public class VariableManager(
     private bool _modified;
     private IActor? _uiActor;
 
-    public VariableManager(IDatabase database, ISystemConfigurations systemConfigurations, IDeviceManager deviceManager)
-        : this(database, EmptyActorRegistry.Instance, systemConfigurations, deviceManager, null)
-    {
-    }
+    public VariableManager(
+        IDatabase database,
+        ISystemConfigurations systemConfigurations,
+        IDeviceManager deviceManager
+    )
+        : this(database, EmptyActorRegistry.Instance, systemConfigurations, deviceManager, null) { }
 
-    public VariableManager(IDatabase database, IActorRegistry actorRegistry,
-        ISystemConfigurations systemConfigurations, IDeviceManager deviceManager)
-        : this(database, actorRegistry, systemConfigurations, deviceManager, null)
-    {
-    }
+    public VariableManager(
+        IDatabase database,
+        IActorRegistry actorRegistry,
+        ISystemConfigurations systemConfigurations,
+        IDeviceManager deviceManager
+    )
+        : this(database, actorRegistry, systemConfigurations, deviceManager, null) { }
 
     private IActor? UiActor
     {
@@ -120,8 +124,10 @@ public class VariableManager(
 
         foreach (var ((actorName, uid), variable) in _variables)
         {
-            if (localNameChanged && variable.Scope != VariableScope.Local) continue;
-            if (!(localNameChanged || variable.Dirty)) continue;
+            if (localNameChanged && variable.Scope != VariableScope.Local)
+                continue;
+            if (!(localNameChanged || variable.Dirty))
+                continue;
             Save(actorName, uid, variable);
         }
 
@@ -173,18 +179,26 @@ public class VariableManager(
                 var locationString = row.Field<string>("location")!;
                 var oldValueString = row.Field<string>("old_value")!;
                 var variable = _variableIds.GetValueOrDefault(variableId);
-                if (variable == null) continue;
+                if (variable == null)
+                    continue;
 
                 var location = JArray.Parse(locationString);
-                var oldValue = SetAndGetOldValue(variable.OldValueObject!, oldValueString,
-                    location.ToObject<object[]>()!);
+                var oldValue = SetAndGetOldValue(
+                    variable.OldValueObject!,
+                    oldValueString,
+                    location.ToObject<object[]>()!
+                );
                 variable.OldValueObject = oldValue;
             }
 
-            foreach (var ((actorName, uid), variable) in
-                     _variables) // TODO: Remove this safety check as soon as the code is confirmed.
-                if (variable.ValueObject is not String && originalValues[variable] != variable.ToJson())
-                    throw new SystemException("Critical error. The saved data has been changed. Contact author.");
+            foreach (var ((actorName, uid), variable) in _variables) // TODO: Remove this safety check as soon as the code is confirmed.
+                if (
+                    variable.ValueObject is not String
+                    && originalValues[variable] != variable.ToJson()
+                )
+                    throw new SystemException(
+                        "Critical error. The saved data has been changed. Contact author."
+                    );
 
             if (localNameChanged)
             {
@@ -218,7 +232,8 @@ public class VariableManager(
         Logger.Info("SaveTemporary.");
         foreach (var ((actorName, uid), variable) in _variables)
         {
-            if (variable.Scope != VariableScope.Temporary || !variable.Dirty) continue;
+            if (variable.Scope != VariableScope.Temporary || !variable.Dirty)
+                continue;
             Save(actorName, uid, variable);
         }
     }
@@ -228,8 +243,10 @@ public class VariableManager(
         Logger.Info("DiscardChanges.");
         foreach (var ((actorName, uid), variable) in _variables)
         {
-            if (variable.Scope == VariableScope.Temporary) continue;
-            if (!variable.Dirty) continue;
+            if (variable.Scope == VariableScope.Temporary)
+                continue;
+            if (!variable.Dirty)
+                continue;
             Load(actorName, uid, variable);
         }
 
@@ -243,7 +260,12 @@ public class VariableManager(
         return (T)ReadVariable(typeof(T), localName, actorName, itemPath);
     }
 
-    public object ReadVariable(Type variableType, string localName, string actorName, string itemPath)
+    public object ReadVariable(
+        Type variableType,
+        string localName,
+        string actorName,
+        string itemPath
+    )
     {
         var row = database.Read(localName, actorName, itemPath);
         if (!row.HasValue)
@@ -263,7 +285,13 @@ public class VariableManager(
         return variable.ValueObject!;
     }
 
-    public void WriteVariable(Type variableType, string localName, string actorName, string itemPath, object value)
+    public void WriteVariable(
+        Type variableType,
+        string localName,
+        string actorName,
+        string itemPath,
+        object value
+    )
     {
         var variable = VariableFactory.CreateVariable(variableType);
         variable.ValueObject = value;
@@ -271,7 +299,8 @@ public class VariableManager(
         WriteVariable(localName, actorName, itemPath, jsonValue);
     }
 
-    public void WriteVariable<T>(string localName, string actorName, string itemPath, T value) where T : new()
+    public void WriteVariable<T>(string localName, string actorName, string itemPath, T value)
+        where T : new()
     {
         WriteVariable(typeof(T), localName, actorName, itemPath, value!);
     }
@@ -304,18 +333,23 @@ public class VariableManager(
 
     private object? SetAndGetOldValue(object destination, string source, object[] location)
     {
-        if (destination is int) return int.Parse(source);
+        if (destination is int)
+            return int.Parse(source);
 
-        if (destination is double) return double.Parse(source);
+        if (destination is double)
+            return double.Parse(source);
 
-        if (destination is bool) return bool.Parse(source);
+        if (destination is bool)
+            return bool.Parse(source);
 
         if (destination is IIndex1D index1D)
         {
-            if (location.Length == 0) return null;
+            if (location.Length == 0)
+                return null;
             var index = Convert.ToInt32(location[0]);
             var oldValue = SetAndGetOldValue(index1D.GetValue(index)!, source, location[1..]);
-            if (oldValue != null) index1D.SetValue(index, oldValue);
+            if (oldValue != null)
+                index1D.SetValue(index, oldValue);
             return index1D;
         }
 
@@ -354,7 +388,13 @@ public class VariableManager(
 
         try
         {
-            var id = database.WriteVariables(variable.Scope, dbLocalName, actorName, uid, jsonString);
+            var id = database.WriteVariables(
+                variable.Scope,
+                dbLocalName,
+                actorName,
+                uid,
+                jsonString
+            );
             SetVariableId(variable, id);
         }
         catch (DatabaseError error)
@@ -440,7 +480,8 @@ public class VariableManager(
 
     protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
-        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        if (EqualityComparer<T>.Default.Equals(field, value))
+            return false;
         field = value;
         OnPropertyChanged(propertyName);
         return true;

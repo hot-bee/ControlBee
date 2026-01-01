@@ -5,9 +5,7 @@ namespace ControlBee.Variables;
 
 public class ItemDataWriteArgs
 {
-    public ItemDataWriteArgs()
-    {
-    }
+    public ItemDataWriteArgs() { }
 
     [SetsRequiredMembers]
     public ItemDataWriteArgs(object[] location, object newValue)
@@ -36,9 +34,11 @@ public class ItemDataWriteArgs
         {
             double d => d,
             int i => i,
-            _ => null
+            _ => null,
         };
-        if (MaxValue < doubleValue) throw new ValueError($"New value({doubleValue}) is greater than MaxValue({MaxValue})");
-        if (doubleValue < MinValue) throw new ValueError($"New value({doubleValue}) is less than MinValue({MinValue})");
+        if (MaxValue < doubleValue)
+            throw new ValueError($"New value({doubleValue}) is greater than MaxValue({MaxValue})");
+        if (doubleValue < MinValue)
+            throw new ValueError($"New value({doubleValue}) is less than MinValue({MinValue})");
     }
 }

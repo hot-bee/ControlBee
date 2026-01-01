@@ -10,9 +10,7 @@ public class LocalizationManager
     private static readonly ILog Logger = LogManager.GetLogger(nameof(LocalizationManager));
     private JObject? _translations;
 
-    private LocalizationManager()
-    {
-    }
+    private LocalizationManager() { }
 
     public static LocalizationManager Instance { get; } = new();
 
@@ -22,7 +20,6 @@ public class LocalizationManager
         {
             var json = File.ReadAllText(jsonPath);
             _translations = JObject.Parse(json);
-
         }
         catch (IOException)
         {
@@ -38,11 +35,17 @@ public class LocalizationManager
 
         // Replace placeholders like ${username}
         if (args != null)
-            value = Regex.Replace(value, @"\$\{(\w+)\}", match =>
-            {
-                var varName = match.Groups[1].Value;
-                return args.TryGetValue(varName, out var replacement) ? replacement : match.Value;
-            });
+            value = Regex.Replace(
+                value,
+                @"\$\{(\w+)\}",
+                match =>
+                {
+                    var varName = match.Groups[1].Value;
+                    return args.TryGetValue(varName, out var replacement)
+                        ? replacement
+                        : match.Value;
+                }
+            );
 
         return value;
     }

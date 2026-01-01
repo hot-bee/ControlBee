@@ -48,7 +48,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         get => _actualOn;
         set
         {
-            if (Equals(_actualOn, value)) return;
+            if (Equals(_actualOn, value))
+                return;
             _actualOn = value;
             SendDataToUi(Guid.Empty);
         }
@@ -59,7 +60,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         get => _commandOn;
         set
         {
-            if (_commandOn == value) return;
+            if (_commandOn == value)
+                return;
             _commandOn = value;
             SendDataToUi(Guid.Empty);
         }
@@ -90,7 +92,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
                 }
 
                 return ActualOn;
-                // ReSharper restore InvertIf
+            // ReSharper restore InvertIf
         }
 
         throw new ValueError();
@@ -150,10 +152,14 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         _inputOn = manager.TryGet(_inputOn);
         _inputOff = manager.TryGet(_inputOff);
 
-        if (_inputOn?.GetDevice() == null) _inputOn = null;
-        if (_inputOff?.GetDevice() == null) _inputOff = null;
-        if (_outputOn?.GetDevice() == null) _outputOn = null;
-        if (_outputOff?.GetDevice() == null) _outputOff = null;
+        if (_inputOn?.GetDevice() == null)
+            _inputOn = null;
+        if (_inputOff?.GetDevice() == null)
+            _inputOff = null;
+        if (_outputOn?.GetDevice() == null)
+            _outputOn = null;
+        if (_outputOff?.GetDevice() == null)
+            _outputOff = null;
         Subscribe();
     }
 
@@ -173,7 +179,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
     private void SetOn(bool on)
     {
         Wait();
-        if (ActualOn == on) return;
+        if (ActualOn == on)
+            return;
         ActualOn = null;
         CommandOn = on;
         _outputOn?.SetOn(CommandOn);
@@ -241,7 +248,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
             ["CommandOn"] = CommandOn,
             ["ActualOn"] = ActualOn, // Do not call IsOn, or it will cause a recursive call issue.
             [nameof(OffDetect)] = OffDetect(),
-            [nameof(OnDetect)] = OnDetect()
+            [nameof(OnDetect)] = OnDetect(),
         };
         Actor.Ui?.Send(
             new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)
@@ -260,7 +267,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
 
     private void OutputOnOnCommandOnChanged(object? sender, bool e)
     {
-        if (e == CommandOn) return;
+        if (e == CommandOn)
+            return;
         CommandOn = e;
         ActualOn = null;
     }

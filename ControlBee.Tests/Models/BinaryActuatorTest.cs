@@ -58,15 +58,13 @@ public class BinaryActuatorTest
         Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(ui);
         var actor = ActorFactory.Create<TestActor>("myActor");
-        ScenarioFlowTester.Setup(
+        ScenarioFlowTester.Setup([
             [
-                [
-                    // ReSharper disable once AccessToDisposedClosure
-                    new ConditionStep(() => TimeManager.CurrentMilliseconds > 1000),
-                    new BehaviorStep(() => ((FakeDigitalInput)actor.CylFwdDet1).On = true),
-                ],
-            ]
-        );
+                // ReSharper disable once AccessToDisposedClosure
+                new ConditionStep(() => TimeManager.CurrentMilliseconds > 1000),
+                new BehaviorStep(() => ((FakeDigitalInput)actor.CylFwdDet1).On = true),
+            ],
+        ]);
 
         actor.Start();
         actor.Send(new Message(EmptyActor.Instance, "On1"));
@@ -86,17 +84,15 @@ public class BinaryActuatorTest
         Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(ui);
         var actor = ActorFactory.Create<TestActor>("myActor");
-        ScenarioFlowTester.Setup(
+        ScenarioFlowTester.Setup([
             [
-                [
-                    // ReSharper disable once AccessToDisposedClosure
-                    new ConditionStep(() => TimeManager.CurrentMilliseconds > 1000),
-                    new BehaviorStep(() => ((FakeDigitalInput)actor.CylFwdDet1).On = true),
-                    new ConditionStep(() => TimeManager.CurrentMilliseconds > 2000),
-                    new BehaviorStep(() => ((FakeDigitalInput)actor.CylFwdDet2).On = true),
-                ],
-            ]
-        );
+                // ReSharper disable once AccessToDisposedClosure
+                new ConditionStep(() => TimeManager.CurrentMilliseconds > 1000),
+                new BehaviorStep(() => ((FakeDigitalInput)actor.CylFwdDet1).On = true),
+                new ConditionStep(() => TimeManager.CurrentMilliseconds > 2000),
+                new BehaviorStep(() => ((FakeDigitalInput)actor.CylFwdDet2).On = true),
+            ],
+        ]);
 
         actor.Start();
         actor.Send(new Message(EmptyActor.Instance, "OnBoth"));

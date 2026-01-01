@@ -5,11 +5,13 @@ namespace ControlBee.Interfaces;
 
 public interface IDatabase
 {
-    int WriteVariables(VariableScope scope,
+    int WriteVariables(
+        VariableScope scope,
         string localName,
         string actorName,
         string itemPath,
-        string value);
+        string value
+    );
 
     void WriteEvents(
         string actorName,

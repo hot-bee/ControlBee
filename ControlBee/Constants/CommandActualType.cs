@@ -3,5 +3,5 @@
 public enum CommandActualType
 {
     Command,
-    Actual
+    Actual,
 }

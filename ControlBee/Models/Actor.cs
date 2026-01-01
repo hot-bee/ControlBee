@@ -123,8 +123,11 @@ public class Actor : IActorInternal, IDisposable
 
     public (string itemPath, Type type)[] GetItems()
     {
-        return _actorItems.Where(x => x.Value.Visible)
-            .ToList().ConvertAll(x => (x.Key, x.Value.GetType())).ToArray();
+        return _actorItems
+            .Where(x => x.Value.Visible)
+            .ToList()
+            .ConvertAll(x => (x.Key, x.Value.GetType()))
+            .ToArray();
     }
 
     public ITimeManager TimeManager { get; }
@@ -266,7 +269,8 @@ public class Actor : IActorInternal, IDisposable
 
     public void SetStatusByActor(IActor? actor, string keyName, object? value)
     {
-        if (actor == null) return;
+        if (actor == null)
+            return;
         SetStatusByActor(actor.Name, keyName, value);
     }
 
@@ -294,7 +298,8 @@ public class Actor : IActorInternal, IDisposable
 
     public object? GetPeerStatusByActor(IActor? actor, string keyName)
     {
-        if (actor == null) return null;
+        if (actor == null)
+            return null;
         return (GetPeerStatus(actor, Name) as Dict)?.GetValueOrDefault(keyName);
     }
 
@@ -305,13 +310,15 @@ public class Actor : IActorInternal, IDisposable
 
     public bool HasPeerError(IActor? peer)
     {
-        if (peer == null) return false;
+        if (peer == null)
+            return false;
         return GetPeerStatus(peer, "_error") is true;
     }
 
     public bool IsPeerInactive(IActor? peer)
     {
-        if (peer == null) return false;
+        if (peer == null)
+            return false;
         return GetPeerStatus(peer, "_inactive") is true;
     }
 
@@ -330,7 +337,7 @@ public class Actor : IActorInternal, IDisposable
         IState oldState,
         IState newState,
         bool result
-        )>? MessageProcessed;
+    )>? MessageProcessed;
 
     public event EventHandler<(IState oldState, IState newState)>? StateChanged;
 
@@ -352,8 +359,17 @@ public class Actor : IActorInternal, IDisposable
             if (fieldInfo.FieldType.IsAssignableTo(typeof(IActorItem)))
             {
                 var itemPath = string.Join('/', itemPathPrefix, fieldInfo.Name);
-                if (fieldInfo.GetValue(actorItemHolder)! is not IActorItem actorItem) continue;
-                actorItem = func(actorItemHolder, actorItem, fieldInfo.FieldType, fieldInfo, -1, itemPath, config);
+                if (fieldInfo.GetValue(actorItemHolder)! is not IActorItem actorItem)
+                    continue;
+                actorItem = func(
+                    actorItemHolder,
+                    actorItem,
+                    fieldInfo.FieldType,
+                    fieldInfo,
+                    -1,
+                    itemPath,
+                    config
+                );
 
                 IterateItems(itemPath, actorItem, func, config);
             }
@@ -364,8 +380,17 @@ public class Actor : IActorInternal, IDisposable
                 for (var i = 0; i < array.Length; i++)
                 {
                     var itemPath = string.Join('/', itemPathPrefix, fieldInfo.Name, $"{i}");
-                    if (array[i] is not { } actorItem) continue;
-                    actorItem = func(actorItemHolder, actorItem, array[i].GetType(), fieldInfo, i, itemPath, config);
+                    if (array[i] is not { } actorItem)
+                        continue;
+                    actorItem = func(
+                        actorItemHolder,
+                        actorItem,
+                        array[i].GetType(),
+                        fieldInfo,
+                        i,
+                        itemPath,
+                        config
+                    );
 
                     IterateItems(itemPath, actorItem, func, config);
                 }
@@ -492,13 +517,7 @@ public class Actor : IActorInternal, IDisposable
                     timeout = (int)Math.Max(TimerMilliseconds - elapsedTime, 10);
                 }
 
-                if (
-                    _mailbox.TryTake(
-                        out var message,
-                        timeout,
-                        _cancellationTokenSource.Token
-                    )
-                )
+                if (_mailbox.TryTake(out var message, timeout, _cancellationTokenSource.Token))
                 {
                     if (message.Name == "_terminate")
                     {
@@ -627,7 +646,8 @@ public class Actor : IActorInternal, IDisposable
     public void InitPeers(IActor[] peerList)
     {
         var peers = peerList.ToHashSet();
-        if (Ui != null) peers.Add(Ui);
+        if (Ui != null)
+            peers.Add(Ui);
         foreach (var peer in peers)
         {
             if (!PeerDict.TryAdd(peer.Name, peer))

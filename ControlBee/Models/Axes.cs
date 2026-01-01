@@ -53,7 +53,8 @@ public class Axes
 
     public void Wait()
     {
-        foreach (var axis in _axes) axis.Wait();
+        foreach (var axis in _axes)
+            axis.Wait();
     }
 
     public bool IsMoving()
@@ -71,15 +72,21 @@ public class Axes
 
         if (_axes.Length != positions.Length)
         {
-            Logger.Error($"_axes length and position length mismatch. ({_axes[0].Actor}, {_axes[0].ItemPath}).");
+            Logger.Error(
+                $"_axes length and position length mismatch. ({_axes[0].Actor}, {_axes[0].ItemPath})."
+            );
             return;
         }
 
         var resolutionOfFirstAxis = Math.Abs(_axes[0].ResolutionValue);
         motionDevice.InterpolateMove(
             _axes.Select((t, i) => (t.GetChannel(), positions[i] * t.ResolutionValue)).ToArray(),
-            speedProfile.Velocity * resolutionOfFirstAxis, speedProfile.Accel * resolutionOfFirstAxis,
-            speedProfile.Decel * resolutionOfFirstAxis, speedProfile.AccelJerkRatio, speedProfile.DecelJerkRatio);
+            speedProfile.Velocity * resolutionOfFirstAxis,
+            speedProfile.Accel * resolutionOfFirstAxis,
+            speedProfile.Decel * resolutionOfFirstAxis,
+            speedProfile.AccelJerkRatio,
+            speedProfile.DecelJerkRatio
+        );
     }
 
     public void MultiMove((double position, SpeedProfile speedProfile)[] moveParameters)
@@ -92,7 +99,9 @@ public class Axes
 
         if (_axes.Length != moveParameters.Length)
         {
-            Logger.Error($"_axes length and position length mismatch. ({_axes[0].Actor}, {_axes[0].ItemPath}).");
+            Logger.Error(
+                $"_axes length and position length mismatch. ({_axes[0].Actor}, {_axes[0].ItemPath})."
+            );
             return;
         }
 
@@ -100,16 +109,18 @@ public class Axes
         for (var i = 0; i < moveParameters.Length; i++)
         {
             var resolution = _axes[i].ResolutionValue;
-            param.Add(new JerkRatioSCurveMoveParameter
-            {
-                Channel = _axes[i].GetChannel(),
-                Position = moveParameters[i].position * resolution,
-                Velocity = moveParameters[i].speedProfile.Velocity * resolution,
-                Acceleration = moveParameters[i].speedProfile.Accel * resolution,
-                Deceleration = moveParameters[i].speedProfile.Decel * resolution,
-                AccelJerkRatio = moveParameters[i].speedProfile.AccelJerkRatio,
-                DecelJerkRatio = moveParameters[i].speedProfile.DecelJerkRatio
-            });
+            param.Add(
+                new JerkRatioSCurveMoveParameter
+                {
+                    Channel = _axes[i].GetChannel(),
+                    Position = moveParameters[i].position * resolution,
+                    Velocity = moveParameters[i].speedProfile.Velocity * resolution,
+                    Acceleration = moveParameters[i].speedProfile.Accel * resolution,
+                    Deceleration = moveParameters[i].speedProfile.Decel * resolution,
+                    AccelJerkRatio = moveParameters[i].speedProfile.AccelJerkRatio,
+                    DecelJerkRatio = moveParameters[i].speedProfile.DecelJerkRatio,
+                }
+            );
         }
 
         motionDevice.JerkRatioSCurveMultiMove(param.ToArray());

@@ -10,9 +10,7 @@ public class Array3D<T> : ArrayBase, IIndex3D, IWriteData
     where T : new()
 {
     public Array3D()
-        : this(0, 0, 0)
-    {
-    }
+        : this(0, 0, 0) { }
 
     public Array3D(int size1, int size2, int size3)
     {
@@ -92,7 +90,7 @@ public class Array3D<T> : ArrayBase, IIndex3D, IWriteData
                 new ItemDataWriteArgs(args)
                 {
                     Location = args.Location[1..],
-                    NewValue = args.NewValue
+                    NewValue = args.NewValue,
                 }
             );
         }

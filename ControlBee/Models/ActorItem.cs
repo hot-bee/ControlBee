@@ -1,7 +1,7 @@
-﻿using ControlBee.Interfaces;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using ControlBee.Interfaces;
 
 namespace ControlBee.Models;
 
@@ -29,7 +29,8 @@ public abstract class ActorItem : IActorItem, IActorItemModifier
             foreach (var field in GetType().GetFields())
             {
                 var fieldValue = field.GetValue(this);
-                if (fieldValue is null) continue;
+                if (fieldValue is null)
+                    continue;
                 if (fieldValue is IActorItemModifier actorItemModifier)
                     actorItemModifier.Visible = _visible;
             }
@@ -48,7 +49,7 @@ public abstract class ActorItem : IActorItem, IActorItemModifier
                 var payload = new Dictionary<string, object?>
                 {
                     [nameof(Name)] = Name,
-                    [nameof(Desc)] = Desc
+                    [nameof(Desc)] = Desc,
                 };
                 message.Sender.Send(
                     new ActorItemMessage(message.Id, Actor, ItemPath, "_itemMetaData", payload)
@@ -60,9 +61,7 @@ public abstract class ActorItem : IActorItem, IActorItemModifier
         return false;
     }
 
-    public virtual void UpdateSubItem()
-    {
-    }
+    public virtual void UpdateSubItem() { }
 
     public virtual void InjectProperties(ISystemPropertiesDataSource dataSource)
     {
@@ -72,9 +71,7 @@ public abstract class ActorItem : IActorItem, IActorItemModifier
             Desc = desc;
     }
 
-    public virtual void Init()
-    {
-    }
+    public virtual void Init() { }
 
     public virtual void PostInit()
     {

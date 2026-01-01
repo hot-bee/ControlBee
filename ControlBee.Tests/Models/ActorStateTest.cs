@@ -26,17 +26,15 @@ public class ActorStateTest : ActorFactoryBase
             called = true;
         };
 
-        ScenarioFlowTester.Setup(
+        ScenarioFlowTester.Setup([
             [
-                [
-                    new BehaviorStep(
-                        () => actor.Send(new Message(EmptyActor.Instance, "TransitToStateB"))
-                    ),
-                    new ConditionStep(() => actor.State.GetType() == typeof(StateB)),
-                    new BehaviorStep(() => actor.Send(new TerminateMessage())),
-                ],
-            ]
-        );
+                new BehaviorStep(() =>
+                    actor.Send(new Message(EmptyActor.Instance, "TransitToStateB"))
+                ),
+                new ConditionStep(() => actor.State.GetType() == typeof(StateB)),
+                new BehaviorStep(() => actor.Send(new TerminateMessage())),
+            ],
+        ]);
 
         actor.Start();
         actor.Join();
@@ -59,17 +57,13 @@ public class ActorStateTest : ActorFactoryBase
             Assert.IsType<ErrorState<TestActor>>(newState);
             called = true;
         };
-        ScenarioFlowTester.Setup(
+        ScenarioFlowTester.Setup([
             [
-                [
-                    new BehaviorStep(
-                        () => actor.Send(new Message(EmptyActor.Instance, "RaiseError"))
-                    ),
-                    new ConditionStep(() => actor.State.GetType() == typeof(ErrorState<TestActor>)),
-                    new BehaviorStep(() => actor.Send(new TerminateMessage())),
-                ],
-            ]
-        );
+                new BehaviorStep(() => actor.Send(new Message(EmptyActor.Instance, "RaiseError"))),
+                new ConditionStep(() => actor.State.GetType() == typeof(ErrorState<TestActor>)),
+                new BehaviorStep(() => actor.Send(new TerminateMessage())),
+            ],
+        ]);
 
         actor.Start();
         actor.Join();

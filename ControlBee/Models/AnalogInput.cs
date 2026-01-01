@@ -29,10 +29,7 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
     public override void InjectProperties(ISystemPropertiesDataSource dataSource)
     {
         base.InjectProperties(dataSource);
-        if (
-            dataSource.GetValue(ActorName, ItemPath, nameof(DataType))
-            is string analogDataType
-        )
+        if (dataSource.GetValue(ActorName, ItemPath, nameof(DataType)) is string analogDataType)
             Enum.TryParse(analogDataType, out DataType);
 
         switch (DataType)
@@ -121,8 +118,10 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
 
     protected void RefreshCacheImpl(bool alwaysUpdate = false)
     {
-        if (DataType == AnalogDataType.Double) ReadDouble();
-        else Read();
+        if (DataType == AnalogDataType.Double)
+            ReadDouble();
+        else
+            Read();
         var updated = false;
         lock (this)
         {

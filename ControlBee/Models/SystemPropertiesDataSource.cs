@@ -5,13 +5,15 @@ using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
-public class SystemPropertiesDataSource(ISystemConfigurations systemConfigurations) : ISystemPropertiesDataSource
+public class SystemPropertiesDataSource(ISystemConfigurations systemConfigurations)
+    : ISystemPropertiesDataSource
 {
     private const string BackupDirName = "Backup";
     private const string PropertyFileName = "ActorProperties.yaml";
     private Dict? _data;
     private string BackupDir => Path.Combine(systemConfigurations.DataFolder, BackupDirName);
-    private string PropertyFilePath => Path.Combine(systemConfigurations.DataFolder, PropertyFileName);
+    private string PropertyFilePath =>
+        Path.Combine(systemConfigurations.DataFolder, PropertyFileName);
 
     public object? GetValue(string actorName, string itemPath, string propertyName)
     {
@@ -27,7 +29,8 @@ public class SystemPropertiesDataSource(ISystemConfigurations systemConfiguratio
 
     public void ReadFromFile()
     {
-        if (!File.Exists(PropertyFilePath)) File.WriteAllText(PropertyFilePath, "Empty: true");
+        if (!File.Exists(PropertyFilePath))
+            File.WriteAllText(PropertyFilePath, "Empty: true");
         using var reader = new StreamReader(PropertyFilePath);
         _data = ParseYaml(reader.ReadToEnd());
     }
@@ -62,10 +65,12 @@ public class SystemPropertiesDataSource(ISystemConfigurations systemConfiguratio
     {
         var fullPath = string.Join('/', actorName.Trim('/'), propertyPath.Trim('/'));
         var paths = fullPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (paths.Length == 0) return;
+        if (paths.Length == 0)
+            return;
 
         var parentPath = paths[..^1];
-        if (!CreatePath(parentPath)) return;
+        if (!CreatePath(parentPath))
+            return;
 
         var current = parentPath.Aggregate(_data, (prev, path) => (Dict)prev![path]!);
         current![paths[^1]] = value;
@@ -84,7 +89,8 @@ public class SystemPropertiesDataSource(ISystemConfigurations systemConfiguratio
 
     public bool CreatePath(string[] paths)
     {
-        if (_data is null) return false;
+        if (_data is null)
+            return false;
 
         var current = _data;
         foreach (var path in paths)

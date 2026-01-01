@@ -13,8 +13,10 @@ public class VariableFactory
 
         // Enforce the new() constraint at runtime
         if (valueType.GetConstructor(Type.EmptyTypes) == null && !valueType.IsValueType)
-            throw new ArgumentException($"{valueType} must have a public parameterless constructor.",
-                nameof(valueType));
+            throw new ArgumentException(
+                $"{valueType} must have a public parameterless constructor.",
+                nameof(valueType)
+            );
 
         // Build Variable<valueType>
         var genericType = typeof(Variable<>).MakeGenericType(valueType);

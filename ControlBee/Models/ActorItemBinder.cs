@@ -16,7 +16,9 @@ public class ActorItemBinder : IDisposable
     public ActorItemBinder(IActorRegistry actorRegistry, string actorName, string itemPath)
     {
         if (!itemPath.StartsWith("/"))
-            throw new ArgumentException($"ItemPath must start with '/'. (actor='{actorName}', itemPath='{itemPath}')");
+            throw new ArgumentException(
+                $"ItemPath must start with '/'. (actor='{actorName}', itemPath='{itemPath}')"
+            );
 
         _actorName = actorName;
         _itemPath = itemPath;

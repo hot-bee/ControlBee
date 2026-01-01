@@ -14,9 +14,7 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
     private static readonly ILog Logger = LogManager.GetLogger("Array1D");
 
     public Array1D()
-        : this(0)
-    {
-    }
+        : this(0) { }
 
     public Array1D(int size)
     {
@@ -112,7 +110,7 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
                 new ItemDataWriteArgs(args)
                 {
                     Location = args.Location[1..],
-                    NewValue = args.NewValue
+                    NewValue = args.NewValue,
                 }
             );
         }
@@ -142,8 +140,13 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
             if (Values[index] is IActorItemSub actorItemSub)
             {
                 var partialLocation = variableActorItemMessage.Location[1..];
-                var partialMessage = new VariableActorItemMessage(message.Sender, message.ItemPath, partialLocation,
-                    message.Name, message.Payload);
+                var partialMessage = new VariableActorItemMessage(
+                    message.Sender,
+                    message.ItemPath,
+                    partialLocation,
+                    message.Name,
+                    message.Payload
+                );
                 actorItemSub.ProcessMessage(partialMessage);
                 return true;
             }
@@ -186,7 +189,7 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
 
         OnValueChanging(
             new ValueChangedArgs(
-                ((object[]) [index]).Concat(e.Location).ToArray(),
+                ((object[])[index]).Concat(e.Location).ToArray(),
                 e.OldValue,
                 e.NewValue
             )
@@ -204,7 +207,7 @@ public class Array1D<T> : ArrayBase, IIndex1D, IDisposable, IWriteData
 
         OnValueChanged(
             new ValueChangedArgs(
-                ((object[]) [index]).Concat(e.Location).ToArray(),
+                ((object[])[index]).Concat(e.Location).ToArray(),
                 e.OldValue,
                 e.NewValue
             )

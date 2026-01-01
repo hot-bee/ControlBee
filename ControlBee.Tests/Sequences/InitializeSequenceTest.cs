@@ -25,37 +25,35 @@ public class InitializeSequenceTest : ActorFactoryBase
         var axisY = (FakeAxis)testActor.Y;
         var axisZ = (FakeAxis)testActor.Z;
 
-        ScenarioFlowTester.Setup(
+        ScenarioFlowTester.Setup([
             [
-                [
-                    new ConditionStep(() => testActor.X.GetPosition() < -0.1),
-                    new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, true)),
-                    new ConditionStep(() => testActor.X.GetPosition() > -0.08),
-                    new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, false)),
-                    new ConditionStep(() => testActor.X.GetPosition() < -0.09),
-                    new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, true)),
-                    new ConditionStep(() => testActor.X.GetPosition() == 10.0),
-                ],
-                [
-                    new ConditionStep(() => testActor.Y.GetPosition() < -0.1),
-                    new BehaviorStep(() => axisY.SetSensorValue(AxisSensorType.Home, true)),
-                    new ConditionStep(() => testActor.Y.GetPosition() > -0.08),
-                    new BehaviorStep(() => axisY.SetSensorValue(AxisSensorType.Home, false)),
-                    new ConditionStep(() => testActor.Y.GetPosition() < -0.09),
-                    new BehaviorStep(() => axisY.SetSensorValue(AxisSensorType.Home, true)),
-                    new ConditionStep(() => testActor.Y.GetPosition() == 10.0),
-                ],
-                [
-                    new ConditionStep(() => testActor.Z.GetPosition() < -0.1),
-                    new BehaviorStep(() => axisZ.SetSensorValue(AxisSensorType.Home, true)),
-                    new ConditionStep(() => testActor.Z.GetPosition() > -0.08),
-                    new BehaviorStep(() => axisZ.SetSensorValue(AxisSensorType.Home, false)),
-                    new ConditionStep(() => testActor.Z.GetPosition() < -0.09),
-                    new BehaviorStep(() => axisZ.SetSensorValue(AxisSensorType.Home, true)),
-                    new ConditionStep(() => testActor.Z.GetPosition() == 10.0),
-                ],
-            ]
-        );
+                new ConditionStep(() => testActor.X.GetPosition() < -0.1),
+                new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, true)),
+                new ConditionStep(() => testActor.X.GetPosition() > -0.08),
+                new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, false)),
+                new ConditionStep(() => testActor.X.GetPosition() < -0.09),
+                new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, true)),
+                new ConditionStep(() => testActor.X.GetPosition() == 10.0),
+            ],
+            [
+                new ConditionStep(() => testActor.Y.GetPosition() < -0.1),
+                new BehaviorStep(() => axisY.SetSensorValue(AxisSensorType.Home, true)),
+                new ConditionStep(() => testActor.Y.GetPosition() > -0.08),
+                new BehaviorStep(() => axisY.SetSensorValue(AxisSensorType.Home, false)),
+                new ConditionStep(() => testActor.Y.GetPosition() < -0.09),
+                new BehaviorStep(() => axisY.SetSensorValue(AxisSensorType.Home, true)),
+                new ConditionStep(() => testActor.Y.GetPosition() == 10.0),
+            ],
+            [
+                new ConditionStep(() => testActor.Z.GetPosition() < -0.1),
+                new BehaviorStep(() => axisZ.SetSensorValue(AxisSensorType.Home, true)),
+                new ConditionStep(() => testActor.Z.GetPosition() > -0.08),
+                new BehaviorStep(() => axisZ.SetSensorValue(AxisSensorType.Home, false)),
+                new ConditionStep(() => testActor.Z.GetPosition() < -0.09),
+                new BehaviorStep(() => axisZ.SetSensorValue(AxisSensorType.Home, true)),
+                new ConditionStep(() => testActor.Z.GetPosition() == 10.0),
+            ],
+        ]);
 
         testActor.Start();
         testActor.Send(new Message(EmptyActor.Instance, "_initialize"));

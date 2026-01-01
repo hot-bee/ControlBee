@@ -68,19 +68,17 @@ public class FrozenTimeManagerTest : ActorFactoryBase
         var testActor = ActorFactory.Create<TestActor>("testActor");
         var axisX = (FakeAxis)testActor.X;
 
-        ScenarioFlowTester.Setup(
+        ScenarioFlowTester.Setup([
             [
-                [
-                    new ConditionStep(() => testActor.X.GetPosition() < -0.1),
-                    new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, true)),
-                    new ConditionStep(() => testActor.X.GetPosition() > -0.08),
-                    new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, false)),
-                    new ConditionStep(() => testActor.X.GetPosition() < -0.09),
-                    new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, true)),
-                    new ConditionStep(() => testActor.X.GetPosition() == 10.0),
-                ],
-            ]
-        );
+                new ConditionStep(() => testActor.X.GetPosition() < -0.1),
+                new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, true)),
+                new ConditionStep(() => testActor.X.GetPosition() > -0.08),
+                new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, false)),
+                new ConditionStep(() => testActor.X.GetPosition() < -0.09),
+                new BehaviorStep(() => axisX.SetSensorValue(AxisSensorType.Home, true)),
+                new ConditionStep(() => testActor.X.GetPosition() == 10.0),
+            ],
+        ]);
 
         testActor.Start();
         testActor.Send(new Message(EmptyActor.Instance, "_initialize"));
@@ -129,16 +127,14 @@ public class FrozenTimeManagerTest : ActorFactoryBase
     {
         var testActor = ActorFactory.Create<TestActor>("testActor");
 
-        ScenarioFlowTester.Setup(
+        ScenarioFlowTester.Setup([
             [
-                [
-                    new ConditionStep(() => TimeManager.CurrentMilliseconds > 1000),
-                    new BehaviorStep(
-                        () => testActor.Send(new Message(EmptyActor.Instance, "_terminate"))
-                    ),
-                ],
-            ]
-        );
+                new ConditionStep(() => TimeManager.CurrentMilliseconds > 1000),
+                new BehaviorStep(() =>
+                    testActor.Send(new Message(EmptyActor.Instance, "_terminate"))
+                ),
+            ],
+        ]);
 
         testActor.Start();
         testActor.Send(new Message(EmptyActor.Instance, "Sleep"));

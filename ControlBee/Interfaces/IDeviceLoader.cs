@@ -1,5 +1,3 @@
 ﻿namespace ControlBee.Interfaces;
 
-public interface IDeviceLoader
-{
-}
+public interface IDeviceLoader { }

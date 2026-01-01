@@ -1,7 +1,7 @@
-using Dict = System.Collections.Generic.Dictionary<string, object?>;
 using ControlBee.Interfaces;
 using log4net;
 using Microsoft.Data.Sqlite;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Services;
 
@@ -17,8 +17,9 @@ public class UserManager : IUserManager
     {
         get => _currentUser;
         set
-        {   
-            if (ReferenceEquals(_currentUser, value)) return;
+        {
+            if (ReferenceEquals(_currentUser, value))
+                return;
             _currentUser = value;
             CurrentUserChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -27,6 +28,7 @@ public class UserManager : IUserManager
     public event EventHandler? CurrentUserChanged;
 
     public event EventHandler? UserListUpdated;
+
     protected virtual void OnUserListUpdated() => UserListUpdated?.Invoke(this, EventArgs.Empty);
 
     public UserManager(IDatabase database, IAuthorityLevels authorityLevels)
@@ -48,7 +50,8 @@ public class UserManager : IUserManager
                 check.CommandText = @"SELECT 1 FROM users WHERE user_id = @user_id LIMIT 1;";
                 check.Parameters.AddWithValue("@user_id", userId);
                 using var reader = check.ExecuteReader();
-                if (reader.Read()) return false;
+                if (reader.Read())
+                    return false;
             }
 
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(rawPassword);
@@ -56,7 +59,8 @@ public class UserManager : IUserManager
             using var beginTransaction = _connection.BeginTransaction();
             using var command = _connection.CreateCommand();
             command.Transaction = beginTransaction;
-            command.CommandText = @"
+            command.CommandText =
+                @"
                 INSERT INTO users (user_id, password, name, level, created_at, updated_at)
                 VALUES (@user_id, @password, @name, @level, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);";
             command.Parameters.AddWithValue("@user_id", userId);
@@ -104,7 +108,8 @@ public class UserManager : IUserManager
         try
         {
             using var command = _connection.CreateCommand();
-            command.CommandText = @"
+            command.CommandText =
+                @"
                     SELECT id, user_id, password, name, level
                     FROM users
                     WHERE user_id = @user_id
@@ -143,7 +148,8 @@ public class UserManager : IUserManager
     public bool Delete(int id)
     {
         var current = CurrentUser;
-        if (current is null) return false;
+        if (current is null)
+            return false;
 
         try
         {
@@ -151,7 +157,8 @@ public class UserManager : IUserManager
 
             using var command = _connection.CreateCommand();
             command.Transaction = transaction;
-            command.CommandText = @"
+            command.CommandText =
+                @"
             UPDATE users
             SET is_deleted = 1,
                 updated_at = datetime('now','localtime')
@@ -182,10 +189,12 @@ public class UserManager : IUserManager
     {
         var list = new List<IUserInfo>();
         var current = CurrentUser;
-        if (current is null) return list;
+        if (current is null)
+            return list;
 
         using var command = _connection.CreateCommand();
-        command.CommandText = @"
+        command.CommandText =
+            @"
             SELECT id, user_id, name, level
             FROM users
             WHERE is_deleted = 0
@@ -225,25 +234,39 @@ public class UserManager : IUserManager
 
             using var commandWithoutPassword = _connection.CreateCommand();
             commandWithoutPassword.Transaction = transaction;
-            commandWithoutPassword.CommandText = @"
+            commandWithoutPassword.CommandText =
+                @"
                 UPDATE users
                 SET name=@name, level=@level, updated_at=datetime('now','localtime')
                 WHERE id=@id;
             ";
-            var nameWithoutPassword = commandWithoutPassword.Parameters.Add("@name", SqliteType.Text);
-            var levelWithoutPassword = commandWithoutPassword.Parameters.Add("@level", SqliteType.Integer);
-            var idWithoutPassword = commandWithoutPassword.Parameters.Add("@id", SqliteType.Integer);
+            var nameWithoutPassword = commandWithoutPassword.Parameters.Add(
+                "@name",
+                SqliteType.Text
+            );
+            var levelWithoutPassword = commandWithoutPassword.Parameters.Add(
+                "@level",
+                SqliteType.Integer
+            );
+            var idWithoutPassword = commandWithoutPassword.Parameters.Add(
+                "@id",
+                SqliteType.Integer
+            );
 
             using var commandWithPassword = _connection.CreateCommand();
             commandWithPassword.Transaction = transaction;
-            commandWithPassword.CommandText = @"
+            commandWithPassword.CommandText =
+                @"
                 UPDATE users
                 SET name=@name, password=@password, level=@level, updated_at=datetime('now','localtime')
                 WHERE id=@id;
             ";
             var nameWithPassword = commandWithPassword.Parameters.Add("@name", SqliteType.Text);
             var password = commandWithPassword.Parameters.Add("@password", SqliteType.Text);
-            var levelWithPassword = commandWithPassword.Parameters.Add("@level", SqliteType.Integer);
+            var levelWithPassword = commandWithPassword.Parameters.Add(
+                "@level",
+                SqliteType.Integer
+            );
             var idWithPassword = commandWithPassword.Parameters.Add("@id", SqliteType.Integer);
 
             foreach (var userUpdateItem in userUpdates)
@@ -273,14 +296,18 @@ public class UserManager : IUserManager
                 {
                     if (level >= currentUser.Level)
                     {
-                        Logger.Warn($"Skip: cannot assign higher/equal level {level} to user id {id} (myLevel={currentUser.Level})");
+                        Logger.Warn(
+                            $"Skip: cannot assign higher/equal level {level} to user id {id} (myLevel={currentUser.Level})"
+                        );
                         continue;
                     }
                 }
                 else
                 {
                     if (level != currentUser.Level)
-                        Logger.Warn($"Ignore: self level change requested (id={id}). Fixed to current level {currentUser.Level}.");
+                        Logger.Warn(
+                            $"Ignore: self level change requested (id={id}). Fixed to current level {currentUser.Level}."
+                        );
 
                     level = currentUser.Level;
                 }

@@ -14,7 +14,8 @@ public class SyncUtils
     )
     {
         var peek = SyncRequestsPeek(actor, grants, requests, grantName);
-        if (!peek.approvable) return false;
+        if (!peek.approvable)
+            return false;
 
         SyncRequestsApprove(actor, grants, requests, grantName, peek.requestIds!);
         return true;
@@ -27,7 +28,8 @@ public class SyncUtils
         string grantName
     )
     {
-        if (requests.Length == 0) return (false, null);
+        if (requests.Length == 0)
+            return (false, null);
         var guids = new List<Guid>();
         foreach (var request in requests)
         {

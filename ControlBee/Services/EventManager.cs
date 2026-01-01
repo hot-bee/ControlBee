@@ -15,15 +15,17 @@ public class EventManager(IDatabase db) : IEventManager
     )
     {
         db.WriteEvents(actorName, name, severity.ToString(), code?.ToString(), desc);
-        OnEventOccured(new EventMessage
-        {
-            EventTime = DateTime.Now,  // TODO: Get from DB.
-            ActorName = actorName,
-            Name = name,
-            Severity = severity,
-            Code = code,
-            Desc = desc
-        });
+        OnEventOccured(
+            new EventMessage
+            {
+                EventTime = DateTime.Now, // TODO: Get from DB.
+                ActorName = actorName,
+                Name = name,
+                Severity = severity,
+                Code = code,
+                Desc = desc,
+            }
+        );
     }
 
     public IDatabase GetDatabase()

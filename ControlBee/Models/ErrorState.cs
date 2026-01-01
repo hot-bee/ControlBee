@@ -15,8 +15,10 @@ public class ErrorState<T>(T actor, SequenceError error) : State<T>(actor)
                 Actor.SetStatus("_error", true);
                 return true;
             case "_resetError":
-                if (Actor.GetStatus("_inactive") is true) Actor.ResetState();
-                else Actor.State = Actor.CreateIdleState();
+                if (Actor.GetStatus("_inactive") is true)
+                    Actor.ResetState();
+                else
+                    Actor.State = Actor.CreateIdleState();
                 return true;
         }
 

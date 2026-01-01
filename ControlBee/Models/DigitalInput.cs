@@ -24,7 +24,8 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         get => _actualOn;
         set
         {
-            if (_actualOn == value) return;
+            if (_actualOn == value)
+                return;
             _actualOn = value;
             OnActualOnChanged(_actualOn);
             SendDataToUi(Guid.Empty);
@@ -124,7 +125,8 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         }
         catch (TimeoutError)
         {
-            if (showErrorDialog) OnTimeoutError.Show();
+            if (showErrorDialog)
+                OnTimeoutError.Show();
             throw;
         }
     }
@@ -137,7 +139,8 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         }
         catch (TimeoutError)
         {
-            if (showErrorDialog) OffTimeoutError.Show();
+            if (showErrorDialog)
+                OffTimeoutError.Show();
             throw;
         }
     }
@@ -229,13 +232,15 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
             return;
         }
 
-        if (Inverted) DigitalIoDevice.SetDigitalInputBitInverted(Channel, Inverted);
+        if (Inverted)
+            DigitalIoDevice.SetDigitalInputBitInverted(Channel, Inverted);
         DigitalIoDevice.InputBitChanged += DigitalIoDeviceOnInputBitChanged;
     }
 
     private void DigitalIoDeviceOnInputBitChanged(object? sender, (int channel, bool value) e)
     {
-        if (e.channel != Channel) return;
+        if (e.channel != Channel)
+            return;
         RefreshCache();
     }
 

@@ -9,9 +9,7 @@ public abstract class PropertyVariable : IActorItemSub, INotifyValueChanged, IWr
 {
     private static readonly ILog Logger = LogManager.GetLogger("PropertyVariable");
 
-    protected PropertyVariable()
-    {
-    }
+    protected PropertyVariable() { }
 
     protected PropertyVariable(PropertyVariable source)
     {
@@ -19,9 +17,11 @@ public abstract class PropertyVariable : IActorItemSub, INotifyValueChanged, IWr
         ItemPath = source.ItemPath;
     }
 
-    [JsonIgnore] public IActorInternal Actor { get; set; } = null!;
+    [JsonIgnore]
+    public IActorInternal Actor { get; set; } = null!;
 
-    [JsonIgnore] public string ItemPath { get; set; } = null!;
+    [JsonIgnore]
+    public string ItemPath { get; set; } = null!;
 
     public void UpdateSubItem()
     {
@@ -69,7 +69,7 @@ public abstract class PropertyVariable : IActorItemSub, INotifyValueChanged, IWr
                 new ItemDataWriteArgs(args)
                 {
                     Location = args.Location[1..],
-                    NewValue = args.NewValue
+                    NewValue = args.NewValue,
                 }
             );
         }

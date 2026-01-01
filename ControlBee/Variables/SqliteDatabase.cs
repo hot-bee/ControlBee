@@ -1,10 +1,10 @@
-﻿using ControlBee.Interfaces;
+﻿using System.Collections.Concurrent;
+using System.Data;
+using ControlBee.Interfaces;
+using ControlBeeAbstract.Exceptions;
 using log4net;
 using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
-using System.Collections.Concurrent;
-using System.Data;
-using ControlBeeAbstract.Exceptions;
 
 namespace ControlBee.Variables;
 
@@ -23,20 +23,22 @@ public class SqliteDatabase : IDatabase, IDisposable
 
     private string DbFilePath => Path.Combine(_systemConfigurations.DataFolder, DbFileName);
 
-    public int WriteVariables(VariableScope scope,
+    public int WriteVariables(
+        VariableScope scope,
         string localName,
         string actorName,
         string itemPath,
-        string value)
+        string value
+    )
     {
         var sql = """
-                  INSERT INTO variables (scope, local_name, actor_name, item_path, value)
-                  VALUES (@scope, @local_name, @actor_name, @item_path, @value)
-                  ON CONFLICT(local_name, actor_name, item_path) DO UPDATE SET
-                      value      = excluded.value,
-                      updated_at = datetime('now','localtime')
-                  RETURNING id;
-                  """;
+            INSERT INTO variables (scope, local_name, actor_name, item_path, value)
+            VALUES (@scope, @local_name, @actor_name, @item_path, @value)
+            ON CONFLICT(local_name, actor_name, item_path) DO UPDATE SET
+                value      = excluded.value,
+                updated_at = datetime('now','localtime')
+            RETURNING id;
+            """;
 
         try
         {
@@ -130,17 +132,18 @@ public class SqliteDatabase : IDatabase, IDisposable
     public string[] GetLocalNames()
     {
         var sql = """
-                  SELECT local_name
-                  FROM variables
-                  GROUP BY local_name;
-                  """;
+            SELECT local_name
+            FROM variables
+            GROUP BY local_name;
+            """;
         using var command = new SqliteCommand(sql, GetConnection());
         using var reader = command.ExecuteReader();
         var list = new List<string>();
         while (reader.Read())
         {
             var localName = reader["local_name"] as string;
-            if (!string.IsNullOrEmpty(localName)) list.Add(localName);
+            if (!string.IsNullOrEmpty(localName))
+                list.Add(localName);
         }
 
         return list.ToArray();
@@ -148,7 +151,8 @@ public class SqliteDatabase : IDatabase, IDisposable
 
     public void DeleteLocal(string localName)
     {
-        if (string.IsNullOrEmpty(localName)) return;
+        if (string.IsNullOrEmpty(localName))
+            return;
         const string sql = "DELETE FROM variables where local_name=@local_name";
 
         using var command = new SqliteCommand(sql, GetConnection());
@@ -159,11 +163,11 @@ public class SqliteDatabase : IDatabase, IDisposable
     public void RenameLocalName(string sourceLocalName, string targetLocalName)
     {
         const string sql = """
-                           UPDATE variables
-                           SET local_name = @target,
-                               updated_at = datetime('now','localtime')
-                           WHERE local_name = @source;
-                           """;
+            UPDATE variables
+            SET local_name = @target,
+                updated_at = datetime('now','localtime')
+            WHERE local_name = @source;
+            """;
 
         try
         {
@@ -214,14 +218,14 @@ public class SqliteDatabase : IDatabase, IDisposable
     public DataTable ReadLatestVariableChanges()
     {
         var sql = """
-                  SELECT *
-                  FROM variable_changes
-                  WHERE id IN (
-                      SELECT MAX(id)
-                      FROM variable_changes
-                      GROUP BY variable_id, location
-                  );
-                  """;
+            SELECT *
+            FROM variable_changes
+            WHERE id IN (
+                SELECT MAX(id)
+                FROM variable_changes
+                GROUP BY variable_id, location
+            );
+            """;
 
         var dt = new DataTable();
         try
@@ -241,13 +245,13 @@ public class SqliteDatabase : IDatabase, IDisposable
     public DataTable ReadVariableChanges()
     {
         var sql = """
-                  SELECT a.id, b.local_name, b.scope, a.variable_id, b.actor_name, b.item_path, 
-                  a.location, a.old_value, a.new_value, a.created_at
-                  FROM variable_changes a
-                  INNER JOIN variables b ON a.variable_id = b.id
-                  ORDER BY a.id DESC
-                  LIMIT 300
-                  """; // TODO: Support paging
+            SELECT a.id, b.local_name, b.scope, a.variable_id, b.actor_name, b.item_path, 
+            a.location, a.old_value, a.new_value, a.created_at
+            FROM variable_changes a
+            INNER JOIN variables b ON a.variable_id = b.id
+            ORDER BY a.id DESC
+            LIMIT 300
+            """; // TODO: Support paging
 
         var dt = new DataTable();
         try
@@ -266,17 +270,20 @@ public class SqliteDatabase : IDatabase, IDisposable
 
     private SqliteConnection GetConnection()
     {
-        return _connections.GetOrAdd(Thread.CurrentThread, _ =>
-        {
-            var connection = new SqliteConnection($"Data Source={DbFilePath}");
-            connection.Open();
+        return _connections.GetOrAdd(
+            Thread.CurrentThread,
+            _ =>
+            {
+                var connection = new SqliteConnection($"Data Source={DbFilePath}");
+                connection.Open();
 
-            using var command = connection.CreateCommand();
-            command.CommandText = "PRAGMA busy_timeout=60000;";
-            command.ExecuteNonQuery();
+                using var command = connection.CreateCommand();
+                command.CommandText = "PRAGMA busy_timeout=60000;";
+                command.ExecuteNonQuery();
 
-            return connection;
-        });
+                return connection;
+            }
+        );
     }
 
     object IDatabase.GetConnection()
@@ -305,44 +312,44 @@ public class SqliteDatabase : IDatabase, IDisposable
     private void CreateTables()
     {
         var sql = """
-                  CREATE TABLE IF NOT EXISTS variables(
-                          id INTEGER PRIMARY KEY,
-                          scope INTEGER NOT NULL,
-                          local_name TEXT NOT NULL,
-                          actor_name TEXT NOT NULL,
-                          item_path TEXT NOT NULL,
-                          value BLOB,
-                          updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
-                          UNIQUE (local_name, actor_name, item_path)
-                      );
-                  CREATE TABLE IF NOT EXISTS variable_changes(
-                      id INTEGER PRIMARY KEY,
-                      variable_id INTEGER,
-                      location TEXT,
-                      old_value BLOB,
-                      new_value BLOB,
-                      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
-                  );
-                  CREATE TABLE IF NOT EXISTS events(
-                          id INTEGER PRIMARY KEY,
-                          created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
-                          actor_name TEXT NOT NULL,
-                          name TEXT NOT NULL,
-                          code TEXT NULL,
-                          desc TEXT NULL,
-                          severity TEXT NOT NULL
-                      );
-                  CREATE TABLE IF NOT EXISTS users(
-                      id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                      user_id     TEXT    NOT NULL UNIQUE,
-                      password    TEXT    NOT NULL,
-                      name        TEXT    NOT NULL,
-                      level       INTEGER NOT NULL DEFAULT 0,
-                      created_at  TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
-                      updated_at  TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
-                      is_deleted  INTEGER NOT NULL DEFAULT 0
-                  );
-                  """;
+            CREATE TABLE IF NOT EXISTS variables(
+                    id INTEGER PRIMARY KEY,
+                    scope INTEGER NOT NULL,
+                    local_name TEXT NOT NULL,
+                    actor_name TEXT NOT NULL,
+                    item_path TEXT NOT NULL,
+                    value BLOB,
+                    updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+                    UNIQUE (local_name, actor_name, item_path)
+                );
+            CREATE TABLE IF NOT EXISTS variable_changes(
+                id INTEGER PRIMARY KEY,
+                variable_id INTEGER,
+                location TEXT,
+                old_value BLOB,
+                new_value BLOB,
+                created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+            );
+            CREATE TABLE IF NOT EXISTS events(
+                    id INTEGER PRIMARY KEY,
+                    created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+                    actor_name TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    code TEXT NULL,
+                    desc TEXT NULL,
+                    severity TEXT NOT NULL
+                );
+            CREATE TABLE IF NOT EXISTS users(
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id     TEXT    NOT NULL UNIQUE,
+                password    TEXT    NOT NULL,
+                name        TEXT    NOT NULL,
+                level       INTEGER NOT NULL DEFAULT 0,
+                created_at  TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
+                updated_at  TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
+                is_deleted  INTEGER NOT NULL DEFAULT 0
+            );
+            """;
         using var command = new SqliteCommand(sql, GetConnection());
         command.ExecuteNonQuery();
     }

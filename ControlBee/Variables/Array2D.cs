@@ -154,7 +154,7 @@ public class Array2D<T> : ArrayBase, IIndex2D, IWriteData
                 new ItemDataWriteArgs(args)
                 {
                     Location = args.Location[1..],
-                    NewValue = args.NewValue
+                    NewValue = args.NewValue,
                 }
             );
         }

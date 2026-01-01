@@ -41,7 +41,7 @@ public class Axis : DeviceChannel, IAxis
             Accel = 100.0,
             Decel = 100.0,
             AccelJerkRatio = 0.75,
-            DecelJerkRatio = 0.75
+            DecelJerkRatio = 0.75,
         }
     );
 
@@ -57,7 +57,7 @@ public class Axis : DeviceChannel, IAxis
             Accel = 100.0,
             Decel = 100.0,
             AccelJerkRatio = 0.75,
-            DecelJerkRatio = 0.75
+            DecelJerkRatio = 0.75,
         }
     );
 
@@ -78,7 +78,7 @@ public class Axis : DeviceChannel, IAxis
             Accel = 100.0,
             Decel = 100.0,
             AccelJerkRatio = 0.75,
-            DecelJerkRatio = 0.75
+            DecelJerkRatio = 0.75,
         }
     );
 
@@ -124,8 +124,10 @@ public class Axis : DeviceChannel, IAxis
             Enum.TryParse(initDirection, out InitDirection);
         if (dataSource.GetValue(ActorName, ItemPath, nameof(IsJogReversed)) is string isJogReversed)
             bool.TryParse(isJogReversed, out IsJogReversed);
-        if (dataSource.GetValue(ActorName, ItemPath, nameof(ResetEnableToClearPosition)) is string
-            resetEnableToClearPosition)
+        if (
+            dataSource.GetValue(ActorName, ItemPath, nameof(ResetEnableToClearPosition))
+            is string resetEnableToClearPosition
+        )
             bool.TryParse(resetEnableToClearPosition, out ResetEnableToClearPosition);
 
         InternalInitializeSequence = new InitializeSequence(
@@ -135,7 +137,10 @@ public class Axis : DeviceChannel, IAxis
             InitSensorType,
             InitDirection
         );
-        _initializeAction = () => { InternalInitializeSequence.Run(); };
+        _initializeAction = () =>
+        {
+            InternalInitializeSequence.Run();
+        };
     }
 
     public override void RefreshCache(bool alwaysUpdate = false)
@@ -173,19 +178,26 @@ public class Axis : DeviceChannel, IAxis
             {
                 var type = (string)message.DictPayload!["Type"]!;
                 var direction = (AxisDirection)message.DictPayload!["Direction"]!;
-                if (IsJogReversed) direction = (AxisDirection)((int)direction * -1);
+                if (IsJogReversed)
+                    direction = (AxisDirection)((int)direction * -1);
                 switch (type)
                 {
                     case "Continuous":
                     {
                         Logger.Debug("Continuous Jog Start");
 
-                        if (DictPath.Start(message.DictPayload)["JogSpeed"].Value is JogSpeedLevel jogSpeed)
+                        if (
+                            DictPath.Start(message.DictPayload)["JogSpeed"].Value
+                            is JogSpeedLevel jogSpeed
+                        )
                         {
                             var speed = GetJogSpeed(jogSpeed);
                             SetSpeed(speed);
                         }
-                        else if (DictPath.Start(message.DictPayload)["JogSpeedRatio"].Value is double jogSpeedRatio)
+                        else if (
+                            DictPath.Start(message.DictPayload)["JogSpeedRatio"].Value
+                            is double jogSpeedRatio
+                        )
                         {
                             var speed = GetClonedJogSpeed();
                             speed.Velocity *= jogSpeedRatio;
@@ -206,7 +218,8 @@ public class Axis : DeviceChannel, IAxis
                         if (IsMoving())
                             Logger.Warn("Cancel jog. It's already moving now.");
                         var jogStep = (JogStep)message.DictPayload!["JogStep"]!;
-                        var customStepSize = (double?)message.DictPayload!.GetValueOrDefault("CustomStepSize");
+                        var customStepSize = (double?)
+                            message.DictPayload!.GetValueOrDefault("CustomStepSize");
                         double step;
                         if (jogStep == JogStep.Custom)
                             step = customStepSize!.Value * (int)direction;
@@ -255,6 +268,7 @@ public class Axis : DeviceChannel, IAxis
         TimeManager.Sleep(value ? EnableDelay.Value : DisableDelay.Value);
         RefreshCache();
     }
+
     public SpeedProfile GetClonedJogSpeed()
     {
         var jogSpeed = (SpeedProfile)JogSpeed.ValueObject!;
@@ -648,7 +662,12 @@ public class Axis : DeviceChannel, IAxis
             return;
         }
 
-        MotionDevice.SetSoftwareLimit(Channel, enable, negativeLimit * Resolution.Value, positiveLimit * Resolution.Value);
+        MotionDevice.SetSoftwareLimit(
+            Channel,
+            enable,
+            negativeLimit * Resolution.Value,
+            positiveLimit * Resolution.Value
+        );
     }
 
     public virtual void SetPosition(
@@ -773,7 +792,7 @@ public class Axis : DeviceChannel, IAxis
             AxisSensorType.Home => MotionDevice.GetHomeSensor(Channel),
             AxisSensorType.PositiveLimit => MotionDevice.GetPositiveLimitSensor(Channel),
             AxisSensorType.NegativeLimit => MotionDevice.GetNegativeLimitSensor(Channel),
-            _ => throw new ValueError()
+            _ => throw new ValueError(),
         };
     }
 
@@ -899,7 +918,7 @@ public class Axis : DeviceChannel, IAxis
                 ["IsInitializing"] = _isInitializingCache,
                 ["IsHomeDet"] = _isHomeDetCache,
                 ["IsNegativeLimitDet"] = _isNegativeLimitDetCache,
-                ["IsPositiveLimitDet"] = _isPositiveLimitDetCache
+                ["IsPositiveLimitDet"] = _isPositiveLimitDetCache,
             };
         }
 
@@ -924,7 +943,9 @@ public class Axis : DeviceChannel, IAxis
             throw new ValueError("You must provide a speed greater than 0 to move the axis.");
         if (IsAlarmed())
         {
-            Logger.Error($"Occur axis alarm error during ValidateBeforeMove. ({ActorName}, {ItemPath})");
+            Logger.Error(
+                $"Occur axis alarm error during ValidateBeforeMove. ({ActorName}, {ItemPath})"
+            );
             AxisAlarmError.Show();
             throw new AxisAlarmError();
         }

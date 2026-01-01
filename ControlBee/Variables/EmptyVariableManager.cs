@@ -9,21 +9,13 @@ public class EmptyVariableManager : IVariableManager
 {
     public static EmptyVariableManager Instance = new();
 
-    private EmptyVariableManager()
-    {
-    }
+    private EmptyVariableManager() { }
 
-    public void Add(IVariable variable)
-    {
-    }
+    public void Add(IVariable variable) { }
 
-    public void Save(string? localName = null)
-    {
-    }
+    public void Save(string? localName = null) { }
 
-    public void Load(string? localName = null)
-    {
-    }
+    public void Load(string? localName = null) { }
 
     public string LocalName { get; } = "";
     public string[] LocalNames { get; } = [];
@@ -58,7 +50,8 @@ public class EmptyVariableManager : IVariableManager
 
     protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
-        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        if (EqualityComparer<T>.Default.Equals(field, value))
+            return false;
         field = value;
         OnPropertyChanged(propertyName);
         return true;
@@ -75,17 +68,29 @@ public class EmptyVariableManager : IVariableManager
         // Empty
     }
 
-    public void WriteVariable<T>(string localName, string actorName, string itemPath, T value) where T : new()
+    public void WriteVariable<T>(string localName, string actorName, string itemPath, T value)
+        where T : new()
     {
         // Empty
     }
 
-    public object ReadVariable(Type variableType, string localName, string actorName, string itemPath)
+    public object ReadVariable(
+        Type variableType,
+        string localName,
+        string actorName,
+        string itemPath
+    )
     {
         throw new NotImplementedException();
     }
 
-    public void WriteVariable(Type variableType, string localName, string actorName, string itemPath, object value)
+    public void WriteVariable(
+        Type variableType,
+        string localName,
+        string actorName,
+        string itemPath,
+        object value
+    )
     {
         throw new NotImplementedException();
     }
