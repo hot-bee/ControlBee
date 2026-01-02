@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBeeTest.Utils;
+using ControlBee.TestUtils;
+using ControlBeeTest.TestUtils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -38,9 +39,9 @@ MyActor:
 
         var match = new Func<Message, bool>(message =>
         {
-            var metaData = (Dictionary<string, object?>)message.Payload!;
+            var metaData = message.DictPayload;
             return message.Name == "_itemMetaData"
-                && metaData["Name"] as string == "My Empty Item"
+                && metaData!["Name"] as string == "My Empty Item"
                 && metaData["Desc"] as string
                     == "The description describing what my empty item is.";
         });

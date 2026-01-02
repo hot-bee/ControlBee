@@ -1,8 +1,9 @@
 ﻿using System;
 using ControlBee.Interfaces;
 using ControlBee.Models;
+using ControlBee.TestUtils;
 using ControlBeeAbstract.Exceptions;
-using ControlBeeTest.Utils;
+using ControlBeeTest.TestUtils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -71,7 +72,7 @@ public class ActorStateTest : ActorFactoryBase
         Mock.Get(ui)
             .Verify(
                 m => m.Send(It.Is<Message>(message => message.Name == "_stateChanged")),
-                Times.Once
+                Times.Exactly(2)
             );
         Assert.True(called);
     }

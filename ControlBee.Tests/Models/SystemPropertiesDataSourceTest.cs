@@ -11,7 +11,8 @@ public class SystemPropertiesDataSourceTest
     [Fact]
     public void ReadTest()
     {
-        var dataSource = new SystemPropertiesDataSource();
+        var systemConfigurations = new SystemConfigurations();
+        var dataSource = new SystemPropertiesDataSource(systemConfigurations);
         dataSource.ReadFromString(
             @"
 Picker0:

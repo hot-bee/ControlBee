@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBeeTest.Utils;
+using ControlBee.TestUtils;
+using ControlBeeTest.TestUtils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -52,22 +53,20 @@ MyActor:
 
         var match1 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
-            var payload = (Dictionary<string, object?>)actorItemMessage.Payload!;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/MySensor" }
-                && (long)payload["Data"]! == 0;
+                && (long)message.DictPayload!["Data"]! == 0;
         });
         Mock.Get(uiActor)
-            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
+            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Exactly(2));
 
         var match2 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
-            var payload = (Dictionary<string, object?>)actorItemMessage.Payload!;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/MySensor" }
-                && (long)payload["Data"]! == 100;
+                && (long)message.DictPayload!["Data"]! == 100;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);

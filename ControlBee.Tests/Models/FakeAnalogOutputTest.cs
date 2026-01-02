@@ -1,7 +1,8 @@
 ﻿using System;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBeeTest.Utils;
+using ControlBee.TestUtils;
+using ControlBeeTest.TestUtils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -15,7 +16,7 @@ public class FakeAnalogOutputTest : ActorFactoryBase
     [Fact]
     public void WriteDataTest()
     {
-        var fakeAnalogOutput = new FakeAnalogOutput();
+        var fakeAnalogOutput = new FakeAnalogOutput() { Data = 0 };
 
         Assert.Equal(0, fakeAnalogOutput.Read());
         fakeAnalogOutput.Write(100);
@@ -55,22 +56,20 @@ public class FakeAnalogOutputTest : ActorFactoryBase
 
         var match1 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
-            var payload = (Dict)actorItemMessage.Payload!;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/MyActuator" }
-                && (long)payload["Data"]! == 0;
+                && (long)message.DictPayload!["Data"]! == 0;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
 
         var match2 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
-            var payload = (Dict)actorItemMessage.Payload!;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/MyActuator" }
-                && (long)payload["Data"]! == 100;
+                && (long)message.DictPayload!["Data"]! == 100;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
@@ -99,7 +98,7 @@ public class FakeAnalogOutputTest : ActorFactoryBase
 
         var match1 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/MyActuator" }
                 && (long)actorItemMessage.DictPayload!["Data"]! == 0;
@@ -109,7 +108,7 @@ public class FakeAnalogOutputTest : ActorFactoryBase
 
         var match2 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/MyActuator" }
                 && (long)actorItemMessage.DictPayload!["Data"]! == 200;

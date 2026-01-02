@@ -1,7 +1,9 @@
 ﻿using System;
+using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBeeTest.Utils;
+using ControlBee.TestUtils;
+using ControlBeeTest.TestUtils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -15,21 +17,21 @@ public class FakeDigitalOutputTest : ActorFactoryBase
     [Fact]
     public void OnOffTest()
     {
-        var fakeDigitalOutput = new FakeDigitalOutput(DeviceManager, TimeManager);
+        var fakeDigitalOutput = new FakeDigitalOutput(TimeManager);
         Assert.Null(fakeDigitalOutput.IsOn());
         Assert.Null(fakeDigitalOutput.IsOff());
 
-        fakeDigitalOutput.On();
-        Assert.True(fakeDigitalOutput.IsCommandOn());
-        Assert.True(fakeDigitalOutput.IsCommandOff() == false);
-        Assert.True(fakeDigitalOutput.IsOn() is null);
-        Assert.True(fakeDigitalOutput.IsOff() is null);
+        fakeDigitalOutput.OnAndWait();
+        Assert.True(fakeDigitalOutput.IsOn(CommandActualType.Command));
+        Assert.True(fakeDigitalOutput.IsOff(CommandActualType.Command) == false);
+        Assert.True(fakeDigitalOutput.IsOn() is true);
+        Assert.True(fakeDigitalOutput.IsOff() is false);
 
-        fakeDigitalOutput.Off();
-        Assert.True(fakeDigitalOutput.IsCommandOn() == false);
-        Assert.True(fakeDigitalOutput.IsCommandOff());
-        Assert.True(fakeDigitalOutput.IsOn() is null);
-        Assert.True(fakeDigitalOutput.IsOff() is null);
+        fakeDigitalOutput.OffAndWait();
+        Assert.True(fakeDigitalOutput.IsOn(CommandActualType.Command) == false);
+        Assert.True(fakeDigitalOutput.IsOff(CommandActualType.Command));
+        Assert.True(fakeDigitalOutput.IsOn() is false);
+        Assert.True(fakeDigitalOutput.IsOff() is true);
     }
 
     [Fact]
@@ -62,35 +64,32 @@ public class FakeDigitalOutputTest : ActorFactoryBase
 
         var match1 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
-            var payload = (Dict)actorItemMessage.Payload!;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Vacuum" }
-                && (bool)payload["On"]! == false;
+                && (bool)message.DictPayload!["CommandOn"]! == false;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
 
         var match2 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
-            var payload = (Dict)actorItemMessage.Payload!;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Vacuum" }
-                && (bool)payload["On"]!
-                && payload["IsOn"] == null;
+                && (bool)message.DictPayload!["CommandOn"]!
+                && message.DictPayload!["ActualOn"] == null;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
 
         var match3 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
-            var payload = (Dict)actorItemMessage.Payload!;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Vacuum" }
-                && (bool)payload["On"]!
-                && payload["IsOn"] is true;
+                && (bool)message.DictPayload!["CommandOn"]!
+                && message.DictPayload["ActualOn"] is true;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match3(message))), Times.Once);
@@ -115,32 +114,32 @@ public class FakeDigitalOutputTest : ActorFactoryBase
 
         var match1 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Vacuum" }
-                && actorItemMessage.DictPayload!["On"] is false;
+                && actorItemMessage.DictPayload!["CommandOn"] is false;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
 
         var match2 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Vacuum" }
-                && actorItemMessage.DictPayload!["On"] is true
-                && actorItemMessage.DictPayload!["IsOn"] is null;
+                && actorItemMessage.DictPayload!["CommandOn"] is true
+                && actorItemMessage.DictPayload!["ActualOn"] is null;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
 
         var match3 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Vacuum" }
-                && actorItemMessage.DictPayload!["On"] is true
-                && actorItemMessage.DictPayload!["IsOn"] is true;
+                && actorItemMessage.DictPayload!["CommandOn"] is true
+                && actorItemMessage.DictPayload!["ActualOn"] is true;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match3(message))), Times.Once);
@@ -154,6 +153,7 @@ public class FakeDigitalOutputTest : ActorFactoryBase
             : base(config)
         {
             Vacuum = config.DigitalOutputFactory.Create();
+            ((DigitalOutput)Vacuum).OnDelay.Value = 100;
         }
 
         protected override void MessageHandler(Message message)

@@ -3,9 +3,11 @@ using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
+using ControlBee.TestUtils;
 using ControlBee.Variables;
+using ControlBeeAbstract.Constants;
 using ControlBeeAbstract.Exceptions;
-using ControlBeeTest.Utils;
+using ControlBeeTest.TestUtils;
 using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
@@ -451,9 +453,7 @@ public class FakeAxisTest : ActorFactoryBase
         var fakeAxis = new FakeAxis(DeviceManager, frozenTimeManager, scenarioFlowTester);
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 10.0 });
         fakeAxis.Move(10.0);
-        Assert.Throws<SequenceError>(() =>
-            fakeAxis.WaitForPosition(PositionComparisonType.Greater, 20)
-        );
+        Assert.False(fakeAxis.WaitForPosition(PositionComparisonType.Greater, 20));
     }
 
     [Fact]

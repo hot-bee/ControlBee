@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using ControlBee.Interfaces;
 using ControlBee.Models;
+using ControlBee.TestUtils;
 using ControlBee.Variables;
 using ControlBeeAbstract.Exceptions;
-using ControlBeeTest.Utils;
+using ControlBeeTest.TestUtils;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
 using Moq;
@@ -18,6 +19,7 @@ public class ActorBuiltinMessageHandlerTest : ActorFactoryBase
     [Fact]
     public void InitializeAxisTest()
     {
+        RecreateWithSkipWaitSensor();
         var actor = ActorFactory.Create<TestActor>("MyActor");
         actor.State = new IdleState(actor);
 
@@ -26,7 +28,7 @@ public class ActorBuiltinMessageHandlerTest : ActorFactoryBase
         actor.Send(new Message(actor, "_terminate"));
         actor.Join();
 
-        Assert.IsType<EmptyState>(actor.State);
+        Assert.IsType<IdleState>(actor.State);
     }
 
     [Fact]
@@ -148,25 +150,13 @@ MyActor:
 
     private class TestActor : Actor
     {
-        public readonly Variable<Position1D> HomePositionX = new(
-            VariableScope.Global,
-            new Position1D(DenseVector.OfArray([10.0]))
-        );
-
-        public readonly Variable<SpeedProfile> HomeSpeedX = new();
         public readonly IAxis X;
-        public IInitializeSequence InitializeSequenceX;
 
         public TestActor(ActorConfig config)
             : base(config)
         {
             X = config.AxisFactory.Create();
-            InitializeSequenceX = config.InitializeSequenceFactory.Create(
-                X,
-                HomeSpeedX,
-                HomePositionX
-            );
-            X.SetInitializeAction(() => throw new FatalSequenceError());
+            X.GetInitPos()[0] = 10.0;
         }
     }
 

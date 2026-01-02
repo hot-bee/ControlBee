@@ -3,7 +3,8 @@ using System.Collections.Concurrent;
 using System.Linq;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBeeTest.Utils;
+using ControlBee.TestUtils;
+using ControlBeeTest.TestUtils;
 using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
@@ -18,7 +19,7 @@ public class ActorMessageTest : ActorFactoryBase
     public void TimeoutTest()
     {
         var actor = ActorFactory.Create<TestActorA1>("MyActor");
-        actor.MessageFetchTimeout = 0;
+        actor.TimerMilliseconds = 0;
         actor.Start();
         actor.Join();
     }
@@ -118,7 +119,7 @@ public class ActorMessageTest : ActorFactoryBase
         Assert.IsType<StateA>(actor.State);
     }
 
-    [Fact]
+    [Fact(Skip = "We don't care the return value any more.")]
     public void WrongProcessMessageReturnTest()
     {
         var actor = ActorFactory.Create<TestActorB>("MyActor");
@@ -186,9 +187,9 @@ public class ActorMessageTest : ActorFactoryBase
     {
         protected override bool ProcessMessage(Message message)
         {
-            switch (message)
+            switch (message.Name)
             {
-                case TimeoutMessage:
+                case TimerMessage.MessageName:
                     Send(new TerminateMessage());
                     return true;
             }

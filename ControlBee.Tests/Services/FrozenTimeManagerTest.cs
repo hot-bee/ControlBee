@@ -7,8 +7,10 @@ using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Sequences;
 using ControlBee.Services;
+using ControlBee.TestUtils;
 using ControlBee.Variables;
-using ControlBeeTest.Utils;
+using ControlBeeAbstract.Constants;
+using ControlBeeTest.TestUtils;
 using FluentAssertions;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
@@ -164,26 +166,15 @@ public class FrozenTimeManagerTest : ActorFactoryBase
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Local")]
     private class TestActor : Actor
     {
-        public readonly Variable<Position1D> HomePositionX = new(
-            VariableScope.Global,
-            new Position1D(DenseVector.OfArray([10.0]))
-        );
-
-        public readonly Variable<SpeedProfile> HomingSpeedX = new(
-            VariableScope.Global,
-            new SpeedProfile { Velocity = 1.0 }
-        );
-
-        public readonly InitializeSequence InitializeSequenceX;
-
         public readonly IAxis X;
 
         public TestActor(ActorConfig config)
             : base(config)
         {
             X = config.AxisFactory.Create();
-            PositionAxesMap.Add(HomePositionX, [X]);
-            InitializeSequenceX = new InitializeSequence(X, HomingSpeedX, HomePositionX);
+            X.GetInitPos()[0] = 10.0;
+            X.GetInitSpeed().Velocity = 1.0;
+            ((Axis)X).InitDirection = AxisDirection.Negative;
         }
 
         protected override bool ProcessMessage(Message message)
@@ -194,7 +185,7 @@ public class FrozenTimeManagerTest : ActorFactoryBase
                     TimeManager
                         .RunTask(() =>
                         {
-                            InitializeSequenceX.Run();
+                            X.Initialize();
                             return 0;
                         })
                         .Wait();

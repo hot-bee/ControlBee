@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using ControlBee.Interfaces;
 using ControlBee.Models;
+using ControlBee.TestUtils;
+using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
-using ControlBeeTest.Utils;
+using ControlBeeTest.TestUtils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -56,9 +58,34 @@ public class FakeDigitalInputTest : ActorFactoryBase
         Assert.False(input.IsOffOrFalse());
     }
 
+    private IDigitalIoDevice SetupDevice()
+    {
+        SystemPropertiesDataSource.ReadFromString(
+            """
+              MyActor:
+                MySensor:
+                  DeviceName: MyDevice
+                  Channel: 0
+            """
+        );
+
+        var device = Mock.Of<IDigitalIoDevice>();
+        DeviceManager.Add("MyDevice", device);
+        return device;
+    }
+
     [Fact]
     public void TimeoutTest()
     {
+        var config = new ActorFactoryBaseConfig
+        {
+            SystemConfigurations = new SystemConfigurations { FakeMode = false },
+        };
+        Recreate(config);
+
+        var device = SetupDevice();
+        Mock.Get(device).Setup(m => m.GetDigitalInputBit(0)).Returns(false);
+
         var ui = Mock.Of<IUiActor>();
         Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(ui);
@@ -130,22 +157,20 @@ MyActor:
 
         var match1 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
-            var payload = (Dictionary<string, object?>)actorItemMessage.Payload!;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/MySensor" }
-                && (bool)payload["IsOn"]! == false;
+                && (bool)message.DictPayload!["ActualOn"]! == false;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
 
         var match2 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
-            var payload = (Dictionary<string, object?>)actorItemMessage.Payload!;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/MySensor" }
-                && (bool)payload["IsOn"]!;
+                && (bool)message.DictPayload!["ActualOn"]!;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
@@ -171,7 +196,6 @@ MyActor:
                     {
                         // Alert trigger will be checked.
                     }
-
                     break;
                 case "ChangeFakeDigitalInputValue":
                     ((FakeDigitalInput)MySensor).On = true;
@@ -179,6 +203,11 @@ MyActor:
             }
 
             base.MessageHandler(message);
+        }
+
+        protected override IState CreateErrorState(SequenceError error)
+        {
+            return new ErrorState<TestActor>(this, error);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using ControlBee.Models;
+using ControlBee.TestUtils;
 using ControlBee.Variables;
-using ControlBeeTest.Utils;
+using ControlBeeTest.TestUtils;
 using FluentAssertions;
 using JetBrains.Annotations;
 using Xunit;

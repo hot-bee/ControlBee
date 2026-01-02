@@ -2,8 +2,9 @@
 using ControlBee.Models;
 using ControlBee.Sequences;
 using ControlBee.Services;
+using ControlBee.TestUtils;
 using ControlBee.Variables;
-using ControlBeeTest.Utils;
+using ControlBeeTest.TestUtils;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
 using Moq;
@@ -14,7 +15,7 @@ namespace ControlBee.Tests.Services;
 [TestSubject(typeof(InitializeSequenceFactory))]
 public class InitializeSequenceFactoryTest : ActorFactoryBase
 {
-    [Theory]
+    [Theory(Skip = "We don't use InitializeSequenceFactory anymore.")]
     [InlineData(true)]
     [InlineData(false)]
     public void CreateTest(bool fakeMode)
@@ -32,7 +33,7 @@ public class InitializeSequenceFactoryTest : ActorFactoryBase
             Assert.IsType<InitializeSequence>(sequence);
     }
 
-    [Theory]
+    [Theory(Skip = "We don't use InitializeSequenceFactory anymore.")]
     [InlineData(true)]
     [InlineData(false)]
     public void CreateFromActor(bool fakeMode)

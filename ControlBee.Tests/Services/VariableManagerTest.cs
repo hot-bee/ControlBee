@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Data;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Services;
+using ControlBee.TestUtils;
 using ControlBee.Variables;
-using ControlBeeTest.Utils;
+using ControlBeeTest.TestUtils;
 using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
@@ -21,9 +23,17 @@ public class VariableManagerTest : ActorFactoryBase
         _ = new Variable<int>(actor, "myId", VariableScope.Local, 1);
         VariableManager.LocalName.Should().Be("Default");
         VariableManager.Save("myRecipe");
+        const string jsonString = "{\r\n  \"Version\": 2,\r\n  \"Value\": 1\r\n}";
         Mock.Get(Database)
             .Verify(
-                m => m.Write(VariableScope.Local, "myRecipe", "myActor", "myId", "1"),
+                m =>
+                    m.WriteVariables(
+                        VariableScope.Local,
+                        "myRecipe",
+                        "myActor",
+                        "myId",
+                        jsonString
+                    ),
                 Times.Once
             );
         VariableManager.LocalName.Should().Be("myRecipe");
@@ -32,7 +42,8 @@ public class VariableManagerTest : ActorFactoryBase
     [Fact]
     public void LoadTest()
     {
-        Mock.Get(Database).Setup(m => m.Read("myRecipe", "MyActor", "myId")).Returns("2");
+        Mock.Get(Database).Setup(m => m.Read("myRecipe", "MyActor", "myId")).Returns((10, "2"));
+        Mock.Get(Database).Setup(m => m.ReadLatestVariableChanges()).Returns(new DataTable());
         VariableManager.LocalName.Should().Be("Default");
         var actor = ActorFactory.Create<Actor>("MyActor");
         var variable = new Variable<int>(actor, "myId", VariableScope.Local, 1);
@@ -65,7 +76,13 @@ public class VariableManagerTest : ActorFactoryBase
     public void VariableInActorTest()
     {
         var databaseMock = new Mock<IDatabase>();
-        var variableManager = new VariableManager(databaseMock.Object, EmptyActorRegistry.Instance);
+        var systemConfigurations = new SystemConfigurations();
+        var variableManager = new VariableManager(
+            databaseMock.Object,
+            EmptyActorRegistry.Instance,
+            systemConfigurations,
+            EmptyDeviceManager.Instance
+        );
         var actor = new Mock<IActorInternal>();
         actor.Setup(m => m.Name).Returns("myActor");
         actor.Setup(m => m.VariableManager).Returns(variableManager);

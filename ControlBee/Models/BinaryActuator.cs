@@ -105,12 +105,12 @@ public class BinaryActuator : ActorItem, IBinaryActuator
 
     public bool OnDetect()
     {
-        return _inputOn?.IsOn() ?? _inputOff?.IsOff() ?? false;
+        return _inputOn?.IsOnOrTrue() ?? _inputOff?.IsOffOrTrue() ?? false;
     }
 
     public bool OffDetect()
     {
-        return _inputOff?.IsOn() ?? _inputOn?.IsOff() ?? false;
+        return _inputOff?.IsOnOrTrue() ?? _inputOn?.IsOffOrTrue() ?? false;
     }
 
     public void OnAndWait()
@@ -151,15 +151,6 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         _outputOff = manager.TryGet(_outputOff);
         _inputOn = manager.TryGet(_inputOn);
         _inputOff = manager.TryGet(_inputOff);
-
-        if (_inputOn?.GetDevice() == null)
-            _inputOn = null;
-        if (_inputOff?.GetDevice() == null)
-            _inputOff = null;
-        if (_outputOn?.GetDevice() == null)
-            _outputOn = null;
-        if (_outputOff?.GetDevice() == null)
-            _outputOff = null;
         Subscribe();
     }
 
@@ -185,13 +176,10 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         CommandOn = on;
         _outputOn?.SetOn(CommandOn);
         _outputOff?.SetOn(!CommandOn);
-        if (_systemConfigurations.SkipWaitSensor)
-        {
-            if (_inputOn is FakeDigitalInput fakeInputOn)
-                fakeInputOn.On = on;
-            if (_inputOff is FakeDigitalInput fakeInputOff)
-                fakeInputOff.On = !on;
-        }
+        if (_inputOn is FakeDigitalInput fakeInputOn)
+            fakeInputOn.On = on;
+        if (_inputOff is FakeDigitalInput fakeInputOff)
+            fakeInputOff.On = !on;
 
         var delay = on ? OnDelay.Value : OffDelay.Value;
         var timeout = on ? OnTimeout.Value : OffTimeout.Value;

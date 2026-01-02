@@ -1,7 +1,8 @@
 ﻿using ControlBee.Interfaces;
 using ControlBee.Models;
+using ControlBee.TestUtils;
 using ControlBee.Variables;
-using ControlBeeTest.Utils;
+using ControlBeeTest.TestUtils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -84,7 +85,7 @@ public class ActorItemBinderTest : ActorFactoryBase
                 case 0:
                     callCount++;
                     Assert.Equal([], valueChangedArgs?.Location);
-                    Assert.Null(valueChangedArgs?.OldValue);
+                    Assert.Equal(0, valueChangedArgs?.OldValue);
                     Assert.Equal(1, valueChangedArgs?.NewValue);
                     variable.Value = 2;
                     break;

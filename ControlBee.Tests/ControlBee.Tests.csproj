@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ControlBeeTest" Version="0.0.13" />
     <PackageReference Include="FluentAssertions" Version="7.0.0" />
     <PackageReference Include="FluentAssertions.Json" Version="6.1.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
