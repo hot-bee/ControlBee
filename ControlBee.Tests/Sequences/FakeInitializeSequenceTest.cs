@@ -2,9 +2,11 @@
 using ControlBee.Models;
 using ControlBee.Sequences;
 using ControlBee.Variables;
+using ControlBeeAbstract.Devices;
 using ControlBeeTest.Utils;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
+using Moq;
 using Xunit;
 
 namespace ControlBee.Tests.Sequences;
@@ -12,9 +14,27 @@ namespace ControlBee.Tests.Sequences;
 [TestSubject(typeof(FakeInitializeSequence))]
 public class FakeInitializeSequenceTest : ActorFactoryBase
 {
+    private IMotionDevice SetupWithDevice()
+    {
+        SystemPropertiesDataSource.ReadFromString(
+            """
+              MyActor:
+                X:
+                  DeviceName: MyDevice
+                  Channel: 0
+            """
+        );
+
+        var device = Mock.Of<IMotionDevice>();
+        DeviceManager.Add("MyDevice", device);
+        return device;
+    }
+
     [Fact]
     public void RunTest()
     {
+        RecreateWithSkipWaitSensor();
+        SetupWithDevice();
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
         actor.Start();
@@ -26,16 +46,6 @@ public class FakeInitializeSequenceTest : ActorFactoryBase
 
     private class TestActor : Actor
     {
-        public readonly Variable<Position1D> HomePositionX = new(
-            VariableScope.Global,
-            new Position1D(DenseVector.OfArray([100.0]))
-        );
-
-        public readonly Variable<SpeedProfile> HomeSpeedX = new(
-            VariableScope.Global,
-            new SpeedProfile { Velocity = 10.0 }
-        );
-
         public readonly IInitializeSequence InitializeSequenceX;
         public readonly IAxis X;
 
@@ -43,19 +53,14 @@ public class FakeInitializeSequenceTest : ActorFactoryBase
             : base(config)
         {
             X = config.AxisFactory.Create();
-            PositionAxesMap.Add(HomePositionX, [X]);
-            InitializeSequenceX = config.InitializeSequenceFactory.Create(
-                X,
-                HomeSpeedX,
-                HomePositionX
-            );
+            X.GetInitPos()[0] = 100.0;
         }
 
         protected override void MessageHandler(Message message)
         {
             base.MessageHandler(message);
             if (message.Name == "Go")
-                InitializeSequenceX.Run();
+                X.Initialize();
         }
     }
 }

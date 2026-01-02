@@ -43,7 +43,7 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
         }
     }
 
-    public long Read()
+    public virtual long Read()
     {
         if (AnalogIoDevice == null)
             return 0;

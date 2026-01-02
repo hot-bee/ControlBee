@@ -6,6 +6,10 @@ namespace ControlBee.Models;
 public class FakeAnalogOutput() : AnalogOutput(EmptyDeviceManager.Instance)
 {
     private static readonly ILog Logger = LogManager.GetLogger("General");
+    public long Data
+    {
+        set => InternalData = value;
+    }
 
     protected override void WriteToDevice()
     {

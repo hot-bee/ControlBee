@@ -525,7 +525,7 @@ public class Axis : DeviceChannel, IAxis
         }
     }
 
-    public void RelativeMove(double distance)
+    public virtual void RelativeMove(double distance)
     {
         if (MotionDevice == null)
         {
@@ -796,6 +796,16 @@ public class Axis : DeviceChannel, IAxis
         };
     }
 
+    public virtual bool GetSensorValueOrTrue(AxisSensorType type)
+    {
+        return GetSensorValue(type);
+    }
+
+    public virtual bool GetSensorValueOrFalse(AxisSensorType type)
+    {
+        return GetSensorValue(type);
+    }
+
     public virtual void WaitSensor(AxisSensorType type, bool waitingValue, int millisecondsTimeout)
     {
         var watch = _timeManager.CreateWatch();
@@ -830,12 +840,6 @@ public class Axis : DeviceChannel, IAxis
 
     public void Initialize()
     {
-        if (MotionDevice == null)
-        {
-            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
-            return;
-        }
-
         _initializing = true;
         RefreshCache();
 

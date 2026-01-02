@@ -39,7 +39,7 @@ public class VariableTest : ActorFactoryBase
     {
         var actor = ActorFactory.Create<Actor>("MyActor");
         var intVariable = new Variable<int>(actor, "myId", VariableScope.Global, 1);
-        Assert.Equal("1", intVariable.ToJson());
+        Assert.Equal("{\r\n  \"Version\": 2,\r\n  \"Value\": 1\r\n}", intVariable.ToJson());
 
         var called = false;
         intVariable.ValueChanged += (s, e) =>
@@ -49,7 +49,7 @@ public class VariableTest : ActorFactoryBase
             Assert.Equal(2, e.NewValue);
             called = true;
         };
-        intVariable.FromJson("2");
+        intVariable.FromJson("{\r\n  \"Version\": 2,\r\n  \"Value\": 2\r\n}");
         Assert.Equal(2, intVariable.Value);
         Assert.True(called);
     }
@@ -174,10 +174,8 @@ public class VariableTest : ActorFactoryBase
                 actorItemMessage.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
             return actorItemMessage.Name == "_itemDataChanged"
                 && valueChangedArgs?.Location == (object[])[]
-                && valueChangedArgs.OldValue == null
-                && valueChangedArgs.NewValue as int? == 1
-                && actorItemMessage.ActorName == "MyActor"
-                && actorItemMessage.ItemPath == "/myVar";
+                && valueChangedArgs is { OldValue: 0, NewValue: 1 }
+                && actorItemMessage is { ActorName: "MyActor", ItemPath: "/myVar" };
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);

@@ -5,10 +5,12 @@ using ControlBee.Models;
 using ControlBee.Sequences;
 using ControlBee.Variables;
 using ControlBeeAbstract.Constants;
+using ControlBeeAbstract.Devices;
 using ControlBeeTest.Utils;
 using FluentAssertions;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
+using Moq;
 using Xunit;
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
@@ -21,6 +23,13 @@ public class InitializeSequenceTest : ActorFactoryBase
     [Fact]
     public void NormalTest()
     {
+        Recreate(
+            new ActorFactoryBaseConfig
+            {
+                SystemConfigurations = new SystemConfigurations { FakeMode = true },
+            }
+        );
+
         var testActor = ActorFactory.Create<TestActor>("testActor");
         var axisX = (FakeAxis)testActor.X;
         var axisY = (FakeAxis)testActor.Y;
@@ -65,40 +74,6 @@ public class InitializeSequenceTest : ActorFactoryBase
 
     private class TestActor : Actor
     {
-        public readonly Variable<Position1D> HomePositionX = new(
-            VariableScope.Global,
-            new Position1D(DenseVector.OfArray([10.0]))
-        );
-
-        public readonly Variable<Position1D> HomePositionY = new(
-            VariableScope.Global,
-            new Position1D(DenseVector.OfArray([10.0]))
-        );
-
-        public readonly Variable<Position1D> HomePositionZ = new(
-            VariableScope.Global,
-            new Position1D(DenseVector.OfArray([10.0]))
-        );
-
-        public readonly Variable<SpeedProfile> HomingSpeedX = new(
-            VariableScope.Global,
-            new SpeedProfile { Velocity = 1.0 }
-        );
-
-        public readonly Variable<SpeedProfile> HomingSpeedY = new(
-            VariableScope.Global,
-            new SpeedProfile { Velocity = 1.0 }
-        );
-
-        public readonly Variable<SpeedProfile> HomingSpeedZ = new(
-            VariableScope.Global,
-            new SpeedProfile { Velocity = 1.0 }
-        );
-
-        public readonly InitializeSequence InitializeSequenceX;
-        public readonly InitializeSequence InitializeSequenceY;
-        public readonly InitializeSequence InitializeSequenceZ;
-
         public readonly IAxis X;
         public readonly IAxis Y;
         public readonly IAxis Z;
@@ -110,47 +85,33 @@ public class InitializeSequenceTest : ActorFactoryBase
             Y = config.AxisFactory.Create();
             Z = config.AxisFactory.Create();
 
-            PositionAxesMap.Add(HomePositionX, [X]);
-            PositionAxesMap.Add(HomePositionY, [Y]);
-            PositionAxesMap.Add(HomePositionZ, [Z]);
+            X.GetInitPos()[0] = 10.0;
+            Y.GetInitPos()[0] = 10.0;
+            Z.GetInitPos()[0] = 10.0;
 
-            InitializeSequenceX = new InitializeSequence(
-                X,
-                HomingSpeedX,
-                HomePositionX,
-                AxisSensorType.Home,
-                AxisDirection.Positive
-            );
-            InitializeSequenceY = new InitializeSequence(
-                Y,
-                HomingSpeedY,
-                HomePositionY,
-                AxisSensorType.Home,
-                AxisDirection.Positive
-            );
-            InitializeSequenceZ = new InitializeSequence(
-                Z,
-                HomingSpeedZ,
-                HomePositionZ,
-                AxisSensorType.Home,
-                AxisDirection.Positive
-            );
+            X.GetInitSpeed().Velocity = 1.0;
+            Y.GetInitSpeed().Velocity = 1.0;
+            Z.GetInitSpeed().Velocity = 1.0;
+
+            ((Axis)X).InitDirection = AxisDirection.Negative;
+            ((Axis)Y).InitDirection = AxisDirection.Negative;
+            ((Axis)Z).InitDirection = AxisDirection.Negative;
         }
 
         protected override bool ProcessMessage(Message message)
         {
             if (message.Name == "_initialize")
             {
-                InitializeSequenceZ.Run();
+                Z.Initialize();
                 Task.WaitAll(
                     TimeManager.RunTask(() =>
                     {
-                        InitializeSequenceX.Run();
+                        X.Initialize();
                         return 0;
                     }),
                     TimeManager.RunTask(() =>
                     {
-                        InitializeSequenceY.Run();
+                        Y.Initialize();
                         return 0;
                     })
                 );

@@ -40,6 +40,8 @@ public interface IAxis : IDeviceChannel
     double GetPosition(PositionType type = PositionType.Command);
     double GetVelocity(VelocityType type);
     bool GetSensorValue(AxisSensorType type);
+    bool GetSensorValueOrTrue(AxisSensorType type);
+    bool GetSensorValueOrFalse(AxisSensorType type);
     void WaitSensor(AxisSensorType type, bool waitingValue, int millisecondsTimeout);
     void Initialize();
     void SetInitializeAction(Action initializeAction);

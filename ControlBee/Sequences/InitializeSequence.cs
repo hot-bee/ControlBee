@@ -76,12 +76,12 @@ public class InitializeSequence(
         try
         {
             axis.SetSpeed(initSpeed);
-            if (axis.GetSensorValue(sensorType) != true)
+            if (!axis.GetSensorValueOrFalse(sensorType))
                 axis.VelocityMove(searchDirection);
             timeoutWatch.Restart();
             while (true)
             {
-                if (axis.GetSensorValue(sensorType))
+                if (axis.GetSensorValueOrTrue(sensorType))
                     break;
                 if (
                     !reverse
@@ -94,6 +94,7 @@ public class InitializeSequence(
                     throw new LimitTouchException();
                 if (timeoutWatch.ElapsedMilliseconds > 3 * 60 * 1000)
                     throw new TimeoutError();
+                TimeManager.Sleep(1);
             }
         }
         catch (TimeoutError)

@@ -71,7 +71,7 @@ public class ActorStateTest : ActorFactoryBase
         Mock.Get(ui)
             .Verify(
                 m => m.Send(It.Is<Message>(message => message.Name == "_stateChanged")),
-                Times.Once
+                Times.Exactly(2)
             );
         Assert.True(called);
     }

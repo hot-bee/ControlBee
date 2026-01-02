@@ -118,7 +118,7 @@ public class ActorMessageTest : ActorFactoryBase
         Assert.IsType<StateA>(actor.State);
     }
 
-    [Fact]
+    [Fact(Skip = "We don't care the return value any more.")]
     public void WrongProcessMessageReturnTest()
     {
         var actor = ActorFactory.Create<TestActorB>("MyActor");

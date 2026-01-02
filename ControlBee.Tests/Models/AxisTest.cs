@@ -53,12 +53,12 @@ public class AxisTest : ActorFactoryBase
 
         var match1 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
-            var payload = (Dict)actorItemMessage.Payload!;
+            var actorItemMessage = message as ActorItemMessage;
+            var payload = actorItemMessage?.DictPayload;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/X" }
                 // ReSharper disable once CompareOfFloatsByEqualityOperator
-                && (double)payload["CommandPosition"]! == 100.0;
+                && (double)payload!["CommandPosition"]! == 100.0;
         });
 
         Mock.Get(uiActor)
@@ -66,12 +66,12 @@ public class AxisTest : ActorFactoryBase
 
         var match2 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
-            var payload = (Dict)actorItemMessage.Payload!;
+            var actorItemMessage = message as ActorItemMessage;
+            var payload = actorItemMessage?.DictPayload;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/X" }
                 // ReSharper disable once CompareOfFloatsByEqualityOperator
-                && (double)payload["CommandPosition"]! == 200.0;
+                && (double)payload!["CommandPosition"]! == 200.0;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
@@ -97,7 +97,7 @@ public class AxisTest : ActorFactoryBase
 
         var match1 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/X" }
                 && (bool)actorItemMessage.DictPayload!["IsEnabled"]! == false;
@@ -107,7 +107,7 @@ public class AxisTest : ActorFactoryBase
 
         var match2 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/X" }
                 && (bool)actorItemMessage.DictPayload!["IsEnabled"]!;
@@ -127,7 +127,7 @@ public class AxisTest : ActorFactoryBase
         ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
-        ((FakeAxis)actor.X).GetInitPos().Values[0] = 200.0;
+        ((FakeAxis)actor.X).GetInitPos()[0] = 200.0;
         actor.Start();
         actor.Send(new ActorItemMessage(uiActor, "/X", "_initialize"));
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
@@ -168,7 +168,7 @@ public class AxisTest : ActorFactoryBase
             "_stepJogSizes",
             message =>
             {
-                Assert.Equal([0.01, 0.1, 10.0], (double[])message.Payload!);
+                Assert.Equal([0.1, 0.5, 10.0], (double[])message.Payload!);
                 called = true;
             }
         );
@@ -244,7 +244,12 @@ public class AxisTest : ActorFactoryBase
     [Fact]
     public void EnableTest()
     {
-        Recreate(new ActorFactoryBaseConfig { SystemConfigurations = new SystemConfigurations() });
+        Recreate(
+            new ActorFactoryBaseConfig
+            {
+                SystemConfigurations = new SystemConfigurations() { FakeMode = false },
+            }
+        );
         var device = SetupWithDevice();
         Mock.Get(device).Setup(m => m.IsEnabled(0)).Returns(true);
 
@@ -264,7 +269,12 @@ public class AxisTest : ActorFactoryBase
     [Fact]
     public void RefreshCacheTest()
     {
-        Recreate(new ActorFactoryBaseConfig { SystemConfigurations = new SystemConfigurations() });
+        Recreate(
+            new ActorFactoryBaseConfig
+            {
+                SystemConfigurations = new SystemConfigurations() { FakeMode = false },
+            }
+        );
         var device = SetupWithDevice();
         Mock.Get(device).Setup(m => m.IsEnabled(0)).Returns(true);
 
@@ -281,7 +291,7 @@ public class AxisTest : ActorFactoryBase
 
         var match1 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/X" }
                 && (bool)actorItemMessage.DictPayload!["IsEnabled"]!;

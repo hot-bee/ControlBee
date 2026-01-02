@@ -68,6 +68,20 @@ public class FakeAxis : Axis, IDisposable
         };
     }
 
+    public override bool GetSensorValueOrTrue(AxisSensorType type)
+    {
+        if (_skipWaitSensor)
+            return true;
+        return base.GetSensorValueOrTrue(type);
+    }
+
+    public override bool GetSensorValueOrFalse(AxisSensorType type)
+    {
+        if (_skipWaitSensor)
+            return false;
+        return base.GetSensorValueOrFalse(type);
+    }
+
     public override void Move(double position, bool @override)
     {
         ValidateBeforeMove(@override);
@@ -77,6 +91,12 @@ public class FakeAxis : Axis, IDisposable
         _flowTester.OnCheckpoint();
         RefreshCache();
         MonitorMoving(@override);
+    }
+
+    public override void RelativeMove(double distance)
+    {
+        var commandPos = GetPosition(PositionType.Command);
+        Move(commandPos + distance);
     }
 
     public override void VelocityMove(AxisDirection direction, bool @override)

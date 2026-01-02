@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
+using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
 using ControlBeeTest.Utils;
 using JetBrains.Annotations;
@@ -19,6 +20,15 @@ public class BinaryActuatorTest
     [Fact]
     public void TimeoutTest()
     {
+        var config = new ActorFactoryBaseConfig
+        {
+            SystemConfigurations = new SystemConfigurations { FakeMode = false },
+        };
+        Recreate(config);
+
+        var device = SetupDevice();
+        Mock.Get(device).Setup(m => m.GetDigitalInputBit(0)).Returns(false);
+
         var ui = Mock.Of<IUiActor>();
         Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(ui);
@@ -37,6 +47,15 @@ public class BinaryActuatorTest
     [Fact]
     public void TimeoutBothTest()
     {
+        var config = new ActorFactoryBaseConfig
+        {
+            SystemConfigurations = new SystemConfigurations { FakeMode = false },
+        };
+        Recreate(config);
+
+        var device = SetupDevice();
+        Mock.Get(device).Setup(m => m.GetDigitalInputBit(0)).Returns(false);
+
         var ui = Mock.Of<IUiActor>();
         Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(ui);
@@ -55,6 +74,15 @@ public class BinaryActuatorTest
     [Fact]
     public void OnAndWaitTest()
     {
+        var config = new ActorFactoryBaseConfig
+        {
+            SystemConfigurations = new SystemConfigurations { FakeMode = false },
+        };
+        Recreate(config);
+
+        var device = SetupDevice();
+        Mock.Get(device).Setup(m => m.GetDigitalInputBit(0)).Returns(false);
+
         var ui = Mock.Of<IUiActor>();
         Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(ui);
@@ -63,7 +91,9 @@ public class BinaryActuatorTest
             [
                 // ReSharper disable once AccessToDisposedClosure
                 new ConditionStep(() => TimeManager.CurrentMilliseconds > 1000),
-                new BehaviorStep(() => ((FakeDigitalInput)actor.CylFwdDet1).On = true),
+                new BehaviorStep(() =>
+                    Mock.Get(device).Setup(m => m.GetDigitalInputBit(0)).Returns(true)
+                ),
             ],
         ]);
 
@@ -78,9 +108,38 @@ public class BinaryActuatorTest
         Assert.True(TimeManager.CurrentMilliseconds is > 1000 and < 2000);
     }
 
+    private IDigitalIoDevice SetupDevice()
+    {
+        SystemPropertiesDataSource.ReadFromString(
+            """
+              myActor:
+                CylFwdDet1:
+                  DeviceName: MyDevice
+                  Channel: 0
+                CylFwdDet2:
+                  DeviceName: MyDevice
+                  Channel: 1
+            """
+        );
+
+        var device = Mock.Of<IDigitalIoDevice>();
+        DeviceManager.Add("MyDevice", device);
+        return device;
+    }
+
     [Fact]
     public void OnAndWaitBothTest()
     {
+        var config = new ActorFactoryBaseConfig
+        {
+            SystemConfigurations = new SystemConfigurations { FakeMode = false },
+        };
+        Recreate(config);
+
+        var device = SetupDevice();
+        Mock.Get(device).Setup(m => m.GetDigitalInputBit(0)).Returns(false);
+        Mock.Get(device).Setup(m => m.GetDigitalInputBit(1)).Returns(false);
+
         var ui = Mock.Of<IUiActor>();
         Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(ui);
@@ -89,9 +148,13 @@ public class BinaryActuatorTest
             [
                 // ReSharper disable once AccessToDisposedClosure
                 new ConditionStep(() => TimeManager.CurrentMilliseconds > 1000),
-                new BehaviorStep(() => ((FakeDigitalInput)actor.CylFwdDet1).On = true),
+                new BehaviorStep(() =>
+                    Mock.Get(device).Setup(m => m.GetDigitalInputBit(0)).Returns(true)
+                ),
                 new ConditionStep(() => TimeManager.CurrentMilliseconds > 2000),
-                new BehaviorStep(() => ((FakeDigitalInput)actor.CylFwdDet2).On = true),
+                new BehaviorStep(() =>
+                    Mock.Get(device).Setup(m => m.GetDigitalInputBit(1)).Returns(true)
+                ),
             ],
         ]);
 
@@ -110,6 +173,15 @@ public class BinaryActuatorTest
     [Fact]
     public void OnAndTimeoutTest()
     {
+        var config = new ActorFactoryBaseConfig
+        {
+            SystemConfigurations = new SystemConfigurations { FakeMode = false },
+        };
+        Recreate(config);
+
+        var device = SetupDevice();
+        Mock.Get(device).Setup(m => m.GetDigitalInputBit(0)).Returns(false);
+
         var ui = Mock.Of<IUiActor>();
         Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(ui);
@@ -130,11 +202,7 @@ public class BinaryActuatorTest
     {
         var config = new ActorFactoryBaseConfig
         {
-            SystemConfigurations = new SystemConfigurations
-            {
-                FakeMode = true,
-                SkipWaitSensor = true,
-            },
+            SystemConfigurations = new SystemConfigurations { FakeMode = true },
         };
         Recreate(config);
 
@@ -151,11 +219,11 @@ public class BinaryActuatorTest
 
         var match1 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Cyl1" }
-                && !(bool)actorItemMessage.DictPayload!["On"]!
-                && actorItemMessage.DictPayload!["IsOn"] == null
+                && !(bool)actorItemMessage.DictPayload!["CommandOn"]!
+                && actorItemMessage.DictPayload!["ActualOn"] == null
                 && !(bool)actorItemMessage.DictPayload!["OffDetect"]!
                 && !(bool)actorItemMessage.DictPayload!["OnDetect"]!;
         });
@@ -164,24 +232,24 @@ public class BinaryActuatorTest
 
         var match2 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Cyl1" }
-                && (bool)actorItemMessage.DictPayload!["On"]!
-                && actorItemMessage.DictPayload!["IsOn"] == null
+                && (bool)actorItemMessage.DictPayload!["CommandOn"]!
+                && actorItemMessage.DictPayload!["ActualOn"] == null
                 && !(bool)actorItemMessage.DictPayload!["OffDetect"]!
-                && (bool)actorItemMessage.DictPayload!["OnDetect"]!;
+                && !(bool)actorItemMessage.DictPayload!["OnDetect"]!;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.AtLeastOnce);
 
         var match3 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Cyl1" }
-                && (bool)actorItemMessage.DictPayload!["On"]!
-                && actorItemMessage.DictPayload!["IsOn"] is true
+                && (bool)actorItemMessage.DictPayload!["CommandOn"]!
+                && actorItemMessage.DictPayload!["ActualOn"] is true
                 && !(bool)actorItemMessage.DictPayload!["OffDetect"]!
                 && (bool)actorItemMessage.DictPayload!["OnDetect"]!;
         });
@@ -194,11 +262,7 @@ public class BinaryActuatorTest
     {
         var config = new ActorFactoryBaseConfig
         {
-            SystemConfigurations = new SystemConfigurations
-            {
-                FakeMode = true,
-                SkipWaitSensor = true,
-            },
+            SystemConfigurations = new SystemConfigurations { FakeMode = true },
         };
         Recreate(config);
 
@@ -222,24 +286,24 @@ public class BinaryActuatorTest
 
         var match1 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Cyl1" }
-                && (bool)actorItemMessage.DictPayload!["On"]!
-                && actorItemMessage.DictPayload!["IsOn"] == null
+                && (bool)actorItemMessage.DictPayload!["CommandOn"]!
+                && actorItemMessage.DictPayload!["ActualOn"] == null
                 && !(bool)actorItemMessage.DictPayload!["OffDetect"]!
-                && (bool)actorItemMessage.DictPayload!["OnDetect"]!;
+                && !(bool)actorItemMessage.DictPayload!["OnDetect"]!;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.AtLeastOnce);
 
         var match2 = new Func<Message, bool>(message =>
         {
-            var actorItemMessage = (ActorItemMessage)message;
+            var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Cyl1" }
-                && (bool)actorItemMessage.DictPayload!["On"]!
-                && actorItemMessage.DictPayload!["IsOn"] is true
+                && (bool)actorItemMessage.DictPayload!["CommandOn"]!
+                && actorItemMessage.DictPayload!["ActualOn"] is true
                 && !(bool)actorItemMessage.DictPayload!["OffDetect"]!
                 && (bool)actorItemMessage.DictPayload!["OnDetect"]!;
         });
@@ -252,11 +316,7 @@ public class BinaryActuatorTest
     {
         var config = new ActorFactoryBaseConfig
         {
-            SystemConfigurations = new SystemConfigurations
-            {
-                FakeMode = true,
-                SkipWaitSensor = true,
-            },
+            SystemConfigurations = new SystemConfigurations { FakeMode = true },
         };
         Recreate(config);
 
@@ -297,6 +357,11 @@ public class BinaryActuatorTest
             Cyl2 = config.BinaryActuatorFactory.Create(CylFwd2, CylBwd2, CylFwdDet2, CylBwdDet2);
         }
 
+        protected override IState CreateErrorState(SequenceError error)
+        {
+            return new ErrorState<TestActor>(this, error);
+        }
+
         protected override bool ProcessMessage(Message message)
         {
             switch (message.Name)
@@ -310,7 +375,6 @@ public class BinaryActuatorTest
                     {
                         // Alert trigger will be checked.
                     }
-
                     return true;
                 case "OnAndOff":
                     Cyl1.OnAndWait();
@@ -337,7 +401,7 @@ public class BinaryActuatorTest
                     return true;
             }
 
-            return false;
+            return base.ProcessMessage(message);
         }
     }
 }

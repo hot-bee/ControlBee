@@ -452,9 +452,7 @@ public class FakeAxisTest : ActorFactoryBase
         var fakeAxis = new FakeAxis(DeviceManager, frozenTimeManager, scenarioFlowTester);
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 10.0 });
         fakeAxis.Move(10.0);
-        Assert.Throws<SequenceError>(() =>
-            fakeAxis.WaitForPosition(PositionComparisonType.Greater, 20)
-        );
+        Assert.False(fakeAxis.WaitForPosition(PositionComparisonType.Greater, 20));
     }
 
     [Fact]

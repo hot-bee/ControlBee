@@ -6,4 +6,9 @@ public class FakeAnalogInput() : AnalogInput(EmptyDeviceManager.Instance)
     {
         set => InternalData = value;
     }
+
+    public override long Read()
+    {
+        return (long)InternalData;
+    }
 }
