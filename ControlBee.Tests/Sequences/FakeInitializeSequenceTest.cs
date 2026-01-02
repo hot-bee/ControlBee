@@ -1,9 +1,10 @@
 ﻿using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Sequences;
+using ControlBee.TestUtils;
 using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
-using ControlBeeTest.Utils;
+using ControlBeeTest.TestUtils;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
 using Moq;

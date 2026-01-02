@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using ControlBee.Interfaces;
 using ControlBee.Models;
+using ControlBee.TestUtils;
 using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
-using ControlBeeTest.Utils;
+using ControlBeeTest.TestUtils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;

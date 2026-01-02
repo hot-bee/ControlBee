@@ -2,8 +2,9 @@
 using ControlBee.Models;
 using ControlBee.Sequences;
 using ControlBee.Services;
+using ControlBee.TestUtils;
 using ControlBee.Variables;
-using ControlBeeTest.Utils;
+using ControlBeeTest.TestUtils;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
 using Moq;

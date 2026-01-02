@@ -1,7 +1,8 @@
 ﻿using ControlBee.Interfaces;
 using ControlBee.Models;
+using ControlBee.TestUtils;
 using ControlBee.Variables;
-using ControlBeeTest.Utils;
+using ControlBeeTest.TestUtils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;

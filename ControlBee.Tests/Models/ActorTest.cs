@@ -1,9 +1,10 @@
 ﻿using ControlBee.Interfaces;
 using ControlBee.Models;
+using ControlBee.TestUtils;
 using ControlBee.Utils;
 using ControlBee.Variables;
 using ControlBeeAbstract.Exceptions;
-using ControlBeeTest.Utils;
+using ControlBeeTest.TestUtils;
 using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
