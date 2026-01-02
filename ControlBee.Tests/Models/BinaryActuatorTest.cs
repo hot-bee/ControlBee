@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBeeAbstract.Exceptions;
@@ -269,7 +270,7 @@ public class BinaryActuatorTest
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
-        Assert.False(actor.Cyl1.GetCommandOn());
+        Assert.False(actor.Cyl1.IsOn(CommandActualType.Command));
         Assert.True(actor.Cyl1.IsOff());
         Assert.True(actor.Cyl1.OffDetect());
         Assert.False(actor.Cyl1.OnDetect());

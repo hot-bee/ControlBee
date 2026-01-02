@@ -2,6 +2,7 @@
 using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
+using ControlBeeAbstract.Constants;
 using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
 using ControlBeeTest.Utils;
@@ -126,7 +127,7 @@ public class AxisTest : ActorFactoryBase
         ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
-        ((FakeAxis)actor.X).HomePos.Value[0] = 200.0;
+        ((FakeAxis)actor.X).GetInitPos().Values[0] = 200.0;
         actor.Start();
         actor.Send(new ActorItemMessage(uiActor, "/X", "_initialize"));
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));

@@ -18,7 +18,7 @@ public class ActorMessageTest : ActorFactoryBase
     public void TimeoutTest()
     {
         var actor = ActorFactory.Create<TestActorA1>("MyActor");
-        actor.MessageFetchTimeout = 0;
+        actor.TimerMilliseconds = 0;
         actor.Start();
         actor.Join();
     }
@@ -186,9 +186,9 @@ public class ActorMessageTest : ActorFactoryBase
     {
         protected override bool ProcessMessage(Message message)
         {
-            switch (message)
+            switch (message.Name)
             {
-                case TimeoutMessage:
+                case TimerMessage.MessageName:
                     Send(new TerminateMessage());
                     return true;
             }

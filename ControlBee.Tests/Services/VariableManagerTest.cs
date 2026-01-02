@@ -23,7 +23,7 @@ public class VariableManagerTest : ActorFactoryBase
         VariableManager.Save("myRecipe");
         Mock.Get(Database)
             .Verify(
-                m => m.Write(VariableScope.Local, "myRecipe", "myActor", "myId", "1"),
+                m => m.WriteVariables(VariableScope.Local, "myRecipe", "myActor", "myId", "1"),
                 Times.Once
             );
         VariableManager.LocalName.Should().Be("myRecipe");
@@ -32,7 +32,7 @@ public class VariableManagerTest : ActorFactoryBase
     [Fact]
     public void LoadTest()
     {
-        Mock.Get(Database).Setup(m => m.Read("myRecipe", "MyActor", "myId")).Returns("2");
+        Mock.Get(Database).Setup(m => m.Read("myRecipe", "MyActor", "myId")).Returns((10, "2"));
         VariableManager.LocalName.Should().Be("Default");
         var actor = ActorFactory.Create<Actor>("MyActor");
         var variable = new Variable<int>(actor, "myId", VariableScope.Local, 1);
@@ -65,7 +65,13 @@ public class VariableManagerTest : ActorFactoryBase
     public void VariableInActorTest()
     {
         var databaseMock = new Mock<IDatabase>();
-        var variableManager = new VariableManager(databaseMock.Object, EmptyActorRegistry.Instance);
+        var systemConfigurations = new SystemConfigurations();
+        var variableManager = new VariableManager(
+            databaseMock.Object,
+            EmptyActorRegistry.Instance,
+            systemConfigurations,
+            EmptyDeviceManager.Instance
+        );
         var actor = new Mock<IActorInternal>();
         actor.Setup(m => m.Name).Returns("myActor");
         actor.Setup(m => m.VariableManager).Returns(variableManager);

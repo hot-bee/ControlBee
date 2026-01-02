@@ -1,4 +1,5 @@
 ﻿using System;
+using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBeeTest.Utils;
@@ -15,19 +16,19 @@ public class FakeDigitalOutputTest : ActorFactoryBase
     [Fact]
     public void OnOffTest()
     {
-        var fakeDigitalOutput = new FakeDigitalOutput(DeviceManager, TimeManager);
+        var fakeDigitalOutput = new FakeDigitalOutput(TimeManager);
         Assert.Null(fakeDigitalOutput.IsOn());
         Assert.Null(fakeDigitalOutput.IsOff());
 
         fakeDigitalOutput.On();
-        Assert.True(fakeDigitalOutput.IsCommandOn());
-        Assert.True(fakeDigitalOutput.IsCommandOff() == false);
+        Assert.True(fakeDigitalOutput.IsOn(CommandActualType.Command));
+        Assert.True(fakeDigitalOutput.IsOff(CommandActualType.Command) == false);
         Assert.True(fakeDigitalOutput.IsOn() is null);
         Assert.True(fakeDigitalOutput.IsOff() is null);
 
         fakeDigitalOutput.Off();
-        Assert.True(fakeDigitalOutput.IsCommandOn() == false);
-        Assert.True(fakeDigitalOutput.IsCommandOff());
+        Assert.True(fakeDigitalOutput.IsOn(CommandActualType.Command) == false);
+        Assert.True(fakeDigitalOutput.IsOff(CommandActualType.Command));
         Assert.True(fakeDigitalOutput.IsOn() is null);
         Assert.True(fakeDigitalOutput.IsOff() is null);
     }

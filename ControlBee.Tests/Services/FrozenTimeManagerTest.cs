@@ -8,6 +8,7 @@ using ControlBee.Models;
 using ControlBee.Sequences;
 using ControlBee.Services;
 using ControlBee.Variables;
+using ControlBeeAbstract.Constants;
 using ControlBeeTest.Utils;
 using FluentAssertions;
 using JetBrains.Annotations;
@@ -183,7 +184,13 @@ public class FrozenTimeManagerTest : ActorFactoryBase
         {
             X = config.AxisFactory.Create();
             PositionAxesMap.Add(HomePositionX, [X]);
-            InitializeSequenceX = new InitializeSequence(X, HomingSpeedX, HomePositionX);
+            InitializeSequenceX = new InitializeSequence(
+                X,
+                HomingSpeedX,
+                HomePositionX,
+                AxisSensorType.Home,
+                AxisDirection.Positive
+            );
         }
 
         protected override bool ProcessMessage(Message message)

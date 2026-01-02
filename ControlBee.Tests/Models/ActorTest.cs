@@ -68,7 +68,7 @@ public class ActorTest : ActorFactoryBase
         var actor = ActorFactory.Create<Actor>("MyActor");
         var myVariable = new Variable<int>(VariableScope.Global, 1);
         actor.AddItem(myVariable, "/MyVar");
-        var myDigitalOutput = new FakeDigitalOutput(DeviceManager, TimeManager);
+        var myDigitalOutput = new FakeDigitalOutput(TimeManager);
         actor.AddItem(myDigitalOutput, "/MyOutput");
 
         var items = actor.GetItems();

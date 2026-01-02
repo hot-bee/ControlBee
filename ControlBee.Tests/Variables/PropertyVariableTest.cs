@@ -241,13 +241,13 @@ public class PropertyVariableTest : ActorFactoryBase
         public bool Exists
         {
             get => _exists;
-            set => ValueChangedUtils.SetField(ref _exists, value, OnValueChanged);
+            set => ValueChangedUtils.SetField(ref _exists, value, OnValueChanging, OnValueChanged);
         }
 
         public bool Good
         {
             get => _good;
-            set => ValueChangedUtils.SetField(ref _good, value, OnValueChanged);
+            set => ValueChangedUtils.SetField(ref _good, value, OnValueChanging, OnValueChanged);
         }
 
         public void Dispose()

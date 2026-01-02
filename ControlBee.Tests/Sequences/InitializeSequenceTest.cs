@@ -4,6 +4,7 @@ using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Sequences;
 using ControlBee.Variables;
+using ControlBeeAbstract.Constants;
 using ControlBeeTest.Utils;
 using FluentAssertions;
 using JetBrains.Annotations;
@@ -113,9 +114,27 @@ public class InitializeSequenceTest : ActorFactoryBase
             PositionAxesMap.Add(HomePositionY, [Y]);
             PositionAxesMap.Add(HomePositionZ, [Z]);
 
-            InitializeSequenceX = new InitializeSequence(X, HomingSpeedX, HomePositionX);
-            InitializeSequenceY = new InitializeSequence(Y, HomingSpeedY, HomePositionY);
-            InitializeSequenceZ = new InitializeSequence(Z, HomingSpeedZ, HomePositionZ);
+            InitializeSequenceX = new InitializeSequence(
+                X,
+                HomingSpeedX,
+                HomePositionX,
+                AxisSensorType.Home,
+                AxisDirection.Positive
+            );
+            InitializeSequenceY = new InitializeSequence(
+                Y,
+                HomingSpeedY,
+                HomePositionY,
+                AxisSensorType.Home,
+                AxisDirection.Positive
+            );
+            InitializeSequenceZ = new InitializeSequence(
+                Z,
+                HomingSpeedZ,
+                HomePositionZ,
+                AxisSensorType.Home,
+                AxisDirection.Positive
+            );
         }
 
         protected override bool ProcessMessage(Message message)
