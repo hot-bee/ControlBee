@@ -26,7 +26,7 @@ public class VariableManager(
 
     private readonly Dictionary<int, IVariable> _variableIds = [];
 
-    private readonly Dictionary<Tuple<string, string>, IVariable> _variables = [];
+    private readonly Dictionary<(string actorName, string itemPath), IVariable> _variables = [];
     private bool _loading;
     private string _localName = "Default";
     private bool _modified;
@@ -98,12 +98,7 @@ public class VariableManager(
 
     public void Add(IVariable variable)
     {
-        if (
-            !_variables.TryAdd(
-                new Tuple<string, string>(variable.ActorName, variable.ItemPath),
-                variable
-            )
-        )
+        if (!_variables.TryAdd((variable.ActorName, variable.ItemPath), variable))
             throw new ApplicationException(
                 "The 'ItemPath' is already being used by another variable."
             );
@@ -122,13 +117,13 @@ public class VariableManager(
             LocalName = localName;
         }
 
-        foreach (var ((actorName, uid), variable) in _variables)
+        foreach (var ((actorName, itemPath), variable) in _variables)
         {
             if (localNameChanged && variable.Scope != VariableScope.Local)
                 continue;
             if (!(localNameChanged || variable.Dirty))
                 continue;
-            Save(actorName, uid, variable);
+            Save(actorName, itemPath, variable);
         }
 
         foreach (var (variable, args) in _changedArgs)
@@ -166,9 +161,9 @@ public class VariableManager(
             }
 
             var originalValues = new Dictionary<IVariable, string>();
-            foreach (var ((actorName, uid), variable) in _variables)
+            foreach (var ((actorName, itemPath), variable) in _variables)
             {
-                Load(actorName, uid, variable);
+                Load(actorName, itemPath, variable);
                 originalValues[variable] = variable.ToJson();
             }
 
@@ -191,7 +186,7 @@ public class VariableManager(
                 variable.OldValueObject = oldValue;
             }
 
-            foreach (var ((actorName, uid), variable) in _variables) // TODO: Remove this safety check as soon as the code is confirmed.
+            foreach (var ((_, _), variable) in _variables) // TODO: Remove this safety check as soon as the code is confirmed.
                 if (
                     variable.ValueObject is not String
                     && originalValues[variable] != variable.ToJson()
@@ -230,24 +225,24 @@ public class VariableManager(
     public void SaveTemporaryVariables()
     {
         Logger.Info("SaveTemporary.");
-        foreach (var ((actorName, uid), variable) in _variables)
+        foreach (var ((actorName, itemPath), variable) in _variables)
         {
             if (variable.Scope != VariableScope.Temporary || !variable.Dirty)
                 continue;
-            Save(actorName, uid, variable);
+            Save(actorName, itemPath, variable);
         }
     }
 
     public void DiscardChanges()
     {
         Logger.Info("DiscardChanges.");
-        foreach (var ((actorName, uid), variable) in _variables)
+        foreach (var ((actorName, itemPath), variable) in _variables)
         {
             if (variable.Scope == VariableScope.Temporary)
                 continue;
             if (!variable.Dirty)
                 continue;
-            Load(actorName, uid, variable);
+            Load(actorName, itemPath, variable);
         }
 
         _changedArgs.Clear();
@@ -358,10 +353,10 @@ public class VariableManager(
 
     public void Save(IVariable variableToSave)
     {
-        foreach (var ((actorName, uid), variable) in _variables)
+        foreach (var ((actorName, itemPath), variable) in _variables)
             if (variable == variableToSave)
             {
-                Save(actorName, uid, variable);
+                Save(actorName, itemPath, variable);
                 return;
             }
 
@@ -370,17 +365,17 @@ public class VariableManager(
 
     private void Load(IVariable variableToLoad)
     {
-        foreach (var ((actorName, uid), variable) in _variables)
+        foreach (var ((actorName, itemPath), variable) in _variables)
             if (variable == variableToLoad)
             {
-                Load(actorName, uid, variable);
+                Load(actorName, itemPath, variable);
                 return;
             }
 
         Logger.Warn("Couldn't find the variable in _variables in Load().");
     }
 
-    private void Save(string actorName, string uid, IVariable variable)
+    private void Save(string actorName, string itemPath, IVariable variable)
     {
         variable.Dirty = false;
         var jsonString = variable.ToJson();
@@ -392,7 +387,7 @@ public class VariableManager(
                 variable.Scope,
                 dbLocalName,
                 actorName,
-                uid,
+                itemPath,
                 jsonString
             );
             SetVariableId(variable, id);
@@ -409,13 +404,13 @@ public class VariableManager(
         variable.Id = id;
     }
 
-    private void Load(string actorName, string uid, IVariable variable)
+    private void Load(string actorName, string itemPath, IVariable variable)
     {
         var dbLocalName = variable.Scope == VariableScope.Local ? LocalName : "";
-        var row = database.Read(dbLocalName, actorName, uid);
+        var row = database.Read(dbLocalName, actorName, itemPath);
         if (!row.HasValue)
         {
-            Save(actorName, uid, variable);
+            Save(actorName, itemPath, variable);
             return;
         }
 
@@ -427,7 +422,7 @@ public class VariableManager(
         }
         catch (FallbackException)
         {
-            Save(actorName, uid, variable);
+            Save(actorName, itemPath, variable);
         }
     }
 
