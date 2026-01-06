@@ -4,6 +4,7 @@ using ControlBee.Utils;
 using ControlBeeAbstract.Exceptions;
 using log4net;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -150,6 +151,19 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
                 actorItemSub.OnDeserialized();
             Value = value;
             throw new FallbackException();
+        }
+    }
+
+    public string ExtractValueOnly(string json)
+    {
+        try
+        {
+            var obj = JObject.Parse(json);
+            return obj["Value"]?.ToString() ?? "null";
+        }
+        catch
+        {
+            return json;
         }
     }
 
