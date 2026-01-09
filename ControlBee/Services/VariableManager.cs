@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Data;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Variables;
@@ -424,10 +425,10 @@ public class VariableManager(
         {
             Save(actorName, itemPath, variable);
         }
-        catch (Exception)
+        catch (JsonException)
         {
             Logger.Error(
-                $"Deserialize failed. actor={actorName}, path={itemPath}, value={variable.ExtractValueOnly(row.Value.value)}");
+                $"Deserialize failed. actor={actorName}, path={itemPath}, value={row.Value.value}");
             Save(actorName, itemPath, variable);
         }
     }

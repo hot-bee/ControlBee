@@ -13,5 +13,4 @@ public interface IVariable : IActorItem, INotifyValueChanged
     IUserInfo? UserInfo { get; set; }
     string ToJson();
     void FromJson(string data);
-    string ExtractValueOnly(string json);
 }
