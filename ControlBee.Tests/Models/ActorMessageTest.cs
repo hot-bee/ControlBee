@@ -5,10 +5,10 @@ using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.TestUtils;
 using ControlBeeTest.TestUtils;
-using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
+using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
 namespace ControlBee.Tests.Models;
 
@@ -38,9 +38,9 @@ public class ActorMessageTest : ActorFactoryBase
         actor1.Join();
         actor2.Join();
 
-        Assert.Equal(12, listener.Count);
-        Assert.True(listener.Where((item, index) => index % 2 == 0).All(s => s == "MyActor2"));
-        Assert.True(listener.Where((item, index) => index % 2 == 1).All(s => s == "MyActor1"));
+        Assert.AreEqual(12, listener.Count);
+        Assert.IsTrue(listener.Where((item, index) => index % 2 == 0).All(s => s == "MyActor2"));
+        Assert.IsTrue(listener.Where((item, index) => index % 2 == 1).All(s => s == "MyActor1"));
     }
 
     [Fact]
@@ -77,9 +77,9 @@ public class ActorMessageTest : ActorFactoryBase
         actor.Send(new Message(EmptyActor.Instance, "foo"));
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
-        stateTransitMatched.Should().BeTrue();
-        Assert.True(stateEntryMessage);
-        Assert.False(retryWithEmptyMessageMatched);
+        Assert.IsTrue(stateTransitMatched);
+        Assert.IsTrue(stateEntryMessage);
+        Assert.IsFalse(retryWithEmptyMessageMatched);
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public class ActorMessageTest : ActorFactoryBase
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
-        Assert.IsType<StateB>(actor.State);
+        Assert.IsInstanceOfType<StateB>(actor.State);
         Mock.Get(uiActor)
             .Verify(m =>
                 m.Send(
@@ -116,7 +116,7 @@ public class ActorMessageTest : ActorFactoryBase
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
-        Assert.IsType<StateA>(actor.State);
+        Assert.IsInstanceOfType<StateA>(actor.State);
     }
 
     [Fact(Skip = "We don't care the return value any more.")]
@@ -127,7 +127,7 @@ public class ActorMessageTest : ActorFactoryBase
         actor.Start();
         actor.Send(new Message(EmptyActor.Instance, "qoo"));
         actor.Join();
-        Assert.NotNull(actor.ExitError);
+        Assert.IsNotNull(actor.ExitError);
     }
 
     [Theory]
@@ -175,12 +175,12 @@ public class ActorMessageTest : ActorFactoryBase
         var actor = ActorFactory.Create<TestActorB>("MyActor");
         var state = new StateA(actor);
         actor.State = state;
-        Assert.False(state.Started);
+        Assert.IsFalse(state.Started);
 
         actor.Start();
         actor.Send(new TerminateMessage());
         actor.Join();
-        Assert.True(state.Started);
+        Assert.IsTrue(state.Started);
     }
 
     private class TestActorA1(ActorConfig config) : Actor(config)

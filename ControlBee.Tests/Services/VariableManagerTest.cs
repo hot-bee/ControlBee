@@ -6,7 +6,7 @@ using ControlBee.Services;
 using ControlBee.TestUtils;
 using ControlBee.Variables;
 using ControlBeeTest.TestUtils;
-using FluentAssertions;
+using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -21,7 +21,7 @@ public class VariableManagerTest : ActorFactoryBase
     {
         var actor = ActorFactory.Create<Actor>("myActor");
         _ = new Variable<int>(actor, "myId", VariableScope.Local, 1);
-        VariableManager.LocalName.Should().Be("Default");
+        Assert.AreEqual("Default", VariableManager.LocalName);
         VariableManager.Save("myRecipe");
         const string jsonString = "{\r\n  \"Version\": 2,\r\n  \"Value\": 1\r\n}";
         Mock.Get(Database)
@@ -36,7 +36,7 @@ public class VariableManagerTest : ActorFactoryBase
                     ),
                 Times.Once
             );
-        VariableManager.LocalName.Should().Be("myRecipe");
+        Assert.AreEqual("myRecipe", VariableManager.LocalName);
     }
 
     [Fact]
@@ -44,12 +44,12 @@ public class VariableManagerTest : ActorFactoryBase
     {
         Mock.Get(Database).Setup(m => m.Read("myRecipe", "MyActor", "myId")).Returns((10, "2"));
         Mock.Get(Database).Setup(m => m.ReadLatestVariableChanges()).Returns(new DataTable());
-        VariableManager.LocalName.Should().Be("Default");
+        Assert.AreEqual("Default", VariableManager.LocalName);
         var actor = ActorFactory.Create<Actor>("MyActor");
         var variable = new Variable<int>(actor, "myId", VariableScope.Local, 1);
         VariableManager.Load("myRecipe");
-        variable.Value.Should().Be(2);
-        VariableManager.LocalName.Should().Be("myRecipe");
+        Assert.AreEqual(2, variable.Value);
+        Assert.AreEqual("myRecipe", VariableManager.LocalName);
     }
 
     [Fact]
@@ -60,16 +60,30 @@ public class VariableManagerTest : ActorFactoryBase
         _ = new Variable<int>(actor, "myId", VariableScope.Local, 1);
 
         var act1 = () => new Variable<int>(actor, "myId", VariableScope.Local, 1);
-        act1.Should().Throw<ApplicationException>();
+        Assert.Throws<ApplicationException>(() => act1());
 
         var act2 = () => new Variable<int>(actor, "myId", VariableScope.Global, 1);
-        act2.Should().Throw<ApplicationException>();
+        Assert.Throws<ApplicationException>(() => act2());
 
         var act3 = () => new Variable<int>(actor2, "myId", VariableScope.Local, 1);
-        act3.Should().NotThrow();
+        try
+        {
+            act3();
+        }
+        catch (Exception ex)
+        {
+            Assert.Fail($"Unexpected exception was thrown: {ex}");
+        }
 
         var act4 = () => new Variable<int>(actor, "myId2", VariableScope.Local, 1);
-        act4.Should().NotThrow();
+        try
+        {
+            act4();
+        }
+        catch (Exception ex)
+        {
+            Assert.Fail($"Unexpected exception was thrown: {ex}");
+        }
     }
 
     [Fact]
@@ -87,14 +101,21 @@ public class VariableManagerTest : ActorFactoryBase
         actor.Setup(m => m.Name).Returns("myActor");
         actor.Setup(m => m.VariableManager).Returns(variableManager);
         _ = new Variable<int>(actor.Object, "myId", VariableScope.Local);
-        variableManager.Count.Should().Be(1);
+        Assert.AreEqual(1, variableManager.Count);
 
         var act1 = () => new Variable<int>(actor.Object, "myId", VariableScope.Local);
-        act1.Should().Throw<ApplicationException>();
+        Assert.Throws<ApplicationException>(() => act1());
 
         actor.Setup(m => m.Name).Returns("myActor2");
         var act2 = () => new Variable<int>(actor.Object, "myId", VariableScope.Local);
-        act2.Should().NotThrow();
+        try
+        {
+            act2();
+        }
+        catch (Exception ex)
+        {
+            Assert.Fail($"Unexpected exception was thrown: {ex}");
+        }
     }
 
     [Fact]

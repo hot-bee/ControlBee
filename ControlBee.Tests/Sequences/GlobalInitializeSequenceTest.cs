@@ -6,7 +6,7 @@ using ControlBee.Sequences;
 using ControlBee.TestUtils;
 using ControlBeeAbstract.Exceptions;
 using ControlBeeTest.TestUtils;
-using FluentAssertions;
+using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -69,7 +69,7 @@ public class GlobalInitializeSequenceTest : ActorFactoryBase
             );
 
         var action = () => globalInitializationSequence.Run();
-        action.Should().Throw<PlatformException>();
+        Assert.Throws<PlatformException>(() => action());
         globalInitializationSequence.SetInitializationState(
             mandrel0,
             InitializationStatus.Initialized
@@ -135,17 +135,17 @@ public class GlobalInitializeSequenceTest : ActorFactoryBase
             turret,
             InitializationStatus.Initialized
         );
-        globalInitializationSequence.IsComplete.Should().BeFalse();
-        globalInitializationSequence.IsInitializingActors.Should().BeFalse();
-        globalInitializationSequence.IsError.Should().BeTrue();
+        Assert.IsFalse(globalInitializationSequence.IsComplete);
+        Assert.IsFalse(globalInitializationSequence.IsInitializingActors);
+        Assert.IsTrue(globalInitializationSequence.IsError);
 
         globalInitializationSequence.SetInitializationState(
             mandrel0,
             InitializationStatus.Initializing
         );
-        globalInitializationSequence.IsComplete.Should().BeFalse();
-        globalInitializationSequence.IsInitializingActors.Should().BeTrue();
-        globalInitializationSequence.IsError.Should().BeTrue();
+        Assert.IsFalse(globalInitializationSequence.IsComplete);
+        Assert.IsTrue(globalInitializationSequence.IsInitializingActors);
+        Assert.IsTrue(globalInitializationSequence.IsError);
 
         globalInitializationSequence.SetInitializationState(
             mandrel0,
@@ -155,9 +155,9 @@ public class GlobalInitializeSequenceTest : ActorFactoryBase
             turret,
             InitializationStatus.Initialized
         );
-        globalInitializationSequence.IsComplete.Should().BeTrue();
-        globalInitializationSequence.IsInitializingActors.Should().BeFalse();
-        globalInitializationSequence.IsError.Should().BeTrue();
+        Assert.IsTrue(globalInitializationSequence.IsComplete);
+        Assert.IsFalse(globalInitializationSequence.IsInitializingActors);
+        Assert.IsTrue(globalInitializationSequence.IsError);
     }
 
     [Fact]
@@ -191,15 +191,15 @@ public class GlobalInitializeSequenceTest : ActorFactoryBase
             mandrel0,
             InitializationStatus.Initialized
         );
-        Assert.Equal(4, changedCalls.Count);
-        Assert.Equal("turret", changedCalls[0].actorName);
-        Assert.Equal(InitializationStatus.Uninitialized, changedCalls[0].status);
-        Assert.Equal("mandrel0", changedCalls[1].actorName);
-        Assert.Equal(InitializationStatus.Uninitialized, changedCalls[1].status);
-        Assert.Equal("mandrel0", changedCalls[2].actorName);
-        Assert.Equal(InitializationStatus.Initializing, changedCalls[2].status);
-        Assert.Equal("mandrel0", changedCalls[3].actorName);
-        Assert.Equal(InitializationStatus.Initialized, changedCalls[3].status);
+        Assert.AreEqual(4, changedCalls.Count);
+        Assert.AreEqual("turret", changedCalls[0].actorName);
+        Assert.AreEqual(InitializationStatus.Uninitialized, changedCalls[0].status);
+        Assert.AreEqual("mandrel0", changedCalls[1].actorName);
+        Assert.AreEqual(InitializationStatus.Uninitialized, changedCalls[1].status);
+        Assert.AreEqual("mandrel0", changedCalls[2].actorName);
+        Assert.AreEqual(InitializationStatus.Initializing, changedCalls[2].status);
+        Assert.AreEqual("mandrel0", changedCalls[3].actorName);
+        Assert.AreEqual(InitializationStatus.Initialized, changedCalls[3].status);
     }
 
     [Fact]
@@ -218,7 +218,7 @@ public class GlobalInitializeSequenceTest : ActorFactoryBase
         syncerActor.Join();
         subActor.Join();
 
-        Assert.IsType<IdleState>(subActor.State);
+        Assert.IsInstanceOfType<IdleState>(subActor.State);
     }
 
     [Fact]
@@ -250,8 +250,8 @@ public class GlobalInitializeSequenceTest : ActorFactoryBase
         syncerActor.Join();
         subActor.Join();
 
-        Assert.IsType<IdleState>(subActor.State);
-        Assert.True(transited);
+        Assert.IsInstanceOfType<IdleState>(subActor.State);
+        Assert.IsTrue(transited);
     }
 
     public class SubActor : Actor

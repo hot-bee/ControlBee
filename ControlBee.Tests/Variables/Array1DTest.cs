@@ -5,8 +5,9 @@ using ControlBee.Models;
 using ControlBee.TestUtils;
 using ControlBee.Variables;
 using ControlBeeTest.TestUtils;
-using FluentAssertions;
+using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 using JetBrains.Annotations;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -22,7 +23,7 @@ public class Array1DTest : ActorFactoryBase
         // ReSharper disable once UseObjectOrCollectionInitializer
         var array = new Array1D<int>(3);
         array[1] = 10;
-        array[1].Should().Be(10);
+        Assert.AreEqual(10, array[1]);
 
         var expectedJson = """
             {
@@ -34,7 +35,7 @@ public class Array1DTest : ActorFactoryBase
         var expectedJToken = JToken.Parse(expectedJson);
         var actualJToken = JToken.Parse(JsonSerializer.Serialize(array));
 
-        actualJToken.Should().BeEquivalentTo(expectedJToken);
+        Assert.IsTrue(JToken.DeepEquals(actualJToken, expectedJToken));
     }
 
     [Fact]
@@ -48,7 +49,7 @@ public class Array1DTest : ActorFactoryBase
             }
             """;
         array.ReadJson(JsonDocument.Parse(json));
-        array[1].Should().Be(10);
+        Assert.AreEqual(10, array[1]);
     }
 
     [Fact]
@@ -58,20 +59,20 @@ public class Array1DTest : ActorFactoryBase
         var called = false;
         array.ValueChanged += (sender, e) =>
         {
-            Assert.Equal([1], e.Location);
-            Assert.Equal(0, e.OldValue);
-            Assert.Equal(10, e.NewValue);
+            CollectionAssert.AreEqual(new[] { 1 }, e.Location);
+            Assert.AreEqual(0, e.OldValue);
+            Assert.AreEqual(10, e.NewValue);
             called = true;
         };
         array[1] = 10;
-        called.Should().BeTrue();
+        Assert.IsTrue(called);
     }
 
     [Fact]
     public void NewElementsTest()
     {
         var array = new Array1D<String>(1);
-        array[0].Should().NotBeNull();
+        Assert.IsNotNull(array[0]);
     }
 
     [Fact]
@@ -84,8 +85,8 @@ public class Array1DTest : ActorFactoryBase
         array.UpdateSubItem();
         // ReSharper disable once SuspiciousTypeConversion.Global
         var itemSub = (IActorItemSub)array[0];
-        itemSub.Actor.Should().Be(actor);
-        itemSub.ItemPath.Should().Be("myItem");
+        Assert.AreSame(actor, itemSub.Actor);
+        Assert.AreEqual("myItem", itemSub.ItemPath);
     }
 
     [Fact]
@@ -107,8 +108,8 @@ public class Array1DTest : ActorFactoryBase
                     message.DictPayload![nameof(ValueChangedArgs)] as ValueChangedArgs;
                 var location = valueChangedArgs!.Location;
                 var newValue = (int)valueChangedArgs.NewValue!;
-                Assert.True(location.SequenceEqual([0]));
-                Assert.Equal(10, newValue);
+                Assert.IsTrue(location.SequenceEqual([0]));
+                Assert.AreEqual(10, newValue);
                 actor.Send(new TerminateMessage());
             }
         );

@@ -5,12 +5,12 @@ using ControlBee.Utils;
 using ControlBee.Variables;
 using ControlBeeAbstract.Exceptions;
 using ControlBeeTest.TestUtils;
-using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
 using static ControlBee.Tests.Variables.PropertyVariableTest;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
+using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
 namespace ControlBee.Tests.Models;
 
@@ -21,9 +21,9 @@ public class ActorTest : ActorFactoryBase
     public void TitleTest()
     {
         var actor = ActorFactory.Create<Actor>("myActor");
-        actor.Title.Should().Be("myActor");
+        Assert.AreEqual("myActor", actor.Title);
         actor.SetTitle("MyActor");
-        actor.Title.Should().Be("MyActor");
+        Assert.AreEqual("myActor", actor.Title);
     }
 
     [Fact]
@@ -74,18 +74,18 @@ public class ActorTest : ActorFactoryBase
 
         var items = actor.GetItems();
 
-        Assert.Equal("/MyVar", items[^2].itemPath);
-        Assert.True(items[^2].type.IsAssignableTo(typeof(IVariable)));
-        Assert.Equal("/MyOutput", items[^1].itemPath);
-        Assert.True(items[^1].type.IsAssignableTo(typeof(IDigitalOutput)));
+        Assert.AreEqual("/MyVar", items[^2].itemPath);
+        Assert.IsTrue(items[^2].type.IsAssignableTo(typeof(IVariable)));
+        Assert.AreEqual("/MyOutput", items[^1].itemPath);
+        Assert.IsTrue(items[^1].type.IsAssignableTo(typeof(IDigitalOutput)));
     }
 
     [Fact]
     public void GetItemTest()
     {
         var actor = ActorFactory.Create<TestActorC>("MyActor");
-        Assert.Equal(actor.X, actor.GetItem("X"));
-        Assert.Equal(actor.X, actor.GetItem("/X"));
+        Assert.AreEqual(actor.X, actor.GetItem("X"));
+        Assert.AreEqual(actor.X, actor.GetItem("/X"));
     }
 
     [Theory]
@@ -104,7 +104,7 @@ public class ActorTest : ActorFactoryBase
             }
         );
         var actor = ActorFactory.Create<Actor>("MyActor");
-        Assert.Equal(skipWaitSensor, actor.SkipWaitSensor);
+        Assert.AreEqual(skipWaitSensor, actor.SkipWaitSensor);
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public class ActorTest : ActorFactoryBase
         myActor.Send(new TerminateMessage());
         myActor.Join();
 
-        Assert.Equal("RealName", myActor.Title);
+        Assert.AreEqual("RealName", myActor.Title);
     }
 
     [Fact]
@@ -140,14 +140,14 @@ public class ActorTest : ActorFactoryBase
                 newState.GetType() == typeof(ErrorState<TestActor>)
                 && message.GetType() == typeof(StateEntryMessage)
             )
-                Assert.True(actor.GetStatus("_error") is true);
+                Assert.IsTrue(actor.GetStatus("_error") is true);
         };
         actor.Start();
         actor.Send(new Message(EmptyActor.Instance, "DoSomethingWrong"));
         actor.Send(new TerminateMessage());
         actor.Join();
-        Assert.IsType<ErrorState<TestActorC>>(actor.State);
-        Assert.True(actor.GetStatus("_error") is false);
+        Assert.IsInstanceOfType<ErrorState<TestActorC>>(actor.State);
+        Assert.IsTrue(actor.GetStatus("_error") is false);
     }
 
     [Fact]
@@ -160,7 +160,7 @@ public class ActorTest : ActorFactoryBase
         actor.Send(new Message(EmptyActor.Instance, "DoSomethingTotallyWrong"));
         actor.Send(new TerminateMessage());
         actor.Join();
-        Assert.IsType<EmptyState>(actor.State);
+        Assert.IsInstanceOfType<EmptyState>(actor.State);
     }
 
     [Fact]
@@ -186,8 +186,8 @@ public class ActorTest : ActorFactoryBase
         peer.Join();
         actor.Join();
 
-        Assert.Equal("Trump", actor.GetStatus("Name"));
-        Assert.Null(actor.GetStatus("Phone"));
+        Assert.AreEqual("Trump", actor.GetStatus("Name"));
+        Assert.IsNull(actor.GetStatus("Phone"));
         Mock.Get(ui)
             .Verify(
                 m =>
@@ -243,10 +243,10 @@ public class ActorTest : ActorFactoryBase
                 Times.Once
             );
 
-        Assert.Equal("Trump", actor.GetStatus("Name"));
-        Assert.Null(actor.GetStatus("Not-existing-name"));
-        Assert.Equal("KTWorld", actor.GetStatusByActor("Peer", "WifiId"));
-        Assert.Null(actor.GetStatusByActor("Peer", "Not-existing-name"));
+        Assert.AreEqual("Trump", actor.GetStatus("Name"));
+        Assert.IsNull(actor.GetStatus("Not-existing-name"));
+        Assert.AreEqual("KTWorld", actor.GetStatusByActor("Peer", "WifiId"));
+        Assert.IsNull(actor.GetStatusByActor("Peer", "Not-existing-name"));
     }
 
     private class TestActorC : Actor

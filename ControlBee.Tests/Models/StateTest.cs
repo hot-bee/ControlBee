@@ -2,7 +2,7 @@
 using ControlBee.TestUtils;
 using ControlBee.Variables;
 using ControlBeeTest.TestUtils;
-using FluentAssertions;
+using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 using JetBrains.Annotations;
 using Xunit;
 
@@ -20,8 +20,8 @@ public class StateTest : ActorFactoryBase
         actor.Send(new Message(EmptyActor.Instance, "Pickup"));
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
-        actor.PickupCount.Value.Should().Be(1);
-        Assert.True(actor.DisposeCount > 0);
+        Assert.AreEqual(1, actor.PickupCount.Value);
+        Assert.IsTrue(actor.DisposeCount > 0);
     }
 
     public class TestPickerActor : Actor

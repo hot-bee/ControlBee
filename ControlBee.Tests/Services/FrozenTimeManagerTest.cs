@@ -5,15 +5,13 @@ using System.Threading.Tasks;
 using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Sequences;
 using ControlBee.Services;
 using ControlBee.TestUtils;
 using ControlBee.Variables;
 using ControlBeeAbstract.Constants;
 using ControlBeeTest.TestUtils;
-using FluentAssertions;
+using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 using JetBrains.Annotations;
-using MathNet.Numerics.LinearAlgebra.Double;
 using Moq;
 using Xunit;
 
@@ -40,7 +38,7 @@ public class FrozenTimeManagerTest : ActorFactoryBase
             message =>
             {
                 var registeredThreadsCount = (int)message.Payload!;
-                Assert.Equal(2, registeredThreadsCount);
+                Assert.AreEqual(2, registeredThreadsCount);
                 called = true;
             }
         );
@@ -59,9 +57,9 @@ public class FrozenTimeManagerTest : ActorFactoryBase
         actor.Join();
 
         var frozenTimeManager = (FrozenTimeManager)TimeManager;
-        Assert.Equal(0, frozenTimeManager.RegisteredThreadsCount);
-        Assert.Equal(10.0, actor.X.GetPosition());
-        Assert.True(called);
+        Assert.AreEqual(0, frozenTimeManager.RegisteredThreadsCount);
+        Assert.AreEqual(10.0, actor.X.GetPosition());
+        Assert.IsTrue(called);
     }
 
     [Fact]
@@ -86,7 +84,7 @@ public class FrozenTimeManagerTest : ActorFactoryBase
         testActor.Send(new Message(EmptyActor.Instance, "_initialize"));
         testActor.Send(new Message(EmptyActor.Instance, "_terminate"));
         testActor.Join();
-        ScenarioFlowTester.Complete.Should().BeTrue();
+        Assert.IsTrue(ScenarioFlowTester.Complete);
     }
 
     [Fact]
@@ -120,7 +118,7 @@ public class FrozenTimeManagerTest : ActorFactoryBase
         }
         finally
         {
-            Assert.Equal(0, frozenTimeManager.RegisteredThreadsCount);
+            Assert.AreEqual(0, frozenTimeManager.RegisteredThreadsCount);
         }
     }
 
@@ -149,7 +147,7 @@ public class FrozenTimeManagerTest : ActorFactoryBase
         var thread = new Thread(() =>
         {
             var key = FrozenTimeManager.GetEventKey();
-            Assert.Equal(FrozenTimeManager.KeyType.Thread, key.Item1);
+            Assert.AreEqual(FrozenTimeManager.KeyType.Thread, key.Item1);
         });
         thread.Start();
         thread.Join();
@@ -157,7 +155,7 @@ public class FrozenTimeManagerTest : ActorFactoryBase
         var task = Task.Run(() =>
         {
             var key = FrozenTimeManager.GetEventKey();
-            Assert.Equal(FrozenTimeManager.KeyType.Task, key.Item1);
+            Assert.AreEqual(FrozenTimeManager.KeyType.Task, key.Item1);
         });
         task.Wait();
     }
