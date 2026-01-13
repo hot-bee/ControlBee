@@ -424,6 +424,12 @@ public class VariableManager(
         {
             Save(actorName, itemPath, variable);
         }
+        catch (Exception)
+        {
+            Logger.Error(
+                $"Deserialize failed. actor={actorName}, path={itemPath}, value={variable.ExtractValueOnly(row.Value.value)}");
+            Save(actorName, itemPath, variable);
+        }
     }
 
     private void LoadVisionRecipe(string localName)
