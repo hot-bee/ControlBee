@@ -1,4 +1,5 @@
-﻿using ControlBee.Models;
+﻿using ControlBee.Interfaces;
+using ControlBee.Models;
 
 namespace ControlBee.Utils;
 
@@ -21,6 +22,21 @@ public class SyncUtils
         return true;
     }
 
+    private static Guid GetRequestGuid(Actor actor, IActor requestActor, string requestName)
+    {
+        if (actor == requestActor)
+        {
+            if (actor.GetStatus(requestName) is Guid guid)
+                return guid;
+        }
+        else
+        {
+            if (actor.GetPeerStatusByActor(requestActor, requestName) is Guid guid)
+                return guid;
+        }
+        return Guid.Empty;
+    }
+
     public static (bool approvable, List<Guid>? requestIds) SyncRequestsPeek(
         Actor actor,
         Dict grants,
@@ -33,18 +49,13 @@ public class SyncUtils
         var guids = new List<Guid>();
         foreach (var request in requests)
         {
-            var guid = GuidUtils.FromObject(
-                actor.GetPeerStatusByActor(request.Actor, request.RequestName)
-            );
+            var guid = GetRequestGuid(actor, request.Actor, request.RequestName);
             guids.Add(guid);
 
             if (grants.TryGetValue(request.Actor.Name, out var lastGrant))
             {
                 var (lastRequestName, lastGuid) = (ValueTuple<string, Guid>)lastGrant!;
-                if (
-                    actor.GetPeerStatusByActor(request.Actor, lastRequestName)?.Equals(lastGuid)
-                    is true
-                )
+                if (GetRequestGuid(actor, request.Actor, lastRequestName).Equals(lastGuid))
                     return (false, null);
             }
         }
@@ -72,9 +83,7 @@ public class SyncUtils
         grants[grantName] = new HashSet<Guid>(requestIds!);
         foreach (var request in requests)
         {
-            var guid = GuidUtils.FromObject(
-                actor.GetPeerStatusByActor(request.Actor, request.RequestName)
-            );
+            var guid = GetRequestGuid(actor, request.Actor, request.RequestName);
             grants[request.Actor.Name] = (request.RequestName, guid);
         }
     }
