@@ -5,6 +5,7 @@ using ControlBee.Models;
 using ControlBee.Services;
 using ControlBee.TestUtils;
 using ControlBee.Variables;
+using ControlBeeTest.TestUtils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -152,7 +153,7 @@ public class VariableManagerTest : ActorFactoryBase
             .Setup(m => m.Read("myRecipe", "MyActor", "myVariable"))
             .Returns((10, "true"));
         Mock.Get(Database).Setup(m => m.ReadLatestVariableChanges()).Returns(new DataTable());
-        VariableManager.LocalName.Should().Be("Default");
+        Assert.Equal("Default", VariableManager.LocalName);
         var actor = ActorFactory.Create<Actor>("MyActor");
         _ = new Variable<double>(actor, "myVariable", VariableScope.Local, 0.5);
         VariableManager.Load("myRecipe");
