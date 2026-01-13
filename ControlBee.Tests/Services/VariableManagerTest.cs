@@ -144,4 +144,18 @@ public class VariableManagerTest : ActorFactoryBase
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);
     }
+
+    [Fact]
+    public void OverwriteOnParseFailTest()
+    {
+        Mock.Get(Database).Setup(m => m.Read("myRecipe", "MyActor", "myVariable")).Returns((10, "true"));
+        Mock.Get(Database).Setup(m => m.ReadLatestVariableChanges()).Returns(new DataTable());
+        VariableManager.LocalName.Should().Be("Default");
+        var actor = ActorFactory.Create<Actor>("MyActor");
+        var variable = new Variable<double>(actor, "myVariable", VariableScope.Local, 0.5);
+        VariableManager.Load("myRecipe");
+        variable.Value.Should().Be(0.5);
+        VariableManager.LocalName.Should().Be("myRecipe");
+
+    }
 }
