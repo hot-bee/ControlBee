@@ -154,19 +154,6 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
         }
     }
 
-    public string ExtractValueOnly(string json)
-    {
-        try
-        {
-            var obj = JObject.Parse(json);
-            return obj["Value"]?.ToString() ?? "null";
-        }
-        catch
-        {
-            return json;
-        }
-    }
-
     public override bool ProcessMessage(ActorItemMessage message)
     {
         switch (message.Name)
