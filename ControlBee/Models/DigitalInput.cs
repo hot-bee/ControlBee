@@ -50,7 +50,6 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     {
         if (DigitalIoDevice == null)
         {
-            Logger.Debug("DigitalIoDevice is null.");
             return ActualOn;
         }
 
@@ -157,7 +156,6 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     {
         if (DigitalIoDevice == null)
         {
-            Logger.Debug("DigitalIoDevice is null.");
             return on;
         }
 
@@ -168,7 +166,6 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     {
         if (DigitalIoDevice == null)
         {
-            Logger.Debug("DigitalIoDevice is null.");
             return;
         }
 
@@ -228,7 +225,6 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
     {
         if (DigitalIoDevice == null)
         {
-            Logger.Debug("DigitalIoDevice is null.");
             return;
         }
 
