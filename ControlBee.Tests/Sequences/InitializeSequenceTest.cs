@@ -21,6 +21,28 @@ namespace ControlBee.Tests.Sequences;
 [TestSubject(typeof(InitializeSequence))]
 public class InitializeSequenceTest : ActorFactoryBase
 {
+    private IMotionDevice SetupDevice()
+    {
+        SystemPropertiesDataSource.ReadFromString(
+            """
+              testActor:
+                X:
+                  DeviceName: MyDevice
+                  Channel: 0
+                Y:
+                  DeviceName: MyDevice
+                  Channel: 1
+                Z:
+                  DeviceName: MyDevice
+                  Channel: 2
+            """
+        );
+
+        var device = Mock.Of<IMotionDevice>();
+        DeviceManager.Add("MyDevice", device);
+        return device;
+    }
+
     [Fact]
     public void NormalTest()
     {
@@ -30,6 +52,7 @@ public class InitializeSequenceTest : ActorFactoryBase
                 SystemConfigurations = new SystemConfigurations { FakeMode = true },
             }
         );
+        SetupDevice();
 
         var testActor = ActorFactory.Create<TestActor>("testActor");
         var axisX = (FakeAxis)testActor.X;

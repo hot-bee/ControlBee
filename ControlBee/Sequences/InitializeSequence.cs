@@ -5,6 +5,7 @@ using ControlBee.Models;
 using ControlBee.Variables;
 using ControlBeeAbstract.Constants;
 using ControlBeeAbstract.Exceptions;
+using log4net;
 
 namespace ControlBee.Sequences;
 
@@ -16,6 +17,8 @@ public class InitializeSequence(
     AxisDirection direction
 ) : ActorItem, IInitializeSequence
 {
+    private static readonly ILog Logger = LogManager.GetLogger("Sequence");
+
     public Variable<int> DelayBeforeClearPosition = new(VariableScope.Global, 0);
     public IDialog SensorEntryTimeout = new DialogPlaceholder();
     public IDialog SensorExitTimeout = new DialogPlaceholder();
@@ -23,6 +26,13 @@ public class InitializeSequence(
 
     public void Run()
     {
+        if (axis.GetDevice() == null)
+        {
+            Logger.Warn(
+                $"Skip initialize because device is null. ({axis.Actor.Name}, {axis.ItemPath})"
+            );
+            return;
+        }
         axis.ClearAlarm();
         axis.Enable(false);
         axis.Enable(true);

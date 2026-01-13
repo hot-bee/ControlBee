@@ -10,6 +10,7 @@ using ControlBee.Services;
 using ControlBee.TestUtils;
 using ControlBee.Variables;
 using ControlBeeAbstract.Constants;
+using ControlBeeAbstract.Devices;
 using ControlBeeTest.TestUtils;
 using FluentAssertions;
 using JetBrains.Annotations;
@@ -64,9 +65,26 @@ public class FrozenTimeManagerTest : ActorFactoryBase
         Assert.True(called);
     }
 
+    private IMotionDevice SetupDevice()
+    {
+        SystemPropertiesDataSource.ReadFromString(
+            """
+              testActor:
+                X:
+                  DeviceName: MyDevice
+                  Channel: 0
+            """
+        );
+
+        var device = Mock.Of<IMotionDevice>();
+        DeviceManager.Add("MyDevice", device);
+        return device;
+    }
+
     [Fact]
     public void RunTaskAndEmptyActorTest()
     {
+        SetupDevice();
         var testActor = ActorFactory.Create<TestActor>("testActor");
         var axisX = (FakeAxis)testActor.X;
 
