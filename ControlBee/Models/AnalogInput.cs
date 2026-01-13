@@ -72,7 +72,7 @@ public class AnalogInput(IDeviceManager deviceManager) : AnalogIO(deviceManager)
                 throw new ValueError();
         }
 
-        return (long)InternalData;
+        return Convert.ToInt64(InternalData);
     }
 
     public override bool ProcessMessage(ActorItemMessage message)

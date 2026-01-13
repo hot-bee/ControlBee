@@ -27,22 +27,22 @@ public class AnalogOutput(IDeviceManager deviceManager) : AnalogIO(deviceManager
         switch (DataType)
         {
             case AnalogDataType.SignedDWord:
-                AnalogIoDevice.SetAnalogOutputSignedDWord(Channel, (int)InternalData);
+                AnalogIoDevice.SetAnalogOutputSignedDWord(Channel, Convert.ToInt32(InternalData));
                 break;
             case AnalogDataType.DWord:
-                AnalogIoDevice.SetAnalogOutputDWord(Channel, (uint)InternalData);
+                AnalogIoDevice.SetAnalogOutputDWord(Channel, Convert.ToUInt32(InternalData));
                 break;
             case AnalogDataType.SignedWord:
-                AnalogIoDevice.SetAnalogOutputSignedWord(Channel, (short)InternalData);
+                AnalogIoDevice.SetAnalogOutputSignedWord(Channel, Convert.ToInt16(InternalData));
                 break;
             case AnalogDataType.Word:
-                AnalogIoDevice.SetAnalogOutputWord(Channel, (ushort)InternalData);
+                AnalogIoDevice.SetAnalogOutputWord(Channel, Convert.ToUInt16(InternalData));
                 break;
             case AnalogDataType.SignedByte:
-                AnalogIoDevice.SetAnalogOutputSignedByte(Channel, (sbyte)InternalData);
+                AnalogIoDevice.SetAnalogOutputSignedByte(Channel, Convert.ToSByte(InternalData));
                 break;
             case AnalogDataType.Byte:
-                AnalogIoDevice.SetAnalogOutputByte(Channel, (byte)InternalData);
+                AnalogIoDevice.SetAnalogOutputByte(Channel, Convert.ToByte(InternalData));
                 break;
             default:
                 throw new ValueError();
