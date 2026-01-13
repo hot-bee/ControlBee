@@ -5,11 +5,10 @@ using ControlBee.Models;
 using ControlBee.Services;
 using ControlBee.TestUtils;
 using ControlBee.Variables;
-using ControlBeeTest.TestUtils;
-using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
+using Assert = Xunit.Assert;
 
 namespace ControlBee.Tests.Services;
 
@@ -21,7 +20,7 @@ public class VariableManagerTest : ActorFactoryBase
     {
         var actor = ActorFactory.Create<Actor>("myActor");
         _ = new Variable<int>(actor, "myId", VariableScope.Local, 1);
-        Assert.AreEqual("Default", VariableManager.LocalName);
+        Assert.Equal("Default", VariableManager.LocalName);
         VariableManager.Save("myRecipe");
         const string jsonString = "{\r\n  \"Version\": 2,\r\n  \"Value\": 1\r\n}";
         Mock.Get(Database)
@@ -36,7 +35,7 @@ public class VariableManagerTest : ActorFactoryBase
                     ),
                 Times.Once
             );
-        Assert.AreEqual("myRecipe", VariableManager.LocalName);
+        Assert.Equal("myRecipe", VariableManager.LocalName);
     }
 
     [Fact]
@@ -44,12 +43,12 @@ public class VariableManagerTest : ActorFactoryBase
     {
         Mock.Get(Database).Setup(m => m.Read("myRecipe", "MyActor", "myId")).Returns((10, "2"));
         Mock.Get(Database).Setup(m => m.ReadLatestVariableChanges()).Returns(new DataTable());
-        Assert.AreEqual("Default", VariableManager.LocalName);
+        Assert.Equal("Default", VariableManager.LocalName);
         var actor = ActorFactory.Create<Actor>("MyActor");
         var variable = new Variable<int>(actor, "myId", VariableScope.Local, 1);
         VariableManager.Load("myRecipe");
-        Assert.AreEqual(2, variable.Value);
-        Assert.AreEqual("myRecipe", VariableManager.LocalName);
+        Assert.Equal(2, variable.Value);
+        Assert.Equal("myRecipe", VariableManager.LocalName);
     }
 
     [Fact]
@@ -101,7 +100,7 @@ public class VariableManagerTest : ActorFactoryBase
         actor.Setup(m => m.Name).Returns("myActor");
         actor.Setup(m => m.VariableManager).Returns(variableManager);
         _ = new Variable<int>(actor.Object, "myId", VariableScope.Local);
-        Assert.AreEqual(1, variableManager.Count);
+        Assert.Equal(1, variableManager.Count);
 
         var act1 = () => new Variable<int>(actor.Object, "myId", VariableScope.Local);
         Assert.Throws<ApplicationException>(() => act1());

@@ -3,10 +3,10 @@ using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.TestUtils;
 using ControlBee.Variables;
-using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
+using Assert = Xunit.Assert;
 using String = ControlBee.Variables.String;
 
 namespace ControlBee.Tests.Variables;
@@ -19,19 +19,19 @@ public class VariableTest : ActorFactoryBase
     {
         var actor = ActorFactory.Create<Actor>("MyActor");
         var intVariable = new Variable<int>(actor, "myId", VariableScope.Global, 1);
-        Assert.AreEqual(1, intVariable.Value);
+        Assert.Equal(1, intVariable.Value);
 
         var called = false;
         intVariable.ValueChanged += (s, e) =>
         {
-            Assert.AreEqual([], e.Location);
-            Assert.AreEqual(1, e.OldValue);
-            Assert.AreEqual(2, e.NewValue);
+            Assert.Equal([], e.Location);
+            Assert.Equal(1, e.OldValue);
+            Assert.Equal(2, e.NewValue);
             called = true;
         };
         intVariable.Value = 2;
-        Assert.AreEqual(2, intVariable.Value);
-        Assert.IsTrue(called);
+        Assert.Equal(2, intVariable.Value);
+        Assert.True(called);
     }
 
     [Fact]
@@ -39,19 +39,19 @@ public class VariableTest : ActorFactoryBase
     {
         var actor = ActorFactory.Create<Actor>("MyActor");
         var intVariable = new Variable<int>(actor, "myId", VariableScope.Global, 1);
-        Assert.AreEqual("{\r\n  \"Version\": 2,\r\n  \"Value\": 1\r\n}", intVariable.ToJson());
+        Assert.Equal("{\r\n  \"Version\": 2,\r\n  \"Value\": 1\r\n}", intVariable.ToJson());
 
         var called = false;
         intVariable.ValueChanged += (s, e) =>
         {
-            Assert.AreEqual([], e.Location);
-            Assert.AreEqual(1, e.OldValue);
-            Assert.AreEqual(2, e.NewValue);
+            Assert.Equal([], e.Location);
+            Assert.Equal(1, e.OldValue);
+            Assert.Equal(2, e.NewValue);
             called = true;
         };
         intVariable.FromJson("{\r\n  \"Version\": 2,\r\n  \"Value\": 2\r\n}");
-        Assert.AreEqual(2, intVariable.Value);
-        Assert.IsTrue(called);
+        Assert.Equal(2, intVariable.Value);
+        Assert.True(called);
     }
 
     [Fact]
@@ -65,19 +65,19 @@ public class VariableTest : ActorFactoryBase
             VariableScope.Global,
             new String("Hello")
         );
-        Assert.AreEqual("Hello", stringVariable.Value.ToString());
+        Assert.Equal("Hello", stringVariable.Value.ToString());
 
         var called = false;
         stringVariable.ValueChanged += (s, e) =>
         {
-            Assert.AreEqual([], e.Location);
-            Assert.IsInstanceOfType<String>(e.OldValue);
-            Assert.IsInstanceOfType<String>(e.NewValue);
+            Assert.Equal([], e.Location);
+            Assert.IsType<String>(e.OldValue);
+            Assert.IsType<String>(e.NewValue);
             called = true;
         };
         stringVariable.Value = new String("World");
-        Assert.AreEqual("World", stringVariable.Value.ToString());
-        Assert.IsTrue(called);
+        Assert.Equal("World", stringVariable.Value.ToString());
+        Assert.True(called);
     }
 
     [Fact]
@@ -94,14 +94,14 @@ public class VariableTest : ActorFactoryBase
         var called = false;
         arrayVariable.ValueChanged += (s, e) =>
         {
-            Assert.AreEqual([], e.Location);
-            Assert.IsInstanceOfType<Array1D<int>>(e.OldValue);
-            Assert.IsInstanceOfType<Array1D<int>>(e.NewValue);
+            Assert.Equal([], e.Location);
+            Assert.IsType<Array1D<int>>(e.OldValue);
+            Assert.IsType<Array1D<int>>(e.NewValue);
             called = true;
         };
         arrayVariable.Value = new Array1D<int>(10);
-        Assert.AreEqual(10, arrayVariable.Value.Size);
-        Assert.IsTrue(called);
+        Assert.Equal(10, arrayVariable.Value.Size);
+        Assert.True(called);
     }
 
     [Fact]
@@ -118,15 +118,15 @@ public class VariableTest : ActorFactoryBase
         var called = false;
         arrayVariable.ValueChanged += (s, e) =>
         {
-            Assert.AreEqual([], e.Location);
-            Assert.IsInstanceOfType<Array2D<int>>(e.OldValue);
-            Assert.IsInstanceOfType<Array2D<int>>(e.NewValue);
+            Assert.Equal([], e.Location);
+            Assert.IsType<Array2D<int>>(e.OldValue);
+            Assert.IsType<Array2D<int>>(e.NewValue);
             called = true;
         };
         arrayVariable.Value = new Array2D<int>(10, 20);
-        Assert.AreEqual(10, arrayVariable.Value.Size.Item1);
-        Assert.AreEqual(20, arrayVariable.Value.Size.Item2);
-        Assert.IsTrue(called);
+        Assert.Equal(10, arrayVariable.Value.Size.Item1);
+        Assert.Equal(20, arrayVariable.Value.Size.Item2);
+        Assert.True(called);
     }
 
     [Fact]
@@ -143,16 +143,16 @@ public class VariableTest : ActorFactoryBase
         var called = false;
         arrayVariable.ValueChanged += (s, e) =>
         {
-            Assert.AreEqual([], e.Location);
-            Assert.IsInstanceOfType<Array3D<int>>(e.OldValue);
-            Assert.IsInstanceOfType<Array3D<int>>(e.NewValue);
+            Assert.Equal([], e.Location);
+            Assert.IsType<Array3D<int>>(e.OldValue);
+            Assert.IsType<Array3D<int>>(e.NewValue);
             called = true;
         };
         arrayVariable.Value = new Array3D<int>(10, 20, 30);
-        Assert.AreEqual(10, arrayVariable.Value.Size.Item1);
-        Assert.AreEqual(20, arrayVariable.Value.Size.Item2);
-        Assert.AreEqual(30, arrayVariable.Value.Size.Item3);
-        Assert.IsTrue(called);
+        Assert.Equal(10, arrayVariable.Value.Size.Item1);
+        Assert.Equal(20, arrayVariable.Value.Size.Item2);
+        Assert.Equal(30, arrayVariable.Value.Size.Item3);
+        Assert.True(called);
     }
 
     [Fact]
@@ -244,7 +244,7 @@ public class VariableTest : ActorFactoryBase
         );
 
         intVariable.ProcessMessage(reqMessage);
-        Assert.AreEqual(2, intVariable.Value);
+        Assert.Equal(2, intVariable.Value);
     }
 
     [Fact]
@@ -278,14 +278,14 @@ MyActor:
             1
         );
 
-        Assert.AreEqual("/MyVar1", myVariable1.Name);
+        Assert.Equal("/MyVar1", myVariable1.Name);
         myVariable1.InjectProperties(SystemPropertiesDataSource);
         myVariable2.InjectProperties(SystemPropertiesDataSource);
 
-        Assert.AreEqual("My Variable 1", myVariable1.Name);
-        Assert.AreEqual("mm", myVariable1.Unit);
-        Assert.AreEqual("The first variable.", myVariable1.Desc);
-        Assert.AreEqual("My Variable 2", myVariable2.Name);
-        Assert.AreEqual(string.Empty, myVariable2.Unit);
+        Assert.Equal("My Variable 1", myVariable1.Name);
+        Assert.Equal("mm", myVariable1.Unit);
+        Assert.Equal("The first variable.", myVariable1.Desc);
+        Assert.Equal("My Variable 2", myVariable2.Name);
+        Assert.Equal(string.Empty, myVariable2.Unit);
     }
 }

@@ -3,11 +3,10 @@ using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.TestUtils;
 using ControlBee.Variables;
-using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 using JetBrains.Annotations;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Assert = Xunit.Assert;
 
 namespace ControlBee.Tests.Variables;
 
@@ -20,7 +19,7 @@ public class Array2DTest : ActorFactoryBase
         // ReSharper disable once UseObjectOrCollectionInitializer
         var array = new Array2D<int>(3, 3);
         array[1, 2] = 10;
-        Assert.AreEqual(10, array[1, 2]);
+        Assert.Equal(10, array[1, 2]);
 
         var expectedJson = """
             {
@@ -32,7 +31,7 @@ public class Array2DTest : ActorFactoryBase
         var expectedJToken = JToken.Parse(expectedJson);
         var actualJToken = JToken.Parse(JsonSerializer.Serialize(array));
 
-        Assert.IsTrue(JToken.DeepEquals(actualJToken, expectedJToken));
+        Assert.True(JToken.DeepEquals(actualJToken, expectedJToken));
     }
 
     [Fact]
@@ -47,7 +46,7 @@ public class Array2DTest : ActorFactoryBase
             """;
         array.ReadJson(JsonDocument.Parse(json));
 
-        Assert.AreEqual(10, array[1, 2]);
+        Assert.Equal(10, array[1, 2]);
     }
 
     [Fact]
@@ -57,23 +56,20 @@ public class Array2DTest : ActorFactoryBase
         var called = false;
         array.ValueChanged += (sender, e) =>
         {
-            CollectionAssert.AreEqual(
-                new object[] { (1, 2) },
-                e.Location
-            );
-            Assert.AreEqual(0, e.OldValue);
-            Assert.AreEqual(10, e.NewValue);
+            Assert.Equal([(1, 2)], e.Location);
+            Assert.Equal(0, e.OldValue);
+            Assert.Equal(10, e.NewValue);
             called = true;
         };
         array[1, 2] = 10;
-        Assert.IsTrue(called);
+        Assert.True(called);
     }
 
     [Fact]
     public void NewElementsTest()
     {
         var array = new Array2D<String>(1, 1);
-        Assert.IsNotNull(array[0, 0]);
+        Assert.NotNull(array[0, 0]);
     }
 
     [Fact]
@@ -86,8 +82,8 @@ public class Array2DTest : ActorFactoryBase
         array.UpdateSubItem();
         // ReSharper disable once SuspiciousTypeConversion.Global
         var itemSub = (IActorItemSub)array[0, 0];
-        Assert.AreSame(actor, itemSub.Actor);
-        Assert.AreEqual("myItem", itemSub.ItemPath);
+        Assert.Same(actor, itemSub.Actor);
+        Assert.Equal("myItem", itemSub.ItemPath);
     }
 
     [Fact]
@@ -99,9 +95,9 @@ public class Array2DTest : ActorFactoryBase
         array[1, 1] = 2;
         cloned[0, 0] = 3;
         cloned[1, 1] = 4;
-        Assert.AreEqual(1, array[0, 0]);
-        Assert.AreEqual(2, array[1, 1]);
-        Assert.AreEqual(3, cloned[0, 0]);
-        Assert.AreEqual(4, cloned[1, 1]);
+        Assert.Equal(1, array[0, 0]);
+        Assert.Equal(2, array[1, 1]);
+        Assert.Equal(3, cloned[0, 0]);
+        Assert.Equal(4, cloned[1, 1]);
     }
 }

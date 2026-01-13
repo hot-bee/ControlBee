@@ -3,7 +3,7 @@ using ControlBee.Models;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
-using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
+using Assert = Xunit.Assert;
 
 namespace ControlBee.Tests.Models;
 
@@ -36,8 +36,8 @@ public class AxisFactoryTest
 
         var axis = axisFactory.Create();
         if (fakeMode)
-            Assert.IsInstanceOfType<FakeAxis>(axis);
+            Assert.IsType<FakeAxis>(axis);
         else
-            Assert.IsInstanceOfType<Axis>(axis);
+            Assert.IsType<Axis>(axis);
     }
 }

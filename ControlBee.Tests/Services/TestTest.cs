@@ -4,10 +4,10 @@ using ControlBee.Services;
 using ControlBee.TestUtils;
 using ControlBee.Variables;
 using ControlBeeTest.TestUtils;
-using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
+using Assert = Xunit.Assert;
 
 namespace ControlBee.Tests.Services;
 
@@ -35,24 +35,24 @@ public class TestTest()
         Mock.Get(variableManager).Verify(m => m.Add(actor.Bar), Times.Once);
         Mock.Get(variableManager).Verify(m => m.Add(actor.PickupPosition), Times.Once);
 
-        Assert.AreEqual("testActor", actor.PickupPosition.ActorName);
-        Assert.AreEqual("/PickupPosition", actor.PickupPosition.ItemPath);
-        Assert.AreEqual("testActor", actor.PickupPosition.Value.Actor.Name);
-        Assert.AreEqual("/PickupPosition", actor.PickupPosition.Value.ItemPath);
-        Assert.AreEqual("testActor", actor.PickupPosition.Value[0, 0].Actor.Name);
-        Assert.AreEqual("/PickupPosition", actor.PickupPosition.Value[0, 0].ItemPath);
+        Assert.Equal("testActor", actor.PickupPosition.ActorName);
+        Assert.Equal("/PickupPosition", actor.PickupPosition.ItemPath);
+        Assert.Equal("testActor", actor.PickupPosition.Value.Actor.Name);
+        Assert.Equal("/PickupPosition", actor.PickupPosition.Value.ItemPath);
+        Assert.Equal("testActor", actor.PickupPosition.Value[0, 0].Actor.Name);
+        Assert.Equal("/PickupPosition", actor.PickupPosition.Value[0, 0].ItemPath);
 
         actor.PickupPosition.Value = new Array2D<Position1D>(10, 10);
-        Assert.AreEqual("testActor", actor.PickupPosition.Value[0, 0].Actor.Name);
-        Assert.AreEqual("/PickupPosition", actor.PickupPosition.Value[0, 0].ItemPath);
+        Assert.Equal("testActor", actor.PickupPosition.Value[0, 0].Actor.Name);
+        Assert.Equal("/PickupPosition", actor.PickupPosition.Value[0, 0].ItemPath);
 
-        Assert.AreEqual("testActor", actor.X.Actor.Name);
-        Assert.AreEqual("/X", actor.X.ItemPath);
-        Assert.IsInstanceOfType<FakeAxis>(actor.X);
+        Assert.Equal("testActor", actor.X.Actor.Name);
+        Assert.Equal("/X", actor.X.ItemPath);
+        Assert.IsType<FakeAxis>(actor.X);
 
-        Assert.AreEqual("testActor", actor.Vacuum.Actor.Name);
-        Assert.AreEqual("/Vacuum", actor.Vacuum.ItemPath);
-        Assert.IsInstanceOfType<FakeDigitalOutput>(actor.Vacuum);
+        Assert.Equal("testActor", actor.Vacuum.Actor.Name);
+        Assert.Equal("/Vacuum", actor.Vacuum.ItemPath);
+        Assert.IsType<FakeDigitalOutput>(actor.Vacuum);
     }
 
     // ReSharper disable once ClassNeverInstantiated.Local

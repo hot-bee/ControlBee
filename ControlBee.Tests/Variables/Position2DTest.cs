@@ -1,17 +1,16 @@
-﻿using ControlBee.Interfaces;
+﻿using System;
+using System.Linq;
+using System.Text.Json;
+using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.TestUtils;
 using ControlBee.Variables;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Linq;
-using System.Text.Json;
 using Xunit;
-using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
+using Assert = Xunit.Assert;
 
 namespace ControlBee.Tests.Variables;
 
@@ -22,7 +21,7 @@ public class Position2DTest : ActorFactoryBase
     public void InitialValuesTest()
     {
         var position = new Position2D(DenseVector.OfArray([1, 2]));
-        Assert.AreEqual(DenseVector.OfArray([1, 2]), position.Vector);
+        Assert.Equal(DenseVector.OfArray([1, 2]), position.Vector);
     }
 
     [Fact]
@@ -32,28 +31,22 @@ public class Position2DTest : ActorFactoryBase
         position.Vector += DenseVector.OfArray([1, 2]);
         var actual = position.Vector.ToArray();
         var expected = new[] { 2.2, 5.4 };
-        CollectionAssert.AreEqual(expected, actual);
+        Assert.Equal(new[] { 2.2, 5.4 }, position.Vector.ToArray());
     }
 
     [Fact]
     public void AccessByIndexTest()
     {
         var position = new Position2D(DenseVector.OfArray([1.2, 3.4]));
-        Assert.AreEqual(1.2, position[0]);
-        Assert.AreEqual(3.4, position[1]);
-        CollectionAssert.AreEqual(
-            new[] { 1.2, 3.4 },
-            position.Vector.ToArray()
-        );
+        Assert.Equal(1.2, position[0]);
+        Assert.Equal(3.4, position[1]);
+        Assert.Equal(new[] { 1.2, 3.4 }, position.Vector.ToArray());
 
         position[0] = 10.1;
         position[1] = 11.2;
-        Assert.AreEqual(10.1, position[0]);
-        Assert.AreEqual(11.2, position[1]);
-        CollectionAssert.AreEqual(
-            new[] { 10.1, 11.2 },
-            position.Vector.ToArray()
-        );
+        Assert.Equal(10.1, position[0]);
+        Assert.Equal(11.2, position[1]);
+        Assert.Equal(new[] { 10.1, 11.2 }, position.Vector.ToArray());
     }
 
     [Fact]
@@ -83,7 +76,7 @@ public class Position2DTest : ActorFactoryBase
             """;
         var expectedToken = JToken.Parse(expectedJson);
         var actualToken = JToken.Parse(JsonSerializer.Serialize(position));
-        Assert.IsTrue(JToken.DeepEquals(actualToken, expectedToken));
+        Assert.True(JToken.DeepEquals(actualToken, expectedToken));
     }
 
     [Fact]
@@ -93,10 +86,7 @@ public class Position2DTest : ActorFactoryBase
             {"Values": [1.2, 3.4]}
             """;
         var position = JsonSerializer.Deserialize<Position2D>(jsonString)!;
-        CollectionAssert.AreEqual(
-            new[] { 1.2, 3.4 },
-            position.Values.ToArray()
-        );
+        Assert.Equal(new[] { 1.2, 3.4 }, position.Values.ToArray());
     }
 
     [Fact]

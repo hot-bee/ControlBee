@@ -1,8 +1,7 @@
 ﻿using ControlBee.Variables;
-using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 using JetBrains.Annotations;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Xunit;
+using Assert = Xunit.Assert;
 
 namespace ControlBee.Tests.Variables;
 
@@ -13,21 +12,18 @@ public class StringTest
     public void ValueChangedTest()
     {
         var stringData = new String("Hello");
-        Assert.AreEqual("Hello", stringData.ToString());
+        Assert.Equal("Hello", stringData.ToString());
 
         var called = false;
         stringData.ValueChanged += (s, e) =>
         {
-            CollectionAssert.AreEqual(
-                new object[] { "Value" },
-                e.Location
-            );
-            Assert.AreEqual("Hello", e.OldValue);
-            Assert.AreEqual("World", e.NewValue);
+            Assert.Equal(["Value"], e.Location);
+            Assert.Equal("Hello", e.OldValue);
+            Assert.Equal("World", e.NewValue);
             called = true;
         };
         stringData.Value = "World";
-        Assert.AreEqual("World", stringData.ToString());
-        Assert.IsTrue(called);
+        Assert.Equal("World", stringData.ToString());
+        Assert.True(called);
     }
 }

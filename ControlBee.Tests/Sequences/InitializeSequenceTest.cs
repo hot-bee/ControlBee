@@ -6,9 +6,9 @@ using ControlBee.Sequences;
 using ControlBee.TestUtils;
 using ControlBeeAbstract.Constants;
 using ControlBeeTest.TestUtils;
-using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 using JetBrains.Annotations;
 using Xunit;
+using Assert = Xunit.Assert;
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
@@ -66,7 +66,7 @@ public class InitializeSequenceTest : ActorFactoryBase
         testActor.Send(new Message(EmptyActor.Instance, "_initialize"));
         testActor.Send(new Message(EmptyActor.Instance, "_terminate"));
         testActor.Join();
-        Assert.IsTrue(ScenarioFlowTester.Complete);
+        Assert.True(ScenarioFlowTester.Complete);
     }
 
     private class TestActor : Actor
