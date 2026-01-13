@@ -148,14 +148,26 @@ public class VariableManagerTest : ActorFactoryBase
     [Fact]
     public void OverwriteOnParseFailTest()
     {
-        Mock.Get(Database).Setup(m => m.Read("myRecipe", "MyActor", "myVariable")).Returns((10, "true"));
+        Mock.Get(Database)
+            .Setup(m => m.Read("myRecipe", "MyActor", "myVariable"))
+            .Returns((10, "true"));
         Mock.Get(Database).Setup(m => m.ReadLatestVariableChanges()).Returns(new DataTable());
         VariableManager.LocalName.Should().Be("Default");
         var actor = ActorFactory.Create<Actor>("MyActor");
-        var variable = new Variable<double>(actor, "myVariable", VariableScope.Local, 0.5);
+        _ = new Variable<double>(actor, "myVariable", VariableScope.Local, 0.5);
         VariableManager.Load("myRecipe");
-        variable.Value.Should().Be(0.5);
-        VariableManager.LocalName.Should().Be("myRecipe");
-
+        const string jsonString = "{\r\n  \"Version\": 2,\r\n  \"Value\": 0.5\r\n}";
+        Mock.Get(Database)
+            .Verify(
+                m =>
+                    m.WriteVariables(
+                        VariableScope.Local,
+                        "myRecipe",
+                        "MyActor",
+                        "myVariable",
+                        jsonString
+                    ),
+                Times.Once
+            );
     }
 }
