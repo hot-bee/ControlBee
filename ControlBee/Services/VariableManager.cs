@@ -188,7 +188,7 @@ public class VariableManager(
 
             foreach (var ((_, _), variable) in _variables) // TODO: Remove this safety check as soon as the code is confirmed.
                 if (
-                    variable.ValueObject is not String
+                    variable.Scope != VariableScope.Temporary
                     && originalValues[variable] != variable.ToJson()
                 )
                     throw new SystemException(
