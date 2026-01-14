@@ -192,7 +192,7 @@ public class VariableManager(
                     && originalValues[variable] != variable.ToJson()
                 )
                     throw new SystemException(
-                        "Critical error. The saved data has been changed. Contact author."
+                        $"Critical error. The saved data has been changed. Contact author. ({variable.ActorName}, {variable.ItemPath})"
                     );
 
             if (localNameChanged)
