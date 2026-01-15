@@ -8,10 +8,10 @@ using ControlBee.Variables;
 using ControlBeeAbstract.Constants;
 using ControlBeeAbstract.Exceptions;
 using ControlBeeTest.TestUtils;
-using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
+using Assert = Xunit.Assert;
 
 namespace ControlBee.Tests.Models;
 
@@ -34,10 +34,10 @@ public class FakeAxisTest : ActorFactoryBase
             message =>
             {
                 Assert.True(((FakeAxis)actor.X).IsMovingMonitored);
-                actor.X.IsMoving().Should().BeTrue();
-                actor.X.GetPosition().Should().Be(0.0);
-                actor.X.GetPosition(PositionType.Actual).Should().Be(0.0);
-                actor.X.GetPosition(PositionType.Target).Should().Be(10.0);
+                Assert.True(actor.X.IsMoving());
+                Assert.Equal(0.0, actor.X.GetPosition());
+                Assert.Equal(0.0, actor.X.GetPosition(PositionType.Actual));
+                Assert.Equal(10.0, actor.X.GetPosition(PositionType.Target));
                 Mock.Get(ScenarioFlowTester).Verify(m => m.OnCheckpoint(), Times.AtLeastOnce);
                 Mock.Get(ScenarioFlowTester).Invocations.Clear();
                 actor.Send(new Message(client, "Wait"));
@@ -50,10 +50,10 @@ public class FakeAxisTest : ActorFactoryBase
             message =>
             {
                 Assert.False(((FakeAxis)actor.X).IsMovingMonitored);
-                actor.X.IsMoving().Should().BeFalse();
-                actor.X.GetPosition().Should().Be(10.0);
-                actor.X.GetPosition(PositionType.Actual).Should().Be(10.0);
-                actor.X.GetPosition(PositionType.Target).Should().Be(10.0);
+                Assert.False(actor.X.IsMoving());
+                Assert.Equal(10.0, actor.X.GetPosition());
+                Assert.Equal(10.0, actor.X.GetPosition(PositionType.Actual));
+                Assert.Equal(10.0, actor.X.GetPosition(PositionType.Target));
                 Mock.Get(ScenarioFlowTester).Verify(m => m.OnCheckpoint(), Times.AtLeastOnce);
                 actor.Send(new TerminateMessage());
             }
@@ -109,23 +109,21 @@ public class FakeAxisTest : ActorFactoryBase
             "VelocityMoveDone",
             message =>
             {
-                actor.X.IsMoving().Should().BeTrue();
-                actor.X.GetPosition().Should().Be(0.0);
-                actor.X.GetPosition(PositionType.Actual).Should().Be(0.0);
+                Assert.True(actor.X.IsMoving());
+                Assert.Equal(0.0, actor.X.GetPosition());
+                Assert.Equal(0.0, actor.X.GetPosition(PositionType.Actual));
                 Assert.True(((FakeAxis)actor.X).IsMovingMonitored);
                 switch (direction)
                 {
                     case AxisDirection.Positive:
-                        actor
-                            .X.GetPosition(PositionType.Target)
-                            .Should()
-                            .Be(double.PositiveInfinity);
+                        Assert.True(
+                            double.IsPositiveInfinity(actor.X.GetPosition(PositionType.Target))
+                        );
                         break;
                     case AxisDirection.Negative:
-                        actor
-                            .X.GetPosition(PositionType.Target)
-                            .Should()
-                            .Be(double.NegativeInfinity);
+                        Assert.True(
+                            double.IsNegativeInfinity(actor.X.GetPosition(PositionType.Target))
+                        );
                         break;
                     default:
                         throw new Exception();
@@ -137,12 +135,12 @@ public class FakeAxisTest : ActorFactoryBase
                 switch (direction)
                 {
                     case AxisDirection.Positive:
-                        actor.X.GetPosition().Should().Be(0.1);
-                        actor.X.GetPosition(PositionType.Actual).Should().Be(0.1);
+                        Assert.Equal(0.1, actor.X.GetPosition());
+                        Assert.Equal(0.1, actor.X.GetPosition(PositionType.Actual));
                         break;
                     case AxisDirection.Negative:
-                        actor.X.GetPosition().Should().Be(-0.1);
-                        actor.X.GetPosition(PositionType.Actual).Should().Be(-0.1);
+                        Assert.Equal(-0.1, actor.X.GetPosition());
+                        Assert.Equal(-0.1, actor.X.GetPosition(PositionType.Actual));
                         break;
                     default:
                         throw new Exception();
@@ -152,12 +150,12 @@ public class FakeAxisTest : ActorFactoryBase
                 switch (direction)
                 {
                     case AxisDirection.Positive:
-                        actor.X.GetPosition().Should().Be(0.2);
-                        actor.X.GetPosition(PositionType.Actual).Should().Be(0.2);
+                        Assert.Equal(0.2, actor.X.GetPosition());
+                        Assert.Equal(0.2, actor.X.GetPosition(PositionType.Actual));
                         break;
                     case AxisDirection.Negative:
-                        actor.X.GetPosition().Should().Be(-0.2);
-                        actor.X.GetPosition(PositionType.Actual).Should().Be(-0.2);
+                        Assert.Equal(-0.2, actor.X.GetPosition());
+                        Assert.Equal(-0.2, actor.X.GetPosition(PositionType.Actual));
                         break;
                     default:
                         throw new Exception();
@@ -273,10 +271,10 @@ public class FakeAxisTest : ActorFactoryBase
             "WaitDone",
             message =>
             {
-                actor.X.IsMoving().Should().BeFalse();
-                actor.X.GetPosition().Should().Be(10.0);
-                actor.X.GetPosition(PositionType.Actual).Should().Be(10.0);
-                actor.X.GetPosition(PositionType.Target).Should().Be(10.0);
+                Assert.False(actor.X.IsMoving());
+                Assert.Equal(10.0, actor.X.GetPosition());
+                Assert.Equal(10.0, actor.X.GetPosition(PositionType.Actual));
+                Assert.Equal(10.0, actor.X.GetPosition(PositionType.Target));
                 Mock.Get(ScenarioFlowTester).Verify(m => m.OnCheckpoint(), Times.AtLeastOnce);
 
                 actor.Send(new TerminateMessage());
@@ -295,11 +293,8 @@ public class FakeAxisTest : ActorFactoryBase
         var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
 
         var fakeAxis = new FakeAxis(DeviceManager, timeManager, scenarioFlowTester);
-        var action = () => fakeAxis.Move(10.0);
-        action
-            .Should()
-            .Throw<ValueError>()
-            .WithMessage("You need to provide a SpeedProfile to move the axis.");
+        var action = Assert.Throws<ValueError>(() => fakeAxis.Move(10.0));
+        Assert.Equal("You need to provide a SpeedProfile to move the axis.", action.Message);
     }
 
     [Fact]
@@ -310,11 +305,8 @@ public class FakeAxisTest : ActorFactoryBase
 
         var fakeAxis = new FakeAxis(DeviceManager, timeManager, scenarioFlowTester);
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 0.0 });
-        var action = () => fakeAxis.Move(10.0);
-        action
-            .Should()
-            .Throw<ValueError>()
-            .WithMessage("You must provide a speed greater than 0 to move the axis.");
+        var action = Assert.Throws<ValueError>(() => fakeAxis.Move(10.0));
+        Assert.Equal("You must provide a speed greater than 0 to move the axis.", action.Message);
     }
 
     [Theory]
@@ -332,13 +324,13 @@ public class FakeAxisTest : ActorFactoryBase
         switch (sensorType)
         {
             case AxisSensorType.Home:
-                fakeAxis.GetSensorValue(AxisSensorType.Home).Should().BeTrue();
+                Assert.True(fakeAxis.GetSensorValue(AxisSensorType.Home));
                 break;
             case AxisSensorType.PositiveLimit:
-                fakeAxis.GetSensorValue(AxisSensorType.PositiveLimit).Should().BeTrue();
+                Assert.True(fakeAxis.GetSensorValue(AxisSensorType.PositiveLimit));
                 break;
             case AxisSensorType.NegativeLimit:
-                fakeAxis.GetSensorValue(AxisSensorType.NegativeLimit).Should().BeTrue();
+                Assert.True(fakeAxis.GetSensorValue(AxisSensorType.NegativeLimit));
                 break;
         }
 

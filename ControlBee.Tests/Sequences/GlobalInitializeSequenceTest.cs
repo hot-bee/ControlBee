@@ -5,11 +5,10 @@ using ControlBee.Models;
 using ControlBee.Sequences;
 using ControlBee.TestUtils;
 using ControlBeeAbstract.Exceptions;
-using ControlBeeTest.TestUtils;
-using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
+using Assert = Xunit.Assert;
 
 namespace ControlBee.Tests.Sequences;
 
@@ -69,7 +68,7 @@ public class GlobalInitializeSequenceTest : ActorFactoryBase
             );
 
         var action = () => globalInitializationSequence.Run();
-        action.Should().Throw<PlatformException>();
+        Assert.Throws<PlatformException>(() => action());
         globalInitializationSequence.SetInitializationState(
             mandrel0,
             InitializationStatus.Initialized
@@ -135,17 +134,17 @@ public class GlobalInitializeSequenceTest : ActorFactoryBase
             turret,
             InitializationStatus.Initialized
         );
-        globalInitializationSequence.IsComplete.Should().BeFalse();
-        globalInitializationSequence.IsInitializingActors.Should().BeFalse();
-        globalInitializationSequence.IsError.Should().BeTrue();
+        Assert.False(globalInitializationSequence.IsComplete);
+        Assert.False(globalInitializationSequence.IsInitializingActors);
+        Assert.True(globalInitializationSequence.IsError);
 
         globalInitializationSequence.SetInitializationState(
             mandrel0,
             InitializationStatus.Initializing
         );
-        globalInitializationSequence.IsComplete.Should().BeFalse();
-        globalInitializationSequence.IsInitializingActors.Should().BeTrue();
-        globalInitializationSequence.IsError.Should().BeTrue();
+        Assert.False(globalInitializationSequence.IsComplete);
+        Assert.True(globalInitializationSequence.IsInitializingActors);
+        Assert.True(globalInitializationSequence.IsError);
 
         globalInitializationSequence.SetInitializationState(
             mandrel0,
@@ -155,9 +154,9 @@ public class GlobalInitializeSequenceTest : ActorFactoryBase
             turret,
             InitializationStatus.Initialized
         );
-        globalInitializationSequence.IsComplete.Should().BeTrue();
-        globalInitializationSequence.IsInitializingActors.Should().BeFalse();
-        globalInitializationSequence.IsError.Should().BeTrue();
+        Assert.True(globalInitializationSequence.IsComplete);
+        Assert.False(globalInitializationSequence.IsInitializingActors);
+        Assert.True(globalInitializationSequence.IsError);
     }
 
     [Fact]

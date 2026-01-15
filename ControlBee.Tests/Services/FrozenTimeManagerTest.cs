@@ -5,18 +5,16 @@ using System.Threading.Tasks;
 using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
-using ControlBee.Sequences;
 using ControlBee.Services;
 using ControlBee.TestUtils;
 using ControlBee.Variables;
 using ControlBeeAbstract.Constants;
 using ControlBeeAbstract.Devices;
 using ControlBeeTest.TestUtils;
-using FluentAssertions;
 using JetBrains.Annotations;
-using MathNet.Numerics.LinearAlgebra.Double;
 using Moq;
 using Xunit;
+using Assert = Xunit.Assert;
 
 #pragma warning disable xUnit1031
 
@@ -104,7 +102,7 @@ public class FrozenTimeManagerTest : ActorFactoryBase
         testActor.Send(new Message(EmptyActor.Instance, "_initialize"));
         testActor.Send(new Message(EmptyActor.Instance, "_terminate"));
         testActor.Join();
-        ScenarioFlowTester.Complete.Should().BeTrue();
+        Assert.True(ScenarioFlowTester.Complete);
     }
 
     [Fact]

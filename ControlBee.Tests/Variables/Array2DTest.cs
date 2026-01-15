@@ -3,12 +3,10 @@ using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.TestUtils;
 using ControlBee.Variables;
-using ControlBeeTest.TestUtils;
-using FluentAssertions;
-using FluentAssertions.Json;
 using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Assert = Xunit.Assert;
 
 namespace ControlBee.Tests.Variables;
 
@@ -21,7 +19,7 @@ public class Array2DTest : ActorFactoryBase
         // ReSharper disable once UseObjectOrCollectionInitializer
         var array = new Array2D<int>(3, 3);
         array[1, 2] = 10;
-        array[1, 2].Should().Be(10);
+        Assert.Equal(10, array[1, 2]);
 
         var expectedJson = """
             {
@@ -33,7 +31,7 @@ public class Array2DTest : ActorFactoryBase
         var expectedJToken = JToken.Parse(expectedJson);
         var actualJToken = JToken.Parse(JsonSerializer.Serialize(array));
 
-        actualJToken.Should().BeEquivalentTo(expectedJToken);
+        Assert.True(JToken.DeepEquals(actualJToken, expectedJToken));
     }
 
     [Fact]
@@ -47,7 +45,8 @@ public class Array2DTest : ActorFactoryBase
             }
             """;
         array.ReadJson(JsonDocument.Parse(json));
-        array[1, 2].Should().Be(10);
+
+        Assert.Equal(10, array[1, 2]);
     }
 
     [Fact]
@@ -63,14 +62,14 @@ public class Array2DTest : ActorFactoryBase
             called = true;
         };
         array[1, 2] = 10;
-        called.Should().BeTrue();
+        Assert.True(called);
     }
 
     [Fact]
     public void NewElementsTest()
     {
         var array = new Array2D<String>(1, 1);
-        array[0, 0].Should().NotBeNull();
+        Assert.NotNull(array[0, 0]);
     }
 
     [Fact]
@@ -83,8 +82,8 @@ public class Array2DTest : ActorFactoryBase
         array.UpdateSubItem();
         // ReSharper disable once SuspiciousTypeConversion.Global
         var itemSub = (IActorItemSub)array[0, 0];
-        itemSub.Actor.Should().Be(actor);
-        itemSub.ItemPath.Should().Be("myItem");
+        Assert.Same(actor, itemSub.Actor);
+        Assert.Equal("myItem", itemSub.ItemPath);
     }
 
     [Fact]

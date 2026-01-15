@@ -5,11 +5,11 @@ using ControlBee.Utils;
 using ControlBee.Variables;
 using ControlBeeAbstract.Exceptions;
 using ControlBeeTest.TestUtils;
-using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
 using static ControlBee.Tests.Variables.PropertyVariableTest;
+using Assert = Xunit.Assert;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Tests.Models;
@@ -21,9 +21,9 @@ public class ActorTest : ActorFactoryBase
     public void TitleTest()
     {
         var actor = ActorFactory.Create<Actor>("myActor");
-        actor.Title.Should().Be("myActor");
+        Assert.Equal("myActor", actor.Title);
         actor.SetTitle("MyActor");
-        actor.Title.Should().Be("MyActor");
+        Assert.Equal("MyActor", actor.Title);
     }
 
     [Fact]

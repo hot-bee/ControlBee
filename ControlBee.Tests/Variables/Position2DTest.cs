@@ -1,16 +1,16 @@
 ﻿using System;
+using System.Linq;
 using System.Text.Json;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.TestUtils;
 using ControlBee.Variables;
-using ControlBeeTest.TestUtils;
-using FluentAssertions;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Assert = Xunit.Assert;
 
 namespace ControlBee.Tests.Variables;
 
@@ -29,22 +29,24 @@ public class Position2DTest : ActorFactoryBase
     {
         var position = new Position2D(DenseVector.OfArray([1.2, 3.4]));
         position.Vector += DenseVector.OfArray([1, 2]);
-        position.Vector.Should().BeEquivalentTo(DenseVector.OfArray([2.2, 5.4]));
+        var actual = position.Vector.ToArray();
+        var expected = new[] { 2.2, 5.4 };
+        Assert.Equal(new[] { 2.2, 5.4 }, position.Vector.ToArray());
     }
 
     [Fact]
     public void AccessByIndexTest()
     {
         var position = new Position2D(DenseVector.OfArray([1.2, 3.4]));
-        position[0].Should().Be(1.2);
-        position[1].Should().Be(3.4);
-        position.Vector.Should().BeEquivalentTo(DenseVector.OfArray([1.2, 3.4]));
+        Assert.Equal(1.2, position[0]);
+        Assert.Equal(3.4, position[1]);
+        Assert.Equal(new[] { 1.2, 3.4 }, position.Vector.ToArray());
 
         position[0] = 10.1;
         position[1] = 11.2;
-        position[0].Should().Be(10.1);
-        position[1].Should().Be(11.2);
-        position.Vector.Should().BeEquivalentTo(DenseVector.OfArray([10.1, 11.2]));
+        Assert.Equal(10.1, position[0]);
+        Assert.Equal(11.2, position[1]);
+        Assert.Equal(new[] { 10.1, 11.2 }, position.Vector.ToArray());
     }
 
     [Fact]
@@ -55,13 +57,13 @@ public class Position2DTest : ActorFactoryBase
         position.Vector[0] = 10.1;
 
         var act1 = () => position.Vector[0];
-        act1.Should().Throw<ApplicationException>();
+        Assert.Throws<ApplicationException>(() => act1());
 
         var act2 = () => position.Vector;
-        act2.Should().Throw<ApplicationException>();
+        Assert.Throws<ApplicationException>(() => act2());
 
         var act3 = () => position.Vector = DenseVector.OfArray([0, 0]);
-        act3.Should().Throw<ApplicationException>();
+        Assert.Throws<ApplicationException>(() => act3());
     }
 
     [Fact]
@@ -74,7 +76,7 @@ public class Position2DTest : ActorFactoryBase
             """;
         var expectedToken = JToken.Parse(expectedJson);
         var actualToken = JToken.Parse(JsonSerializer.Serialize(position));
-        actualToken.Should().BeEquivalentTo(expectedToken);
+        Assert.True(JToken.DeepEquals(actualToken, expectedToken));
     }
 
     [Fact]
@@ -84,7 +86,7 @@ public class Position2DTest : ActorFactoryBase
             {"Values": [1.2, 3.4]}
             """;
         var position = JsonSerializer.Deserialize<Position2D>(jsonString)!;
-        position.Values.Should().BeEquivalentTo([1.2, 3.4]);
+        Assert.Equal(new[] { 1.2, 3.4 }, position.Values.ToArray());
     }
 
     [Fact]
@@ -92,7 +94,7 @@ public class Position2DTest : ActorFactoryBase
     {
         var position = new Position2D(DenseVector.OfArray([1.2, 3.4]));
         var act = () => position.Move();
-        act.Should().Throw<ApplicationException>();
+        Assert.Throws<ApplicationException>(() => act());
     }
 
     [Fact]
@@ -115,7 +117,14 @@ public class Position2DTest : ActorFactoryBase
         actor.PositionAxesMap.UpdateMap();
 
         var act = () => variable.Value.Move();
-        act.Should().NotThrow();
+        try
+        {
+            act();
+        }
+        catch (Exception ex)
+        {
+            Assert.Fail($"Unexpected exception was thrown: {ex}");
+        }
         axisXMock.Verify(m => m.Move(1.2, false), Times.Once);
         axisYMock.Verify(m => m.Move(3.4, false), Times.Once);
     }
@@ -138,6 +147,6 @@ public class Position2DTest : ActorFactoryBase
         actor.PositionAxesMap.UpdateMap();
 
         var act = () => variable.Value.Move();
-        act.Should().Throw<ApplicationException>();
+        Assert.Throws<ApplicationException>(() => act());
     }
 }

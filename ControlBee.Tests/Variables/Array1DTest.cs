@@ -5,11 +5,11 @@ using ControlBee.Models;
 using ControlBee.TestUtils;
 using ControlBee.Variables;
 using ControlBeeTest.TestUtils;
-using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Assert = Xunit.Assert;
 
 namespace ControlBee.Tests.Variables;
 
@@ -22,7 +22,7 @@ public class Array1DTest : ActorFactoryBase
         // ReSharper disable once UseObjectOrCollectionInitializer
         var array = new Array1D<int>(3);
         array[1] = 10;
-        array[1].Should().Be(10);
+        Assert.Equal(10, array[1]);
 
         var expectedJson = """
             {
@@ -34,7 +34,7 @@ public class Array1DTest : ActorFactoryBase
         var expectedJToken = JToken.Parse(expectedJson);
         var actualJToken = JToken.Parse(JsonSerializer.Serialize(array));
 
-        actualJToken.Should().BeEquivalentTo(expectedJToken);
+        Assert.True(JToken.DeepEquals(actualJToken, expectedJToken));
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class Array1DTest : ActorFactoryBase
             }
             """;
         array.ReadJson(JsonDocument.Parse(json));
-        array[1].Should().Be(10);
+        Assert.Equal(10, array[1]);
     }
 
     [Fact]
@@ -64,14 +64,14 @@ public class Array1DTest : ActorFactoryBase
             called = true;
         };
         array[1] = 10;
-        called.Should().BeTrue();
+        Assert.True(called);
     }
 
     [Fact]
     public void NewElementsTest()
     {
         var array = new Array1D<String>(1);
-        array[0].Should().NotBeNull();
+        Assert.NotNull(array[0]);
     }
 
     [Fact]
@@ -84,8 +84,8 @@ public class Array1DTest : ActorFactoryBase
         array.UpdateSubItem();
         // ReSharper disable once SuspiciousTypeConversion.Global
         var itemSub = (IActorItemSub)array[0];
-        itemSub.Actor.Should().Be(actor);
-        itemSub.ItemPath.Should().Be("myItem");
+        Assert.Same(actor, itemSub.Actor);
+        Assert.Equal("myItem", itemSub.ItemPath);
     }
 
     [Fact]

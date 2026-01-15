@@ -3,11 +3,10 @@ using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.TestUtils;
 using ControlBee.Variables;
-using ControlBeeTest.TestUtils;
-using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
+using Assert = Xunit.Assert;
 using String = ControlBee.Variables.String;
 
 namespace ControlBee.Tests.Variables;
@@ -66,7 +65,7 @@ public class VariableTest : ActorFactoryBase
             VariableScope.Global,
             new String("Hello")
         );
-        stringVariable.Value.ToString().Should().Be("Hello");
+        Assert.Equal("Hello", stringVariable.Value.ToString());
 
         var called = false;
         stringVariable.ValueChanged += (s, e) =>
@@ -101,7 +100,7 @@ public class VariableTest : ActorFactoryBase
             called = true;
         };
         arrayVariable.Value = new Array1D<int>(10);
-        arrayVariable.Value.Size.Should().Be(10);
+        Assert.Equal(10, arrayVariable.Value.Size);
         Assert.True(called);
     }
 
@@ -125,7 +124,8 @@ public class VariableTest : ActorFactoryBase
             called = true;
         };
         arrayVariable.Value = new Array2D<int>(10, 20);
-        arrayVariable.Value.Size.Should().BeEquivalentTo((10, 20));
+        Assert.Equal(10, arrayVariable.Value.Size.Item1);
+        Assert.Equal(20, arrayVariable.Value.Size.Item2);
         Assert.True(called);
     }
 
@@ -149,7 +149,9 @@ public class VariableTest : ActorFactoryBase
             called = true;
         };
         arrayVariable.Value = new Array3D<int>(10, 20, 30);
-        arrayVariable.Value.Size.Should().BeEquivalentTo((10, 20, 30));
+        Assert.Equal(10, arrayVariable.Value.Size.Item1);
+        Assert.Equal(20, arrayVariable.Value.Size.Item2);
+        Assert.Equal(30, arrayVariable.Value.Size.Item3);
         Assert.True(called);
     }
 

@@ -1,7 +1,7 @@
 ﻿using ControlBee.Variables;
-using FluentAssertions;
 using JetBrains.Annotations;
 using Xunit;
+using Assert = Xunit.Assert;
 
 namespace ControlBee.Tests.Variables;
 
@@ -12,7 +12,7 @@ public class StringTest
     public void ValueChangedTest()
     {
         var stringData = new String("Hello");
-        stringData.ToString().Should().Be("Hello");
+        Assert.Equal("Hello", stringData.ToString());
 
         var called = false;
         stringData.ValueChanged += (s, e) =>

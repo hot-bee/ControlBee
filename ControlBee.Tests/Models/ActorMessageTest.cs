@@ -5,10 +5,10 @@ using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.TestUtils;
 using ControlBeeTest.TestUtils;
-using FluentAssertions;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
+using Assert = Xunit.Assert;
 
 namespace ControlBee.Tests.Models;
 
@@ -77,7 +77,7 @@ public class ActorMessageTest : ActorFactoryBase
         actor.Send(new Message(EmptyActor.Instance, "foo"));
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
-        stateTransitMatched.Should().BeTrue();
+        Assert.True(stateTransitMatched);
         Assert.True(stateEntryMessage);
         Assert.False(retryWithEmptyMessageMatched);
     }
