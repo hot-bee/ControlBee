@@ -5,6 +5,7 @@ using ControlBee.Models;
 using ControlBee.Services;
 using ControlBee.TestUtils;
 using ControlBee.Variables;
+using ControlBeeTest.TestUtils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
@@ -143,5 +144,30 @@ public class VariableManagerTest : ActorFactoryBase
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);
+    }
+
+    [Fact]
+    public void OverwriteOnParseFailTest()
+    {
+        Mock.Get(Database)
+            .Setup(m => m.Read("myRecipe", "MyActor", "myVariable"))
+            .Returns((10, "true"));
+        Mock.Get(Database).Setup(m => m.ReadLatestVariableChanges()).Returns(new DataTable());
+        var actor = ActorFactory.Create<Actor>("MyActor");
+        _ = new Variable<double>(actor, "myVariable", VariableScope.Local, 0.5);
+        VariableManager.Load("myRecipe");
+        const string jsonString = "{\r\n  \"Version\": 2,\r\n  \"Value\": 0.5\r\n}";
+        Mock.Get(Database)
+            .Verify(
+                m =>
+                    m.WriteVariables(
+                        VariableScope.Local,
+                        "myRecipe",
+                        "MyActor",
+                        "myVariable",
+                        jsonString
+                    ),
+                Times.Once
+            );
     }
 }
