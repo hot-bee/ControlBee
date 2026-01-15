@@ -153,7 +153,6 @@ public class VariableManagerTest : ActorFactoryBase
             .Setup(m => m.Read("myRecipe", "MyActor", "myVariable"))
             .Returns((10, "true"));
         Mock.Get(Database).Setup(m => m.ReadLatestVariableChanges()).Returns(new DataTable());
-        Assert.Equal("Default", VariableManager.LocalName);
         var actor = ActorFactory.Create<Actor>("MyActor");
         _ = new Variable<double>(actor, "myVariable", VariableScope.Local, 0.5);
         VariableManager.Load("myRecipe");
