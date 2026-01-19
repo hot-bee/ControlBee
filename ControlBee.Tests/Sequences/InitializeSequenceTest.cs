@@ -5,8 +5,10 @@ using ControlBee.Models;
 using ControlBee.Sequences;
 using ControlBee.TestUtils;
 using ControlBeeAbstract.Constants;
+using ControlBeeAbstract.Devices;
 using ControlBeeTest.TestUtils;
 using JetBrains.Annotations;
+using Moq;
 using Xunit;
 using Assert = Xunit.Assert;
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Data;
 using ControlBee.Interfaces;
+using ControlBee.Utils;
 using ControlBeeAbstract.Exceptions;
 using log4net;
 using Microsoft.Data.Sqlite;
@@ -21,6 +22,11 @@ public class SqliteDatabase : IDatabase, IDisposable
         CreateTables();
     }
 
+    protected static readonly JsonSerializerSettings JsonSettings = new()
+    {
+        ContractResolver = new RespectSystemTextJsonIgnoreResolver(),
+        Formatting = Formatting.Indented,
+    };
     private string DbFilePath => Path.Combine(_systemConfigurations.DataFolder, DbFileName);
 
     public int WriteVariables(
@@ -199,9 +205,9 @@ public class SqliteDatabase : IDatabase, IDisposable
         using var command = new SqliteCommand(sql, GetConnection());
         try
         {
-            var location = JsonConvert.SerializeObject(valueChangedArgs.Location);
-            var oldValue = JsonConvert.SerializeObject(valueChangedArgs.OldValue);
-            var newValue = JsonConvert.SerializeObject(valueChangedArgs.NewValue);
+            var location = JsonConvert.SerializeObject(valueChangedArgs.Location, JsonSettings);
+            var oldValue = JsonConvert.SerializeObject(valueChangedArgs.OldValue, JsonSettings);
+            var newValue = JsonConvert.SerializeObject(valueChangedArgs.NewValue, JsonSettings);
             command.Parameters.AddWithValue("@variable_id", variable.Id);
             command.Parameters.AddWithValue("@location", location);
             command.Parameters.AddWithValue("@old_value", oldValue);
@@ -211,7 +217,7 @@ public class SqliteDatabase : IDatabase, IDisposable
         }
         catch (JsonSerializationException exception)
         {
-            Logger.Error($"Failed to WriteVariableChange. {variable.Id}");
+            Logger.Error($"Failed to WriteVariableChange. ({variable.Id}, {exception})");
         }
     }
 
