@@ -16,6 +16,7 @@ public interface IAxis : IDeviceChannel
     void ClearAlarm();
     bool IsEnabled();
     bool IsInitializing();
+    bool IsInitialized();
     void OnBeforeInitialize();
     bool IsNear(double position, double range);
     bool WaitNear(double position, double range);

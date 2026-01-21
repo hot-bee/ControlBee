@@ -17,6 +17,7 @@ public class Axis : DeviceChannel, IAxis
 
     private Action _initializeAction;
     private bool _initializing;
+    private bool _initialized;
     protected bool _velocityMoving;
     public IDialog AxisAlarmError = new DialogPlaceholder();
     private double _targetPosition;
@@ -364,6 +365,11 @@ public class Axis : DeviceChannel, IAxis
     public virtual bool IsInitializing()
     {
         return _initializing;
+    }
+
+    public virtual bool IsInitialized()
+    {
+        return _initialized;
     }
 
     public void OnBeforeInitialize()
@@ -845,6 +851,7 @@ public class Axis : DeviceChannel, IAxis
 
         _initializeAction();
         _initializing = false;
+        _initialized = true;
         RefreshCache();
     }
 
@@ -880,6 +887,7 @@ public class Axis : DeviceChannel, IAxis
         var isAlarmed = IsAlarmed();
         var isEnabled = IsEnabled();
         var isInitializing = IsInitializing();
+        var isInitialized = IsInitialized();
         var isHomeDet = GetSensorValue(AxisSensorType.Home);
         var isNegativeLimitDet = GetSensorValue(AxisSensorType.NegativeLimit);
         var isPositiveLimitDet = GetSensorValue(AxisSensorType.PositiveLimit);
@@ -893,6 +901,7 @@ public class Axis : DeviceChannel, IAxis
             updated |= UpdateCache(ref _isAlarmedCache, isAlarmed);
             updated |= UpdateCache(ref _isEnabledCache, isEnabled);
             updated |= UpdateCache(ref _isInitializingCache, isInitializing);
+            updated |= UpdateCache(ref _isInitializedCache, isInitialized);
             updated |= UpdateCache(ref _isHomeDetCache, isHomeDet);
             updated |= UpdateCache(ref _isNegativeLimitDetCache, isNegativeLimitDet);
             updated |= UpdateCache(ref _isPositiveLimitDetCache, isPositiveLimitDet);
@@ -920,6 +929,7 @@ public class Axis : DeviceChannel, IAxis
                 ["IsAlarmed"] = _isAlarmedCache,
                 ["IsEnabled"] = _isEnabledCache,
                 ["IsInitializing"] = _isInitializingCache,
+                ["IsInitialized"] = _isInitializedCache,
                 ["IsHomeDet"] = _isHomeDetCache,
                 ["IsNegativeLimitDet"] = _isNegativeLimitDetCache,
                 ["IsPositiveLimitDet"] = _isPositiveLimitDetCache,
@@ -974,6 +984,7 @@ public class Axis : DeviceChannel, IAxis
     private bool _isEnabledCache;
     private bool _isHomeDetCache;
     private bool _isInitializingCache;
+    private bool _isInitializedCache;
     private bool _isMovingCache;
     private bool _isNegativeLimitDetCache;
     private bool _isPositiveLimitDetCache;
