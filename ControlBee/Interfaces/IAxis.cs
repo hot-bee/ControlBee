@@ -60,4 +60,11 @@ public interface IAxis : IDeviceChannel
     bool GetUseSoftwareLimit();
     double GetPositiveSoftwareLimitPosition();
     double GetNegativeSoftwareLimitPosition();
+    void PrepareMove(double position);
+    void PrepareRelativeMove(double distance);
+    void ExecutePreparedMoves();
+    void ExecutePreparedMovesWhenCountIs(int count);
+    void ClearPreparedMoves();
+    void WaitUntilMoveQueueEmpty(int millisecondsTimeout = 10000);
+    int GetPreparedMoveCount();
 }

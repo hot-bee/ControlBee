@@ -7,6 +7,7 @@ using ControlBeeAbstract.Constants;
 using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
 using log4net;
+using MathNet.Numerics;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
@@ -964,6 +965,111 @@ public class Axis : DeviceChannel, IAxis
             Stop();
             Wait();
         }
+    }
+
+    public void PrepareMove(double position)
+    {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        try
+        {
+            ValidateBeforeMove(false);
+            _targetPosition = position * Resolution.Value;
+            MotionDevice.PrepareJerkRatioSCurveMove(
+                Channel,
+                _targetPosition,
+                Math.Abs(CurrentSpeedProfile!.Velocity * Resolution.Value),
+                Math.Abs(CurrentSpeedProfile.Accel * Resolution.Value),
+                Math.Abs(CurrentSpeedProfile.Decel * Resolution.Value),
+                CurrentSpeedProfile.AccelJerkRatio,
+                CurrentSpeedProfile.DecelJerkRatio
+            );
+            _velocityMoving = false;
+        }
+        catch (AxisAlarmError)
+        {
+            AxisAlarmError.Show();
+            throw;
+        }
+    }
+
+    public void PrepareRelativeMove(double distance)
+    {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        ValidateBeforeMove(false);
+        MotionDevice.PrepareJerkRatioSCurveRelativeMove(
+            Channel,
+            distance * Resolution.Value,
+            Math.Abs(CurrentSpeedProfile!.Velocity * Resolution.Value),
+            Math.Abs(CurrentSpeedProfile.Accel * Resolution.Value),
+            Math.Abs(CurrentSpeedProfile.Decel * Resolution.Value),
+            CurrentSpeedProfile.AccelJerkRatio,
+            CurrentSpeedProfile.DecelJerkRatio
+        );
+    }
+
+    public void ExecutePreparedMoves()
+    {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        MotionDevice.ExecutePreparedMoves();
+    }
+
+    public void ExecutePreparedMovesWhenCountIs(int count)
+    {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        MotionDevice.ExecutePreparedMovesWhenCountIs(count);
+    }
+
+    public void ClearPreparedMoves()
+    {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        MotionDevice.ClearPreparedMoves();
+    }
+
+    public void WaitUntilMoveQueueEmpty(int millisecondsTimeout = 10000)
+    {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        MotionDevice.WaitUntilMoveQueueEmpty(millisecondsTimeout);
+    }
+
+    public int GetPreparedMoveCount()
+    {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return -1;
+        }
+
+        return MotionDevice.GetPreparedMoveCount();
     }
 
     #region Cache
