@@ -260,11 +260,10 @@ public class Axis : DeviceChannel, IAxis
         Stopwatch sw = new();
         sw.Restart();
 
-        var isEnabled = IsEnabled();
-        if (isEnabled == false || isEnabled != value)
+        if (!value)
             _initialized = false;
 
-        while (isEnabled != value)
+        while (IsEnabled() != value)
         {
             if (sw.ElapsedMilliseconds > 5000)
                 throw new TimeoutError($"Failed to enable or disable axis. ({Channel})");
@@ -893,7 +892,7 @@ public class Axis : DeviceChannel, IAxis
         var isAlarmed = IsAlarmed();
         var isEnabled = IsEnabled();
         var isInitializing = IsInitializing();
-        var isInitialized = IsInitialized() && !(isEnabled || isAlarmed);
+        var isInitialized = IsInitialized();
         var isHomeDet = GetSensorValue(AxisSensorType.Home);
         var isNegativeLimitDet = GetSensorValue(AxisSensorType.NegativeLimit);
         var isPositiveLimitDet = GetSensorValue(AxisSensorType.PositiveLimit);
