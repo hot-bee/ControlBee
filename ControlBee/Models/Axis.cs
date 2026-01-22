@@ -887,7 +887,7 @@ public class Axis : DeviceChannel, IAxis
         var isAlarmed = IsAlarmed();
         var isEnabled = IsEnabled();
         var isInitializing = IsInitializing();
-        var isInitialized = IsInitialized();
+        var isInitialized = IsInitialized() && !(isEnabled || isAlarmed);
         var isHomeDet = GetSensorValue(AxisSensorType.Home);
         var isNegativeLimitDet = GetSensorValue(AxisSensorType.NegativeLimit);
         var isPositiveLimitDet = GetSensorValue(AxisSensorType.PositiveLimit);
