@@ -259,7 +259,12 @@ public class Axis : DeviceChannel, IAxis
         MotionDevice.Enable(Channel, value);
         Stopwatch sw = new();
         sw.Restart();
-        while (IsEnabled() != value)
+
+        var isEnabled = IsEnabled();
+        if (isEnabled == false || isEnabled != value)
+            _initialized = false;
+
+        while (isEnabled != value)
         {
             if (sw.ElapsedMilliseconds > 5000)
                 throw new TimeoutError($"Failed to enable or disable axis. ({Channel})");
@@ -738,6 +743,7 @@ public class Axis : DeviceChannel, IAxis
         if (IsAlarmed())
         {
             Logger.Error($"Occur axis alarm error during Wait. ({ActorName}, {ItemPath})");
+            _initialized = false;
             AxisAlarmError.Show();
             throw new AxisAlarmError();
         }
@@ -960,6 +966,7 @@ public class Axis : DeviceChannel, IAxis
             Logger.Error(
                 $"Occur axis alarm error during ValidateBeforeMove. ({ActorName}, {ItemPath})"
             );
+            _initialized = false;
             AxisAlarmError.Show();
             throw new AxisAlarmError();
         }
