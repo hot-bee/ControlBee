@@ -68,4 +68,6 @@ public interface IAxis : IDeviceChannel
     void ClearPreparedMoves();
     void WaitUntilMoveQueueEmpty(int millisecondsTimeout = 10000);
     int GetPreparedMoveCount();
+    event EventHandler<bool>? InitializedChanged;
+    void Abort();
 }

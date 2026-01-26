@@ -204,6 +204,12 @@ public class Actor : IActorInternal, IDisposable
         _stateStack.Pop();
     }
 
+    public void ClearState()
+    {
+        _stateStack.ToList().ForEach(x => x.Dispose());
+        _stateStack.Clear();
+    }
+
     public bool TryPopState()
     {
         if (StateStackCount <= 1)
@@ -329,6 +335,8 @@ public class Actor : IActorInternal, IDisposable
 
     public void ResetState()
     {
+        Logger.Info("ResetState.");
+        ClearState();
         State = _initialState;
     }
 

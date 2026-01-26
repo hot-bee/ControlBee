@@ -1,4 +1,6 @@
-﻿using ControlBee.Constants;
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Sequences;
 using ControlBee.Utils;
@@ -7,7 +9,6 @@ using ControlBeeAbstract.Constants;
 using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
 using log4net;
-using MathNet.Numerics;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
@@ -16,12 +17,15 @@ public class Axis : DeviceChannel, IAxis
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(Axis));
 
+    private static readonly Dictionary<(string deviceName, int channel), AxisMetaInfo> MetaInfo =
+    [];
+    private AxisMetaInfo _localMetaInfo = new();
+
     private Action _initializeAction;
     private bool _initializing;
-    private bool _initialized;
+    private double _targetPosition;
     protected bool _velocityMoving;
     public IDialog AxisAlarmError = new DialogPlaceholder();
-    private double _targetPosition;
 
     protected SpeedProfile? CurrentSpeedProfile;
 
@@ -103,6 +107,22 @@ public class Axis : DeviceChannel, IAxis
         : base(deviceManager)
     {
         _timeManager = timeManager;
+    }
+
+    public override void PostInit()
+    {
+        base.PostInit();
+        GetMetaInfo().PropertyChanged += OnPropertyChanged;
+    }
+
+    private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(AxisMetaInfo.Initialized):
+                OnInitializedChanged(GetMetaInfo().Initialized);
+                break;
+        }
     }
 
     // ReSharper disable once SuspiciousTypeConversion.Global
@@ -261,9 +281,6 @@ public class Axis : DeviceChannel, IAxis
         Stopwatch sw = new();
         sw.Restart();
 
-        if (!value)
-            _initialized = false;
-
         while (IsEnabled() != value)
         {
             if (sw.ElapsedMilliseconds > 5000)
@@ -273,13 +290,6 @@ public class Axis : DeviceChannel, IAxis
 
         TimeManager.Sleep(value ? EnableDelay.Value : DisableDelay.Value);
         RefreshCache();
-    }
-
-    public SpeedProfile GetClonedJogSpeed()
-    {
-        var jogSpeed = (SpeedProfile)JogSpeed.ValueObject!;
-        jogSpeed = (SpeedProfile)jogSpeed.Clone();
-        return jogSpeed;
     }
 
     public SpeedProfile GetJogSpeed(JogSpeedLevel jogSpeedLevel)
@@ -334,6 +344,8 @@ public class Axis : DeviceChannel, IAxis
             return false;
         }
 
+        if (GetMetaInfo().Aborted)
+            return true;
         return MotionDevice.IsAlarmed(Channel);
     }
 
@@ -345,6 +357,7 @@ public class Axis : DeviceChannel, IAxis
             return;
         }
 
+        GetMetaInfo().Aborted = false;
         MotionDevice.ClearAlarm(Channel);
         Stopwatch sw = new();
         sw.Restart();
@@ -374,7 +387,7 @@ public class Axis : DeviceChannel, IAxis
 
     public virtual bool IsInitialized()
     {
-        return _initialized;
+        return GetMetaInfo().Initialized;
     }
 
     public void OnBeforeInitialize()
@@ -743,7 +756,7 @@ public class Axis : DeviceChannel, IAxis
         if (IsAlarmed())
         {
             Logger.Error($"Occur axis alarm error during Wait. ({ActorName}, {ItemPath})");
-            _initialized = false;
+            GetMetaInfo().Initialized = false;
             AxisAlarmError.Show();
             throw new AxisAlarmError();
         }
@@ -857,7 +870,7 @@ public class Axis : DeviceChannel, IAxis
 
         _initializeAction();
         _initializing = false;
-        _initialized = true;
+        GetMetaInfo().Initialized = true;
         RefreshCache();
     }
 
@@ -883,104 +896,6 @@ public class Axis : DeviceChannel, IAxis
 
         Logger.Info($"Start special command. ({ActorName}, {ItemPath})");
         MotionDevice.SpecialCommand(Channel, data);
-    }
-
-    protected void RefreshCacheImpl()
-    {
-        var commandPosition = GetPosition(PositionType.Command);
-        var actualPosition = GetPosition(PositionType.Actual);
-        var isMoving = IsMoving();
-        var isAlarmed = IsAlarmed();
-        var isEnabled = IsEnabled();
-        var isInitializing = IsInitializing();
-        var isInitialized = IsInitialized();
-        var isHomeDet = GetSensorValue(AxisSensorType.Home);
-        var isNegativeLimitDet = GetSensorValue(AxisSensorType.NegativeLimit);
-        var isPositiveLimitDet = GetSensorValue(AxisSensorType.PositiveLimit);
-
-        var updated = false;
-        lock (this)
-        {
-            updated |= UpdateCache(ref _commandPositionCache, commandPosition);
-            updated |= UpdateCache(ref _actualPositionCache, actualPosition);
-            updated |= UpdateCache(ref _isMovingCache, isMoving);
-            updated |= UpdateCache(ref _isAlarmedCache, isAlarmed);
-            updated |= UpdateCache(ref _isEnabledCache, isEnabled);
-            updated |= UpdateCache(ref _isInitializingCache, isInitializing);
-            updated |= UpdateCache(ref _isInitializedCache, isInitialized);
-            updated |= UpdateCache(ref _isHomeDetCache, isHomeDet);
-            updated |= UpdateCache(ref _isNegativeLimitDetCache, isNegativeLimitDet);
-            updated |= UpdateCache(ref _isPositiveLimitDetCache, isPositiveLimitDet);
-        }
-
-        if (updated)
-            SendDataToUi(Guid.Empty);
-    }
-
-    protected virtual void MonitorMoving(bool @override = false)
-    {
-        // Empty
-    }
-
-    private void SendDataToUi(Guid requestId)
-    {
-        Dict payload;
-        lock (this)
-        {
-            payload = new Dict
-            {
-                ["CommandPosition"] = _commandPositionCache,
-                ["ActualPosition"] = _actualPositionCache,
-                ["IsMoving"] = _isMovingCache,
-                ["IsAlarmed"] = _isAlarmedCache,
-                ["IsEnabled"] = _isEnabledCache,
-                ["IsInitializing"] = _isInitializingCache,
-                ["IsInitialized"] = _isInitializedCache,
-                ["IsHomeDet"] = _isHomeDetCache,
-                ["IsNegativeLimitDet"] = _isNegativeLimitDetCache,
-                ["IsPositiveLimitDet"] = _isPositiveLimitDetCache,
-            };
-        }
-
-        Actor.Ui?.Send(
-            new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)
-        );
-    }
-
-    private static bool UpdateCache<T>(ref T field, T value)
-    {
-        if (EqualityComparer<T>.Default.Equals(field, value))
-            return false;
-        field = value;
-        return true;
-    }
-
-    protected void ValidateBeforeMove(bool @override)
-    {
-        if (CurrentSpeedProfile == null)
-            throw new ValueError("You need to provide a SpeedProfile to move the axis.");
-        if (CurrentSpeedProfile!.Velocity == 0)
-            throw new ValueError("You must provide a speed greater than 0 to move the axis.");
-        if (IsAlarmed())
-        {
-            Logger.Error(
-                $"Occur axis alarm error during ValidateBeforeMove. ({ActorName}, {ItemPath})"
-            );
-            _initialized = false;
-            AxisAlarmError.Show();
-            throw new AxisAlarmError();
-        }
-
-        if (!@override)
-        {
-            if (!IsMoving())
-                return;
-            Logger.Warn(
-                $"Motion is still moving when it's trying to start move. ({ActorName}:{ItemPath})"
-            );
-            Stop();
-            Wait();
-        }
     }
 
     public void PrepareMove(double position)
@@ -1086,6 +1001,150 @@ public class Axis : DeviceChannel, IAxis
         }
 
         return MotionDevice.GetPreparedMoveCount();
+    }
+
+    public event EventHandler<bool>? InitializedChanged;
+
+    public SpeedProfile GetClonedJogSpeed()
+    {
+        var jogSpeed = (SpeedProfile)JogSpeed.ValueObject!;
+        jogSpeed = (SpeedProfile)jogSpeed.Clone();
+        return jogSpeed;
+    }
+
+    public (string deviceName, int channel)? GetDeviceChannelKey()
+    {
+        if (MotionDevice == null)
+            return null;
+        return (MotionDevice.DeviceName, GetChannel());
+    }
+
+    private AxisMetaInfo GetMetaInfo()
+    {
+        var key = GetDeviceChannelKey();
+        if (!key.HasValue)
+            return _localMetaInfo;
+        lock (MetaInfo)
+        {
+            if (!MetaInfo.TryGetValue(key.Value, out var metaInfo))
+            {
+                metaInfo = new AxisMetaInfo();
+                MetaInfo[key.Value] = metaInfo;
+            }
+            return metaInfo;
+        }
+    }
+
+    public void Abort()
+    {
+        Logger.Info($"Abort motion. ({ActorName}, {ItemPath}, {Channel})");
+
+        GetMetaInfo().Aborted = true;
+        GetMetaInfo().Initialized = false;
+        Stop();
+    }
+
+    protected void RefreshCacheImpl()
+    {
+        var commandPosition = GetPosition(PositionType.Command);
+        var actualPosition = GetPosition(PositionType.Actual);
+        var isMoving = IsMoving();
+        var isAlarmed = IsAlarmed();
+        var isEnabled = IsEnabled();
+        var isInitializing = IsInitializing();
+        var isInitialized = GetMetaInfo().Initialized;
+        var isHomeDet = GetSensorValue(AxisSensorType.Home);
+        var isNegativeLimitDet = GetSensorValue(AxisSensorType.NegativeLimit);
+        var isPositiveLimitDet = GetSensorValue(AxisSensorType.PositiveLimit);
+
+        var updated = false;
+        lock (this)
+        {
+            updated |= UpdateCache(ref _commandPositionCache, commandPosition);
+            updated |= UpdateCache(ref _actualPositionCache, actualPosition);
+            updated |= UpdateCache(ref _isMovingCache, isMoving);
+            updated |= UpdateCache(ref _isAlarmedCache, isAlarmed);
+            updated |= UpdateCache(ref _isEnabledCache, isEnabled);
+            updated |= UpdateCache(ref _isInitializingCache, isInitializing);
+            updated |= UpdateCache(ref _isInitializedCache, isInitialized);
+            updated |= UpdateCache(ref _isHomeDetCache, isHomeDet);
+            updated |= UpdateCache(ref _isNegativeLimitDetCache, isNegativeLimitDet);
+            updated |= UpdateCache(ref _isPositiveLimitDetCache, isPositiveLimitDet);
+        }
+
+        if (updated)
+            SendDataToUi(Guid.Empty);
+    }
+
+    protected virtual void MonitorMoving(bool @override = false)
+    {
+        // Empty
+    }
+
+    private void SendDataToUi(Guid requestId)
+    {
+        Dict payload;
+        lock (this)
+        {
+            payload = new Dict
+            {
+                ["CommandPosition"] = _commandPositionCache,
+                ["ActualPosition"] = _actualPositionCache,
+                ["IsMoving"] = _isMovingCache,
+                ["IsAlarmed"] = _isAlarmedCache,
+                ["IsEnabled"] = _isEnabledCache,
+                ["IsInitializing"] = _isInitializingCache,
+                ["IsInitialized"] = _isInitializedCache,
+                ["IsHomeDet"] = _isHomeDetCache,
+                ["IsNegativeLimitDet"] = _isNegativeLimitDetCache,
+                ["IsPositiveLimitDet"] = _isPositiveLimitDetCache,
+            };
+        }
+
+        Actor.Ui?.Send(
+            new ActorItemMessage(requestId, Actor, ItemPath, "_itemDataChanged", payload)
+        );
+    }
+
+    private static bool UpdateCache<T>(ref T field, T value)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value))
+            return false;
+        field = value;
+        return true;
+    }
+
+    protected void ValidateBeforeMove(bool @override)
+    {
+        if (CurrentSpeedProfile == null)
+            throw new ValueError("You need to provide a SpeedProfile to move the axis.");
+        if (CurrentSpeedProfile!.Velocity == 0)
+            throw new ValueError("You must provide a speed greater than 0 to move the axis.");
+        if (IsAlarmed())
+        {
+            Logger.Error(
+                $"Occur axis alarm error during ValidateBeforeMove. ({ActorName}, {ItemPath})"
+            );
+            GetMetaInfo().Initialized = false;
+            AxisAlarmError.Show();
+            throw new AxisAlarmError();
+        }
+
+        if (!@override)
+        {
+            if (!IsMoving())
+                return;
+            Logger.Warn(
+                $"Motion is still moving when it's trying to start move. ({ActorName}:{ItemPath})"
+            );
+            Stop();
+            Wait();
+        }
+    }
+
+    protected virtual void OnInitializedChanged(bool e)
+    {
+        InitializedChanged?.Invoke(this, e);
     }
 
     #region Cache
