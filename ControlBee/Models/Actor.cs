@@ -529,7 +529,7 @@ public class Actor : IActorInternal, IDisposable
                 {
                     if (message.Name == "_terminate")
                     {
-                        ClearState();
+                        _stateStack.ToList().ForEach(x => x.Dispose());
                         break;
                     }
 
