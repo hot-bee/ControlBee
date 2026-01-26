@@ -107,6 +107,11 @@ public class Axis : DeviceChannel, IAxis
         : base(deviceManager)
     {
         _timeManager = timeManager;
+    }
+
+    public override void PostInit()
+    {
+        base.PostInit();
         GetMetaInfo().PropertyChanged += OnPropertyChanged;
     }
 
@@ -276,11 +281,6 @@ public class Axis : DeviceChannel, IAxis
         Stopwatch sw = new();
         sw.Restart();
 
-        if (!value)
-        {
-            GetMetaInfo().Initialized = false;
-        }
-
         while (IsEnabled() != value)
         {
             if (sw.ElapsedMilliseconds > 5000)
@@ -357,6 +357,7 @@ public class Axis : DeviceChannel, IAxis
             return;
         }
 
+        GetMetaInfo().Aborted = false;
         MotionDevice.ClearAlarm(Channel);
         Stopwatch sw = new();
         sw.Restart();
@@ -366,8 +367,6 @@ public class Axis : DeviceChannel, IAxis
                 throw new TimeoutError($"Failed to clear alarm of axis. ({Channel})");
             Thread.Sleep(1);
         }
-
-        GetMetaInfo().Aborted = false;
     }
 
     public virtual bool IsEnabled()
