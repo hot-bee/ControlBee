@@ -753,12 +753,24 @@ public class Axis : DeviceChannel, IAxis
         );
         while (IsMoving(type)) // Fallback
             _timeManager.Sleep(1);
-        if (IsAlarmed())
+        try
         {
-            Logger.Error($"Occur axis alarm error during Wait. ({ActorName}, {ItemPath})");
+            if (IsAlarmed())
+            {
+                Logger.Error($"Axis alarm on Wait. ({ActorName}, {ItemPath})");
+                throw new AxisAlarmError();
+            }
+            if (!IsEnabled())
+            {
+                Logger.Error($"Axis is not enabled on Wait. ({ActorName}, {ItemPath})");
+                throw new AxisAlarmError();
+            }
+        }
+        catch (AxisAlarmError)
+        {
             GetMetaInfo().Initialized = false;
             AxisAlarmError.Show();
-            throw new AxisAlarmError();
+            throw;
         }
     }
 
@@ -1120,14 +1132,28 @@ public class Axis : DeviceChannel, IAxis
             throw new ValueError("You need to provide a SpeedProfile to move the axis.");
         if (CurrentSpeedProfile!.Velocity == 0)
             throw new ValueError("You must provide a speed greater than 0 to move the axis.");
-        if (IsAlarmed())
+        try
         {
-            Logger.Error(
-                $"Occur axis alarm error during ValidateBeforeMove. ({ActorName}, {ItemPath})"
-            );
+            if (IsAlarmed())
+            {
+                Logger.Error(
+                    $"Axis alarm on ValidateBeforeMove. ({ActorName}, {ItemPath})"
+                );
+                throw new AxisAlarmError();
+            }
+            if (!IsEnabled())
+            {
+                Logger.Error(
+                    $"Axis is not enabled on ValidateBeforeMove. ({ActorName}, {ItemPath})"
+                );
+                throw new AxisAlarmError();
+            }
+        }
+        catch (AxisAlarmError)
+        {
             GetMetaInfo().Initialized = false;
             AxisAlarmError.Show();
-            throw new AxisAlarmError();
+            throw;
         }
 
         if (!@override)
