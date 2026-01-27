@@ -19,17 +19,17 @@ public class Dialog(DialogContextFactory dialogContextFactory, IEventManager eve
         Context.ActorName = ActorName;
     }
 
-    public Guid Show()
+    public virtual Guid Show()
     {
         return Show(null, null);
     }
 
-    public Guid Show(string[] actionButtons)
+    public virtual Guid Show(string[] actionButtons)
     {
         return Show(actionButtons, null);
     }
 
-    public Guid Show(string desc)
+    public virtual Guid Show(string desc)
     {
         return Show(null, desc);
     }
@@ -61,7 +61,7 @@ public class Dialog(DialogContextFactory dialogContextFactory, IEventManager eve
         }
     }
 
-    public Guid Show(string[]? actionButtons, string? desc)
+    public virtual Guid Show(string[]? actionButtons, string? desc)
     {
         if (actionButtons != null)
             Context.ActionButtons = actionButtons;
@@ -77,7 +77,7 @@ public class Dialog(DialogContextFactory dialogContextFactory, IEventManager eve
         return Actor.Ui?.Send(new Message(Actor, "_displayDialog", Context)) ?? Guid.Empty;
     }
 
-    public void Close()
+    public virtual void Close()
     {
         Actor.Ui?.Send(new Message(Actor, "_closeDialog", Context));
     }
