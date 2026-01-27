@@ -93,6 +93,7 @@ public class InitializeSequence(
             {
                 if (axis.GetSensorValueOrTrue(sensorType))
                     break;
+                if (axis.IsAlarmed()) throw new AxisAlarmError();
                 if (
                     !reverse
                     && sensorType == AxisSensorType.Home
