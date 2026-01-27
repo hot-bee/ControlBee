@@ -63,6 +63,8 @@ public class PositionTest : ActorFactoryBase
             Y = config.AxisFactory.Create();
 
             PositionAxesMap.Add(MyPosition, [X, Y]);
+            X.Enable(true);
+            Y.Enable(true);
         }
 
         protected override void MessageHandler(Message message)

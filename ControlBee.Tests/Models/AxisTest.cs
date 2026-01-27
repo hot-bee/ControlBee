@@ -91,7 +91,7 @@ public class AxisTest : ActorFactoryBase
         actor.Start();
         actor.Send(new ActorItemMessage(uiActor, "/X", "_itemDataRead"));
         actor.Send(
-            new ActorItemMessage(uiActor, "/X", "_itemDataWrite", new Dict { ["Enable"] = true })
+            new ActorItemMessage(uiActor, "/X", "_itemDataWrite", new Dict { ["Enable"] = false })
         );
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
@@ -101,7 +101,7 @@ public class AxisTest : ActorFactoryBase
             var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/X" }
-                && (bool)actorItemMessage.DictPayload!["IsEnabled"]! == false;
+                && (bool)actorItemMessage.DictPayload!["IsEnabled"]!;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Exactly(2));
@@ -111,7 +111,7 @@ public class AxisTest : ActorFactoryBase
             var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/X" }
-                && (bool)actorItemMessage.DictPayload!["IsEnabled"]!;
+                && !(bool)actorItemMessage.DictPayload!["IsEnabled"]!;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
@@ -310,7 +310,7 @@ public class AxisTest : ActorFactoryBase
             : base(config)
         {
             X = config.AxisFactory.Create();
-
+            X.Enable(true);
             ((Axis)X).StepJogSizes.Value[2] = 10;
         }
 

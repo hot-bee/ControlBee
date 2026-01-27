@@ -188,6 +188,7 @@ public class FrozenTimeManagerTest : ActorFactoryBase
             : base(config)
         {
             X = config.AxisFactory.Create();
+            X.Enable(true);
             X.GetInitPos()[0] = 10.0;
             X.GetInitSpeed().Velocity = 1.0;
             ((Axis)X).InitDirection = AxisDirection.Negative;

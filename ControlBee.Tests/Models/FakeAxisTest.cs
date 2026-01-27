@@ -425,6 +425,7 @@ public class FakeAxisTest : ActorFactoryBase
 
         frozenTimeManager.Register();
         var fakeAxis = new FakeAxis(DeviceManager, frozenTimeManager, scenarioFlowTester);
+        fakeAxis.Enable(true);
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 100.0 });
         fakeAxis.Move(10.0);
         fakeAxis.WaitForPosition(PositionComparisonType.Greater, 5);
@@ -443,6 +444,7 @@ public class FakeAxisTest : ActorFactoryBase
 
         frozenTimeManager.Register();
         var fakeAxis = new FakeAxis(DeviceManager, frozenTimeManager, scenarioFlowTester);
+        fakeAxis.Enable(true);
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 10.0 });
         fakeAxis.Move(10.0);
         Assert.False(fakeAxis.WaitForPosition(PositionComparisonType.Greater, 20));
@@ -459,6 +461,7 @@ public class FakeAxisTest : ActorFactoryBase
 
         frozenTimeManager.Register();
         var fakeAxis = new FakeAxis(DeviceManager, frozenTimeManager, scenarioFlowTester);
+        fakeAxis.Enable(true);
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 10.0 });
         fakeAxis.Move(10.0);
         fakeAxis.WaitForPosition(PositionComparisonType.GreaterOrEqual, 10);
@@ -474,7 +477,7 @@ public class FakeAxisTest : ActorFactoryBase
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
         actor.Start();
-        actor.Send(new Message(uiActor, "EnableX"));
+        actor.Send(new Message(uiActor, "DisableX"));
         actor.Send(new TerminateMessage());
         actor.Join();
 
@@ -483,7 +486,7 @@ public class FakeAxisTest : ActorFactoryBase
             var actorItemMessage = message as ActorItemMessage;
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/X" }
-                && (bool)actorItemMessage.DictPayload!["IsEnabled"]!;
+                && !(bool)actorItemMessage.DictPayload!["IsEnabled"]!;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
@@ -498,6 +501,7 @@ public class FakeAxisTest : ActorFactoryBase
             : base(config)
         {
             X = config.AxisFactory.Create();
+            X.Enable(true);
         }
 
         protected override IState CreateErrorState(SequenceError error)
@@ -512,9 +516,9 @@ public class FakeAxisTest : ActorFactoryBase
                 case "WaitSensor":
                     X.WaitSensor(AxisSensorType.Home, true, 1000);
                     return true;
-                case "EnableX":
-                    X.Enable(true);
-                    message.Sender.Send(new Message(message, this, "EnableXDone"));
+                case "DisableX":
+                    X.Disable();
+                    message.Sender.Send(new Message(message, this, "DisableXDone"));
                     return true;
                 case "Move":
                     X.SetSpeed(new SpeedProfile { Velocity = 1.0 });
