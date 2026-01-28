@@ -7,6 +7,7 @@ public interface IEventManager
 {
     public void Write(
         string actorName,
+        string itemPath,
         string name,
         DialogSeverity severity = DialogSeverity.Info,
         int? code = null,

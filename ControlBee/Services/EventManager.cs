@@ -8,6 +8,7 @@ public class EventManager(IDatabase db) : IEventManager
 {
     public void Write(
         string actorName,
+        string itemPath,
         string name,
         DialogSeverity severity = DialogSeverity.Info,
         int? code = null,
@@ -20,6 +21,7 @@ public class EventManager(IDatabase db) : IEventManager
             {
                 EventTime = DateTime.Now, // TODO: Get from DB.
                 ActorName = actorName,
+                ItemPath = itemPath,
                 Name = name,
                 Severity = severity,
                 Code = code,

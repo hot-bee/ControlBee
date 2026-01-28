@@ -17,6 +17,7 @@ public class Dialog(DialogContextFactory dialogContextFactory, IEventManager eve
     {
         base.Init();
         Context.ActorName = ActorName;
+        Context.ItemPath = ItemPath;
     }
 
     public virtual Guid Show()
@@ -69,6 +70,7 @@ public class Dialog(DialogContextFactory dialogContextFactory, IEventManager eve
             Context.Desc = desc;
         eventManager.Write(
             Context.ActorName,
+            Context.ItemPath,
             Context.Name,
             Context.Severity,
             Context.Code,
