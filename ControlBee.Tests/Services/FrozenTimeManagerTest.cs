@@ -82,6 +82,15 @@ public class FrozenTimeManagerTest : ActorFactoryBase
     [Fact]
     public void RunTaskAndEmptyActorTest()
     {
+        Recreate(
+            new ActorFactoryBaseConfig
+            {
+                SystemConfigurations = new SystemConfigurations { FakeMode = true },
+                InitializeSequenceFactory = new InitializeSequenceFactory(
+                    new SystemConfigurations { FakeMode = false }
+                ),
+            }
+        );
         SetupDevice();
         var testActor = ActorFactory.Create<TestActor>("testActor");
         var axisX = (FakeAxis)testActor.X;
@@ -113,7 +122,13 @@ public class FrozenTimeManagerTest : ActorFactoryBase
             SystemConfigurations,
             scenarioFlowTester
         );
-        var fakeAxis = new FakeAxis(DeviceManager, frozenTimeManager, scenarioFlowTester);
+        var initializeSequenceFactory = Mock.Of<IInitializeSequenceFactory>();
+        var fakeAxis = new FakeAxis(
+            DeviceManager,
+            frozenTimeManager,
+            scenarioFlowTester,
+            initializeSequenceFactory
+        );
 
         var cancellationTokenSource = new CancellationTokenSource();
         var task = frozenTimeManager.RunTask(() =>

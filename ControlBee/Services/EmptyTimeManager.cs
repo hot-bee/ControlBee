@@ -11,7 +11,7 @@ public class EmptyTimeManager : ITimeManager
 
     public void Sleep(int millisecondsTimeout)
     {
-        // Empty
+        throw new SystemException("Do not reach here.");
     }
 
     public IStopwatch CreateWatch()

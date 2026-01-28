@@ -291,8 +291,14 @@ public class FakeAxisTest : ActorFactoryBase
     {
         var timeManager = Mock.Of<ITimeManager>();
         var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+        var initializeSequenceFactory = Mock.Of<IInitializeSequenceFactory>();
 
-        var fakeAxis = new FakeAxis(DeviceManager, timeManager, scenarioFlowTester);
+        var fakeAxis = new FakeAxis(
+            DeviceManager,
+            timeManager,
+            scenarioFlowTester,
+            initializeSequenceFactory
+        );
         var action = Assert.Throws<ValueError>(() => fakeAxis.Move(10.0));
         Assert.Equal("You need to provide a SpeedProfile to move the axis.", action.Message);
     }
@@ -302,8 +308,14 @@ public class FakeAxisTest : ActorFactoryBase
     {
         var timeManager = Mock.Of<ITimeManager>();
         var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+        var initializeSequenceFactory = Mock.Of<IInitializeSequenceFactory>();
 
-        var fakeAxis = new FakeAxis(DeviceManager, timeManager, scenarioFlowTester);
+        var fakeAxis = new FakeAxis(
+            DeviceManager,
+            timeManager,
+            scenarioFlowTester,
+            initializeSequenceFactory
+        );
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 0.0 });
         var action = Assert.Throws<ValueError>(() => fakeAxis.Move(10.0));
         Assert.Equal("You must provide a speed greater than 0 to move the axis.", action.Message);
@@ -318,8 +330,14 @@ public class FakeAxisTest : ActorFactoryBase
         var timeManager = Mock.Of<ITimeManager>();
         var scenarioFlowTesterMock = new Mock<IScenarioFlowTester>();
         var scenarioFlowTester = scenarioFlowTesterMock.Object;
+        var initializeSequenceFactory = Mock.Of<IInitializeSequenceFactory>();
 
-        var fakeAxis = new FakeAxis(DeviceManager, timeManager, scenarioFlowTester);
+        var fakeAxis = new FakeAxis(
+            DeviceManager,
+            timeManager,
+            scenarioFlowTester,
+            initializeSequenceFactory
+        );
         fakeAxis.SetSensorValue(sensorType, true);
         switch (sensorType)
         {
@@ -373,7 +391,13 @@ public class FakeAxisTest : ActorFactoryBase
     {
         using var timeManager = Mock.Of<ITimeManager>();
         var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
-        var fakeAxis = new FakeAxis(DeviceManager, timeManager, scenarioFlowTester);
+        var initializeSequenceFactory = Mock.Of<IInitializeSequenceFactory>();
+        var fakeAxis = new FakeAxis(
+            DeviceManager,
+            timeManager,
+            scenarioFlowTester,
+            initializeSequenceFactory
+        );
         fakeAxis.SetPosition(9.0);
         Assert.True(fakeAxis.IsNear(10.0, 1.0));
         Assert.False(fakeAxis.IsNear(11.0, 1.0));
@@ -418,13 +442,19 @@ public class FakeAxisTest : ActorFactoryBase
     public void WaitForPositionWithHighVelocityTest()
     {
         var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
+        var initializeSequenceFactory = Mock.Of<IInitializeSequenceFactory>();
         using var frozenTimeManager = new FrozenTimeManager(
             SystemConfigurations,
             scenarioFlowTester
         );
 
         frozenTimeManager.Register();
-        var fakeAxis = new FakeAxis(DeviceManager, frozenTimeManager, scenarioFlowTester);
+        var fakeAxis = new FakeAxis(
+            DeviceManager,
+            frozenTimeManager,
+            scenarioFlowTester,
+            initializeSequenceFactory
+        );
         fakeAxis.Enable(true);
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 100.0 });
         fakeAxis.Move(10.0);
@@ -441,9 +471,15 @@ public class FakeAxisTest : ActorFactoryBase
             SystemConfigurations,
             scenarioFlowTester
         );
+        var initializeSequenceFactory = Mock.Of<IInitializeSequenceFactory>();
 
         frozenTimeManager.Register();
-        var fakeAxis = new FakeAxis(DeviceManager, frozenTimeManager, scenarioFlowTester);
+        var fakeAxis = new FakeAxis(
+            DeviceManager,
+            frozenTimeManager,
+            scenarioFlowTester,
+            initializeSequenceFactory
+        );
         fakeAxis.Enable(true);
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 10.0 });
         fakeAxis.Move(10.0);
@@ -458,9 +494,15 @@ public class FakeAxisTest : ActorFactoryBase
             SystemConfigurations,
             scenarioFlowTester
         );
+        var initializeSequenceFactory = Mock.Of<IInitializeSequenceFactory>();
 
         frozenTimeManager.Register();
-        var fakeAxis = new FakeAxis(DeviceManager, frozenTimeManager, scenarioFlowTester);
+        var fakeAxis = new FakeAxis(
+            DeviceManager,
+            frozenTimeManager,
+            scenarioFlowTester,
+            initializeSequenceFactory
+        );
         fakeAxis.Enable(true);
         fakeAxis.SetSpeed(new SpeedProfile { Velocity = 10.0 });
         fakeAxis.Move(10.0);

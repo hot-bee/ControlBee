@@ -1,4 +1,6 @@
-﻿using ControlBee.Variables;
+﻿using ControlBee.Constants;
+using ControlBee.Variables;
+using ControlBeeAbstract.Constants;
 
 namespace ControlBee.Interfaces;
 
@@ -6,9 +8,9 @@ public interface IInitializeSequenceFactory
 {
     IInitializeSequence Create(
         IAxis axis,
-        Variable<SpeedProfile> homingSpeed,
-        Variable<Position1D> homePosition
+        Variable<SpeedProfile> initSpeed,
+        Variable<Position1D> homePosition,
+        AxisSensorType sensorType,
+        AxisDirection direction
     );
-
-    IInitializeSequence Create(IAxis axis, SpeedProfile homingSpeed, Position1D homePosition);
 }

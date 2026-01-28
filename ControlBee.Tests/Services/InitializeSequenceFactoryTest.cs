@@ -1,9 +1,11 @@
-﻿using ControlBee.Interfaces;
+﻿using ControlBee.Constants;
+using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Sequences;
 using ControlBee.Services;
 using ControlBee.TestUtils;
 using ControlBee.Variables;
+using ControlBeeAbstract.Constants;
 using ControlBeeTest.TestUtils;
 using JetBrains.Annotations;
 using MathNet.Numerics.LinearAlgebra.Double;
@@ -24,8 +26,10 @@ public class InitializeSequenceFactoryTest : ActorFactoryBase
         var initializeSequenceFactory = new InitializeSequenceFactory(systemConfigurations);
         var sequence = initializeSequenceFactory.Create(
             Mock.Of<IAxis>(),
-            new SpeedProfile(),
-            new Position1D()
+            new Variable<SpeedProfile>(),
+            new Variable<Position1D>(),
+            AxisSensorType.Home,
+            AxisDirection.Positive
         );
         if (fakeMode)
             Assert.IsType<FakeInitializeSequence>(sequence);
@@ -69,7 +73,9 @@ public class InitializeSequenceFactoryTest : ActorFactoryBase
             InitializeSequenceX = config.InitializeSequenceFactory.Create(
                 X,
                 HomeSpeedX,
-                HomePositionX
+                HomePositionX,
+                AxisSensorType.Home,
+                AxisDirection.Positive
             );
         }
     }

@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Sequences;
+using ControlBee.Services;
 using ControlBee.Utils;
 using ControlBee.Variables;
 using ControlBeeAbstract.Constants;
@@ -51,7 +52,7 @@ public class Axis : DeviceChannel, IAxis
         }
     );
 
-    public InitializeSequence InternalInitializeSequence;
+    public IInitializeSequence InternalInitializeSequence;
 
     public bool IsJogReversed;
 
@@ -103,10 +104,15 @@ public class Axis : DeviceChannel, IAxis
 
     public Variable<bool> UseSoftwareLimit = new(VariableScope.Global);
 
-    public Axis(IDeviceManager deviceManager, ITimeManager timeManager)
+    public Axis(
+        IDeviceManager deviceManager,
+        ITimeManager timeManager,
+        IInitializeSequenceFactory initializeSequenceFactory
+    )
         : base(deviceManager)
     {
         _timeManager = timeManager;
+        _initializeSequenceFactory = initializeSequenceFactory;
     }
 
     public override void PostInit()
@@ -152,7 +158,7 @@ public class Axis : DeviceChannel, IAxis
         )
             bool.TryParse(resetEnableToClearPosition, out ResetEnableToClearPosition);
 
-        InternalInitializeSequence = new InitializeSequence(
+        InternalInitializeSequence = _initializeSequenceFactory.Create(
             this,
             InitSpeed,
             InitPos,
@@ -511,7 +517,7 @@ public class Axis : DeviceChannel, IAxis
         return _velocityMoving;
     }
 
-    public InitializeSequence InitializeSequence => InternalInitializeSequence;
+    public IInitializeSequence InitializeSequence => InternalInitializeSequence;
 
     public void Move(double position)
     {
@@ -1136,9 +1142,7 @@ public class Axis : DeviceChannel, IAxis
         {
             if (IsAlarmed())
             {
-                Logger.Error(
-                    $"Axis alarm on ValidateBeforeMove. ({ActorName}, {ItemPath})"
-                );
+                Logger.Error($"Axis alarm on ValidateBeforeMove. ({ActorName}, {ItemPath})");
                 throw new AxisAlarmError();
             }
             if (!IsEnabled())
@@ -1186,6 +1190,7 @@ public class Axis : DeviceChannel, IAxis
     private bool _isNegativeLimitDetCache;
     private bool _isPositiveLimitDetCache;
     private readonly ITimeManager _timeManager;
+    private readonly IInitializeSequenceFactory _initializeSequenceFactory;
 
     #endregion
 }

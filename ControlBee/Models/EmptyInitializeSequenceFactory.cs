@@ -1,5 +1,7 @@
-﻿using ControlBee.Interfaces;
+﻿using ControlBee.Constants;
+using ControlBee.Interfaces;
 using ControlBee.Variables;
+using ControlBeeAbstract.Constants;
 using ControlBeeAbstract.Exceptions;
 
 namespace ControlBee.Models
@@ -13,20 +15,13 @@ namespace ControlBee.Models
 
         public IInitializeSequence Create(
             IAxis axis,
-            Variable<SpeedProfile> homingSpeed,
-            Variable<Position1D> homePosition
+            Variable<SpeedProfile> initSpeed,
+            Variable<Position1D> homePosition,
+            AxisSensorType sensorType,
+            AxisDirection direction
         )
         {
-            throw new UnimplementedByDesignError();
-        }
-
-        public IInitializeSequence Create(
-            IAxis axis,
-            SpeedProfile homingSpeed,
-            Position1D homePosition
-        )
-        {
-            throw new UnimplementedByDesignError();
+            throw new NotImplementedException();
         }
     }
 }

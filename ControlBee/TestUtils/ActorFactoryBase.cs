@@ -74,6 +74,8 @@ public abstract class ActorFactoryBase : IDisposable
         Database = config.Database ?? Mock.Of<IDatabase>();
         DeviceManager = config.DeviceManager ?? new DeviceManager();
         var deviceMonitor = Mock.Of<IDeviceMonitor>();
+        InitializeSequenceFactory =
+            config.InitializeSequenceFactory ?? new InitializeSequenceFactory(SystemConfigurations);
         AxisFactory =
             config.AxisFactory
             ?? new AxisFactory(
@@ -81,7 +83,8 @@ public abstract class ActorFactoryBase : IDisposable
                 DeviceManager,
                 TimeManager,
                 ScenarioFlowTester,
-                deviceMonitor
+                deviceMonitor,
+                InitializeSequenceFactory
             );
         ActorRegistry = config.ActorRegistry ?? new ActorRegistry();
         VariableManager =
@@ -113,8 +116,6 @@ public abstract class ActorFactoryBase : IDisposable
         DialogFactory =
             config.DialogFactory
             ?? new DialogFactory(new DialogContextFactory(), EventManager, null);
-        InitializeSequenceFactory =
-            config.InitializeSequenceFactory ?? new InitializeSequenceFactory(SystemConfigurations);
         BinaryActuatorFactory =
             config.BinaryActuatorFactory
             ?? new BinaryActuatorFactory(SystemConfigurations, TimeManager, ScenarioFlowTester);

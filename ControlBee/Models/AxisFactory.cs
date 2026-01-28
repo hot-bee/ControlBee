@@ -1,4 +1,5 @@
 ﻿using ControlBee.Interfaces;
+using ControlBee.Services;
 
 namespace ControlBee.Models;
 
@@ -7,7 +8,8 @@ public class AxisFactory(
     IDeviceManager deviceManager,
     ITimeManager timeManager,
     IScenarioFlowTester flowTester,
-    IDeviceMonitor deviceMonitor
+    IDeviceMonitor deviceMonitor,
+    IInitializeSequenceFactory initializeSequenceFactory
 ) : IAxisFactory
 {
     public IAxis Create()
@@ -17,9 +19,10 @@ public class AxisFactory(
                 deviceManager,
                 timeManager,
                 flowTester,
-                systemConfigurations.SkipWaitSensor
+                systemConfigurations.SkipWaitSensor,
+                initializeSequenceFactory
             )
-            : new Axis(deviceManager, timeManager);
+            : new Axis(deviceManager, timeManager, initializeSequenceFactory);
         deviceMonitor.Add(axis);
         return axis;
     }

@@ -8,7 +8,7 @@ namespace ControlBee.Interfaces;
 
 public interface IAxis : IDeviceChannel
 {
-    InitializeSequence InitializeSequence { get; }
+    IInitializeSequence InitializeSequence { get; }
     double ResolutionValue { get; }
     void Enable();
     void Disable();

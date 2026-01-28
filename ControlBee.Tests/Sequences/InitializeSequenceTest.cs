@@ -3,6 +3,7 @@ using ControlBee.Constants;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Sequences;
+using ControlBee.Services;
 using ControlBee.TestUtils;
 using ControlBeeAbstract.Constants;
 using ControlBeeAbstract.Devices;
@@ -48,6 +49,9 @@ public class InitializeSequenceTest : ActorFactoryBase
             new ActorFactoryBaseConfig
             {
                 SystemConfigurations = new SystemConfigurations { FakeMode = true },
+                InitializeSequenceFactory = new InitializeSequenceFactory(
+                    new SystemConfigurations { FakeMode = false }
+                ),
             }
         );
         SetupDevice();

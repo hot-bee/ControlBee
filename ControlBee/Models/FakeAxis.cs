@@ -1,5 +1,6 @@
 ﻿using ControlBee.Constants;
 using ControlBee.Interfaces;
+using ControlBee.Services;
 using ControlBeeAbstract.Constants;
 using ControlBeeAbstract.Exceptions;
 using log4net;
@@ -27,17 +28,19 @@ public class FakeAxis : Axis, IDisposable
     public FakeAxis(
         IDeviceManager deviceManager,
         ITimeManager timeManager,
-        IScenarioFlowTester flowTester
+        IScenarioFlowTester flowTester,
+        IInitializeSequenceFactory initializeSequenceFactory
     )
-        : this(deviceManager, timeManager, flowTester, false) { }
+        : this(deviceManager, timeManager, flowTester, false, initializeSequenceFactory) { }
 
     public FakeAxis(
         IDeviceManager deviceManager,
         ITimeManager timeManager,
         IScenarioFlowTester flowTester,
-        bool skipWaitSensor
+        bool skipWaitSensor,
+        IInitializeSequenceFactory initializeSequenceFactory
     )
-        : base(deviceManager, timeManager)
+        : base(deviceManager, timeManager, initializeSequenceFactory)
     {
         _timeManager = timeManager;
         _flowTester = flowTester;
