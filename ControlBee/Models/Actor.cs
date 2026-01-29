@@ -292,7 +292,7 @@ public class Actor : IActorInternal, IDisposable
         return GetStatusByActor(actor.Name, keyName);
     }
 
-    public object? GetPeerStatus(IActor actor, string keyName)
+    public virtual object? GetPeerStatus(IActor actor, string keyName)
     {
         return PeerStatus[actor].GetValueOrDefault(keyName);
     }
