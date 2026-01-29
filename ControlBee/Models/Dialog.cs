@@ -17,6 +17,7 @@ public class Dialog(DialogContextFactory dialogContextFactory, IEventManager eve
     {
         base.Init();
         Context.ActorName = ActorName;
+        Context.ItemPath = ItemPath;
     }
 
     public virtual Guid Show()
