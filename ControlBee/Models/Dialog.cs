@@ -70,7 +70,6 @@ public class Dialog(DialogContextFactory dialogContextFactory, IEventManager eve
             Context.Desc = desc;
         eventManager.Write(
             Context.ActorName,
-            Context.ItemPath,
             Context.Name,
             Context.Severity,
             Context.Code,
