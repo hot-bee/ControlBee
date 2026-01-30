@@ -5,10 +5,14 @@ using ControlBeeAbstract.Exceptions;
 using log4net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
+using JsonException = System.Text.Json.JsonException;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace ControlBee.Variables;
+
+using JsonException = Newtonsoft.Json.JsonException;
 
 public class Variable : ActorItem
 {
@@ -138,19 +142,30 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
         {
             var value = JsonConvert.DeserializeObject<DataV2>(data)!;
             if (value.Version != DataV2.ValidVersion)
-                throw new JsonException();
+                throw new JsonException("Fallback");
             if (value.Value is IActorItemSub actorItemSub)
                 actorItemSub.OnDeserialized();
             Value = value.Value;
         }
-        catch (JsonException)
+        catch (JsonException exception1)
         {
-            // Fallback to previous format.
-            var value = JsonSerializer.Deserialize<T>(data)!;
-            if (value is IActorItemSub actorItemSub)
-                actorItemSub.OnDeserialized();
-            Value = value;
-            throw new FallbackException();
+            Logger.Error(exception1);
+            try
+            {
+                // Fallback to previous format.
+                var value = JsonSerializer.Deserialize<T>(data)!;
+                if (value is IActorItemSub actorItemSub)
+                    actorItemSub.OnDeserialized();
+                Value = value;
+            }
+            catch (Exception exception2)
+            {
+                Logger.Error(exception2);
+            }
+            finally
+            {
+                throw new JsonException();
+            }
         }
     }
 

@@ -1,18 +1,19 @@
 ﻿using System.ComponentModel;
 using System.Data;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
 using log4net;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
-using String = ControlBee.Variables.String;
 
 namespace ControlBee.Services;
+
+using JsonException = JsonException;
 
 public class VariableManager(
     IDatabase database,
@@ -38,7 +39,9 @@ public class VariableManager(
         ISystemConfigurations systemConfigurations,
         IDeviceManager deviceManager
     )
-        : this(database, EmptyActorRegistry.Instance, systemConfigurations, deviceManager, null) { }
+        : this(database, EmptyActorRegistry.Instance, systemConfigurations, deviceManager, null)
+    {
+    }
 
     public VariableManager(
         IDatabase database,
@@ -46,7 +49,9 @@ public class VariableManager(
         ISystemConfigurations systemConfigurations,
         IDeviceManager deviceManager
     )
-        : this(database, actorRegistry, systemConfigurations, deviceManager, null) { }
+        : this(database, actorRegistry, systemConfigurations, deviceManager, null)
+    {
+    }
 
     private IActor? UiActor
     {
@@ -187,7 +192,8 @@ public class VariableManager(
                 variable.OldValueObject = oldValue;
             }
 
-            foreach (var ((_, _), variable) in _variables) // TODO: Remove this safety check as soon as the code is confirmed.
+            foreach (var ((_, _), variable) in
+                     _variables) // TODO: Remove this safety check as soon as the code is confirmed.
                 if (
                     variable.Scope != VariableScope.Temporary
                     && originalValues[variable] != variable.ToJson()
@@ -273,8 +279,10 @@ public class VariableManager(
         {
             variable.FromJson(json);
         }
-        catch (FallbackException)
+        catch (JsonException)
         {
+            Logger.Error(
+                $"Deserialize failed. actor={actorName}, path={itemPath}, value={row.Value.value}");
             WriteVariable(localName, actorName, itemPath, variable.ToJson());
         }
 
@@ -420,10 +428,6 @@ public class VariableManager(
             SetVariableId(variable, row.Value.id);
             variable.FromJson(row.Value.value);
             variable.Dirty = false;
-        }
-        catch (FallbackException)
-        {
-            Save(actorName, itemPath, variable);
         }
         catch (JsonException)
         {
