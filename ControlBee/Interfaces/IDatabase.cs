@@ -24,6 +24,10 @@ public interface IDatabase
     DataTable ReadAll(string tableName);
 
     (int id, string value)? Read(string localName, string actorName, string itemPath);
+    Dictionary<
+        (string localName, string actorName, string itemPath),
+        (int id, string value)
+    > ReadAllVariables(string localName);
     string[] GetLocalNames();
     void DeleteLocal(string localName);
     void RenameLocalName(string sourceLocalName, string targetLocalName);

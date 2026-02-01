@@ -135,6 +135,48 @@ public class SqliteDatabase : IDatabase, IDisposable
         return (id, value);
     }
 
+    public Dictionary<
+        (string localName, string actorName, string itemPath),
+        (int id, string value)
+    > ReadAllVariables(string localName)
+    {
+        var sql = """
+            SELECT local_name, actor_name, item_path, id, value
+            FROM variables
+            WHERE local_name = @local_name OR local_name = ''
+            """;
+
+        var result =
+            new Dictionary<
+                (string localName, string actorName, string itemPath),
+                (int id, string value)
+            >();
+
+        try
+        {
+            using var command = new SqliteCommand(sql, GetConnection());
+            command.Parameters.AddWithValue("@local_name", localName);
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var dbLocalName = reader.GetString(0);
+                var actorName = reader.GetString(1);
+                var itemPath = reader.GetString(2);
+                var id = (int)reader.GetInt64(3);
+                var value = reader.GetString(4);
+
+                result[(dbLocalName, actorName, itemPath)] = (id, value);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"ReadAllVariables failed. {ex.Message}");
+        }
+
+        return result;
+    }
+
     public string[] GetLocalNames()
     {
         var sql = """

@@ -166,10 +166,13 @@ public class VariableManager(
                 LocalName = localName;
             }
 
+            // Load all variables in a single query
+            var allVariables = database.ReadAllVariables(LocalName);
+
             var originalValues = new Dictionary<IVariable, string>();
             foreach (var ((actorName, itemPath), variable) in _variables)
             {
-                Load(actorName, itemPath, variable);
+                Load(actorName, itemPath, variable, allVariables);
                 originalValues[variable] = variable.ToJson();
             }
 
@@ -413,10 +416,37 @@ public class VariableManager(
         variable.Id = id;
     }
 
-    private void Load(string actorName, string itemPath, IVariable variable)
+    private void Load(
+        string actorName,
+        string itemPath,
+        IVariable variable,
+        Dictionary<
+            (string localName, string actorName, string itemPath),
+            (int id, string value)
+        >? allVariables = null
+    )
     {
         var dbLocalName = variable.Scope == VariableScope.Local ? LocalName : "";
-        var row = database.Read(dbLocalName, actorName, itemPath);
+
+        (int id, string value)? row;
+        if (allVariables != null)
+        {
+            // Use pre-fetched data
+            if (allVariables.TryGetValue((dbLocalName, actorName, itemPath), out var cachedRow))
+            {
+                row = cachedRow;
+            }
+            else
+            {
+                row = null;
+            }
+        }
+        else
+        {
+            // Fallback to individual query
+            row = database.Read(dbLocalName, actorName, itemPath);
+        }
+
         if (!row.HasValue)
         {
             Save(actorName, itemPath, variable);
@@ -432,7 +462,8 @@ public class VariableManager(
         catch (JsonException)
         {
             Logger.Error(
-                $"Deserialize failed. actor={actorName}, path={itemPath}, value={row.Value.value}");
+                $"Deserialize failed. actor={actorName}, path={itemPath}, value={row.Value.value}"
+            );
             Save(actorName, itemPath, variable);
         }
     }
