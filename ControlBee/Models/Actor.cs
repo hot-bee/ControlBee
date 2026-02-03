@@ -337,7 +337,7 @@ public class Actor : IActorInternal, IDisposable
     {
         Logger.Info("ResetState.");
         ClearState();
-        State = _initialState;
+        State = CreateInitialState();
     }
 
     public event EventHandler<(
@@ -629,6 +629,11 @@ public class Actor : IActorInternal, IDisposable
             PublishStateChanged();
             MessageHandler(new StateEntryMessage(this));
         }
+    }
+
+    public virtual IState CreateInitialState()
+    {
+        return _initialState;
     }
 
     public virtual IState CreateIdleState()
