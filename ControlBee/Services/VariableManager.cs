@@ -39,9 +39,7 @@ public class VariableManager(
         ISystemConfigurations systemConfigurations,
         IDeviceManager deviceManager
     )
-        : this(database, EmptyActorRegistry.Instance, systemConfigurations, deviceManager, null)
-    {
-    }
+        : this(database, EmptyActorRegistry.Instance, systemConfigurations, deviceManager, null) { }
 
     public VariableManager(
         IDatabase database,
@@ -49,9 +47,7 @@ public class VariableManager(
         ISystemConfigurations systemConfigurations,
         IDeviceManager deviceManager
     )
-        : this(database, actorRegistry, systemConfigurations, deviceManager, null)
-    {
-    }
+        : this(database, actorRegistry, systemConfigurations, deviceManager, null) { }
 
     private IActor? UiActor
     {
@@ -168,13 +164,8 @@ public class VariableManager(
 
             // Load all variables in a single query
             var allVariables = database.ReadAllVariables(LocalName);
-
-            var originalValues = new Dictionary<IVariable, string>();
             foreach (var ((actorName, itemPath), variable) in _variables)
-            {
                 Load(actorName, itemPath, variable, allVariables);
-                originalValues[variable] = variable.ToJson();
-            }
 
             var latestChanges = database.ReadLatestVariableChanges();
             foreach (DataRow row in latestChanges.Rows)
@@ -194,16 +185,6 @@ public class VariableManager(
                 );
                 variable.OldValueObject = oldValue;
             }
-
-            foreach (var ((_, _), variable) in
-                     _variables) // TODO: Remove this safety check as soon as the code is confirmed.
-                if (
-                    variable.Scope != VariableScope.Temporary
-                    && originalValues[variable] != variable.ToJson()
-                )
-                    throw new SystemException(
-                        $"Critical error. The saved data has been changed. Contact author. ({variable.ActorName}, {variable.ItemPath})"
-                    );
 
             if (localNameChanged)
             {
@@ -285,7 +266,8 @@ public class VariableManager(
         catch (JsonException)
         {
             Logger.Error(
-                $"Deserialize failed. actor={actorName}, path={itemPath}, value={row.Value.value}");
+                $"Deserialize failed. actor={actorName}, path={itemPath}, value={row.Value.value}"
+            );
             WriteVariable(localName, actorName, itemPath, variable.ToJson());
         }
 
