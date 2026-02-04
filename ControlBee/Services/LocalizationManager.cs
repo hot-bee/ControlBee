@@ -1,18 +1,32 @@
 ﻿using System.Text.RegularExpressions;
+using ControlBee.Interfaces;
 using log4net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace ControlBee.Services;
 
-public class LocalizationManager
+public class LocalizationManager : ILocalizationManager
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(LocalizationManager));
+    private static LocalizationManager? _instance;
     private JObject? _translations;
 
-    private LocalizationManager() { }
+    public LocalizationManager()
+    {
+        // Set the singleton instance if not already set
+        _instance ??= this;
+    }
 
-    public static LocalizationManager Instance { get; } = new();
+    /// <summary>
+    /// Gets the singleton instance. This property is intended for use in XAML bindings.
+    /// When using dependency injection, inject ILocalizationManager instead.
+    /// </summary>
+    public static LocalizationManager Instance =>
+        _instance
+        ?? throw new InvalidOperationException(
+            "LocalizationManager has not been initialized. Ensure it's registered in DI container."
+        );
 
     public void Load(string jsonPath)
     {
@@ -27,9 +41,14 @@ public class LocalizationManager
         }
     }
 
+    public string? GetValue(string key)
+    {
+        return _translations?.SelectToken(key)?.ToString();
+    }
+
     public string Translate(string key, Dictionary<string, string>? args = null)
     {
-        var value = _translations?.SelectToken(key)?.ToString();
+        var value = GetValue(key);
         if (value == null)
             return $"[MISSING:{key}]";
 

@@ -1,13 +1,17 @@
 ﻿using ControlBee.Interfaces;
+using ControlBee.Services;
 using ControlBee.Utils;
 using YamlDotNet.Serialization;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
-public class SystemPropertiesDataSource(ISystemConfigurations systemConfigurations)
-    : ISystemPropertiesDataSource
+public class SystemPropertiesDataSource(
+    ISystemConfigurations systemConfigurations,
+    ILocalizationManager localizationManager
+) : ISystemPropertiesDataSource
 {
+    private readonly ILocalizationManager _localizationManager = localizationManager;
     private const string BackupDirName = "Backup";
     private const string PropertyFileName = "ActorProperties.yaml";
     private Dict? _data;
@@ -42,6 +46,11 @@ public class SystemPropertiesDataSource(ISystemConfigurations systemConfiguratio
 
     public object? GetValue(string propertyPath)
     {
+        var localizationKey = propertyPath.Replace('/', '.');
+        var localizationValue = _localizationManager.GetValue(localizationKey);
+        if (localizationValue != null)
+            return localizationValue;
+
         var access = DictPath.Start(_data);
         try
         {
@@ -53,12 +62,13 @@ public class SystemPropertiesDataSource(ISystemConfigurations systemConfiguratio
         }
         catch (KeyNotFoundException)
         {
-            return null;
+            // Empty
         }
         catch (NullReferenceException)
         {
-            return null;
+            // Empty
         }
+        return null;
     }
 
     public void SetValue(string actorName, string propertyPath, object value)

@@ -1,6 +1,8 @@
-﻿using ControlBee.Models;
+﻿using ControlBee.Interfaces;
+using ControlBee.Models;
 using ControlBee.Utils;
 using JetBrains.Annotations;
+using Moq;
 using Xunit;
 
 namespace ControlBee.Tests.Models;
@@ -12,7 +14,8 @@ public class SystemPropertiesDataSourceTest
     public void ReadTest()
     {
         var systemConfigurations = new SystemConfigurations();
-        var dataSource = new SystemPropertiesDataSource(systemConfigurations);
+        var localizationManager = Mock.Of<ILocalizationManager>();
+        var dataSource = new SystemPropertiesDataSource(systemConfigurations, localizationManager);
         dataSource.ReadFromString(
             @"
 Picker0:

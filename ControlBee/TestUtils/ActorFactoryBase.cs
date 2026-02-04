@@ -27,6 +27,7 @@ public abstract class ActorFactoryBase : IDisposable
     protected ITimeManager TimeManager;
     protected IDeviceManager DeviceManager;
     protected IDatabase Database;
+    protected ILocalizationManager LocalizationManager;
 
 #pragma warning disable CS8618, CS9264
     protected ActorFactoryBase(ActorFactoryBaseConfig config)
@@ -72,6 +73,7 @@ public abstract class ActorFactoryBase : IDisposable
         TimeManager =
             config.TimeManager ?? new FrozenTimeManager(SystemConfigurations, ScenarioFlowTester);
         Database = config.Database ?? Mock.Of<IDatabase>();
+        LocalizationManager = Mock.Of<ILocalizationManager>();
         DeviceManager = config.DeviceManager ?? new DeviceManager();
         var deviceMonitor = Mock.Of<IDeviceMonitor>();
         InitializeSequenceFactory =
@@ -122,7 +124,7 @@ public abstract class ActorFactoryBase : IDisposable
         VisionFactory = config.VisionFactory ?? new VisionFactory(DeviceManager, TimeManager);
         SystemPropertiesDataSource =
             config.SystemPropertiesDataSource
-            ?? new SystemPropertiesDataSource(SystemConfigurations);
+            ?? new SystemPropertiesDataSource(SystemConfigurations, LocalizationManager);
         ActorFactory =
             config.ActorFactory
             ?? new ActorFactory(
