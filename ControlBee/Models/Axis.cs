@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using ControlBee.Constants;
+using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Sequences;
 using ControlBee.Services;
@@ -27,6 +28,7 @@ public class Axis : DeviceChannel, IAxis
     private double _targetPosition;
     protected bool _velocityMoving;
     public IDialog AxisAlarmError = new DialogPlaceholder();
+    public IDialog AxisNotEnabledError = new DialogPlaceholder();
 
     protected SpeedProfile? CurrentSpeedProfile;
 
@@ -416,6 +418,7 @@ public class Axis : DeviceChannel, IAxis
     {
         while (true)
         {
+            ValidateAxisState();
             if (IsNear(position, range))
                 return true;
             if (!IsMoving())
@@ -450,6 +453,7 @@ public class Axis : DeviceChannel, IAxis
     {
         while (true)
         {
+            ValidateAxisState();
             if (IsPosition(type, position))
                 return true;
             if (!IsMoving())
@@ -472,6 +476,7 @@ public class Axis : DeviceChannel, IAxis
     {
         while (true)
         {
+            ValidateAxisState();
             if (IsFar(position, range))
                 return true;
             if (!IsMoving())
@@ -532,27 +537,19 @@ public class Axis : DeviceChannel, IAxis
             return;
         }
 
-        try
-        {
-            ValidateBeforeMove(@override);
-            _targetPosition = position * Resolution.Value;
-            MotionDevice.JerkRatioSCurveMove(
-                Channel,
-                _targetPosition,
-                Math.Abs(CurrentSpeedProfile.Velocity * Resolution.Value),
-                Math.Abs(CurrentSpeedProfile.Accel * Resolution.Value),
-                Math.Abs(CurrentSpeedProfile.Decel * Resolution.Value),
-                CurrentSpeedProfile.AccelJerkRatio,
-                CurrentSpeedProfile.DecelJerkRatio
-            );
-            MonitorMoving();
-            _velocityMoving = false;
-        }
-        catch (AxisAlarmError)
-        {
-            AxisAlarmError.Show();
-            throw;
-        }
+        ValidateBeforeMove(@override);
+        _targetPosition = position * Resolution.Value;
+        MotionDevice.JerkRatioSCurveMove(
+            Channel,
+            _targetPosition,
+            Math.Abs(CurrentSpeedProfile.Velocity * Resolution.Value),
+            Math.Abs(CurrentSpeedProfile.Accel * Resolution.Value),
+            Math.Abs(CurrentSpeedProfile.Decel * Resolution.Value),
+            CurrentSpeedProfile.AccelJerkRatio,
+            CurrentSpeedProfile.DecelJerkRatio
+        );
+        MonitorMoving();
+        _velocityMoving = false;
     }
 
     public virtual void RelativeMove(double distance)
@@ -759,25 +756,8 @@ public class Axis : DeviceChannel, IAxis
         );
         while (IsMoving(type)) // Fallback
             _timeManager.Sleep(1);
-        try
-        {
-            if (IsAlarmed())
-            {
-                Logger.Error($"Axis alarm on Wait. ({ActorName}, {ItemPath})");
-                throw new AxisAlarmError();
-            }
-            if (!IsEnabled())
-            {
-                Logger.Error($"Axis is not enabled on Wait. ({ActorName}, {ItemPath})");
-                throw new AxisAlarmError();
-            }
-        }
-        catch (AxisAlarmError)
-        {
-            GetMetaInfo().Initialized = false;
-            AxisAlarmError.Show();
-            throw;
-        }
+
+        ValidateAxisState();
     }
 
     public virtual double GetPosition(PositionType type)
@@ -854,6 +834,7 @@ public class Axis : DeviceChannel, IAxis
         var watch = _timeManager.CreateWatch();
         while (GetSensorValue(type) != waitingValue)
         {
+            ValidateAxisState();
             if (watch.ElapsedMilliseconds > millisecondsTimeout || millisecondsTimeout == 0)
             {
                 switch (type)
@@ -924,26 +905,18 @@ public class Axis : DeviceChannel, IAxis
             return;
         }
 
-        try
-        {
-            ValidateBeforeMove(false);
-            _targetPosition = position * Resolution.Value;
-            MotionDevice.PrepareJerkRatioSCurveMove(
-                Channel,
-                _targetPosition,
-                Math.Abs(CurrentSpeedProfile!.Velocity * Resolution.Value),
-                Math.Abs(CurrentSpeedProfile.Accel * Resolution.Value),
-                Math.Abs(CurrentSpeedProfile.Decel * Resolution.Value),
-                CurrentSpeedProfile.AccelJerkRatio,
-                CurrentSpeedProfile.DecelJerkRatio
-            );
-            _velocityMoving = false;
-        }
-        catch (AxisAlarmError)
-        {
-            AxisAlarmError.Show();
-            throw;
-        }
+        ValidateBeforeMove(false);
+        _targetPosition = position * Resolution.Value;
+        MotionDevice.PrepareJerkRatioSCurveMove(
+            Channel,
+            _targetPosition,
+            Math.Abs(CurrentSpeedProfile!.Velocity * Resolution.Value),
+            Math.Abs(CurrentSpeedProfile.Accel * Resolution.Value),
+            Math.Abs(CurrentSpeedProfile.Decel * Resolution.Value),
+            CurrentSpeedProfile.AccelJerkRatio,
+            CurrentSpeedProfile.DecelJerkRatio
+        );
+        _velocityMoving = false;
     }
 
     public void PrepareRelativeMove(double distance)
@@ -1132,33 +1105,32 @@ public class Axis : DeviceChannel, IAxis
         return true;
     }
 
+    protected void ValidateAxisState()
+    {
+        if (IsAlarmed())
+        {
+            Logger.Error($"Axis alarm. ({ActorName}, {ItemPath})");
+            GetMetaInfo().Initialized = false;
+            AxisAlarmError.Show();
+            throw new AxisAlarmError();
+        }
+        if (!IsEnabled())
+        {
+            Logger.Error($"Axis is not enabled. ({ActorName}, {ItemPath})");
+            GetMetaInfo().Initialized = false;
+            AxisNotEnabledError.Show();
+            throw new AxisNotEnabledError();
+        }
+    }
+
     protected void ValidateBeforeMove(bool @override)
     {
         if (CurrentSpeedProfile == null)
             throw new ValueError("You need to provide a SpeedProfile to move the axis.");
         if (CurrentSpeedProfile!.Velocity == 0)
             throw new ValueError("You must provide a speed greater than 0 to move the axis.");
-        try
-        {
-            if (IsAlarmed())
-            {
-                Logger.Error($"Axis alarm on ValidateBeforeMove. ({ActorName}, {ItemPath})");
-                throw new AxisAlarmError();
-            }
-            if (!IsEnabled())
-            {
-                Logger.Error(
-                    $"Axis is not enabled on ValidateBeforeMove. ({ActorName}, {ItemPath})"
-                );
-                throw new AxisAlarmError();
-            }
-        }
-        catch (AxisAlarmError)
-        {
-            GetMetaInfo().Initialized = false;
-            AxisAlarmError.Show();
-            throw;
-        }
+
+        ValidateAxisState();
 
         if (!@override)
         {
