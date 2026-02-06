@@ -361,7 +361,7 @@ public class SqliteDatabase : IDatabase, IDisposable
     {
         var sql = """
             CREATE TABLE IF NOT EXISTS variables(
-                    id INTEGER PRIMARY KEY,
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
                     scope INTEGER NOT NULL,
                     local_name TEXT NOT NULL,
                     actor_name TEXT NOT NULL,
@@ -371,7 +371,7 @@ public class SqliteDatabase : IDatabase, IDisposable
                     UNIQUE (local_name, actor_name, item_path)
                 );
             CREATE TABLE IF NOT EXISTS variable_changes(
-                id INTEGER PRIMARY KEY,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 variable_id INTEGER,
                 location TEXT,
                 old_value BLOB,
@@ -379,7 +379,7 @@ public class SqliteDatabase : IDatabase, IDisposable
                 created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
             );
             CREATE TABLE IF NOT EXISTS events(
-                    id INTEGER PRIMARY KEY,
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
                     created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
                     actor_name TEXT NOT NULL,
                     name TEXT NOT NULL,
