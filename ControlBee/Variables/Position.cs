@@ -235,17 +235,19 @@ public abstract class Position
 
     public void MoveToSavedPos(ActorItemMessage? message = null)
     {
-        SpeedProfile[]? speedProfiles = null;
+        double[]? speedProfiles = null;
         if (message?.DictPayload?.TryGetValue("Speed", out var speedValue) == true)
         {
-            speedProfiles = speedValue as SpeedProfile[];
+            speedProfiles = speedValue as double[];
         }
 
         for (var i = 0; i < Axes.Length; i++)
         {
-            if (speedProfiles != null && i < speedProfiles.Length && speedProfiles[i] != null)
+            if (speedProfiles != null)
             {
-                Axes[i].SetSpeed(speedProfiles[i]);
+                var speedProfile = (SpeedProfile)Axes[i].GetNormalSpeed().Clone();
+                speedProfile.Velocity = speedProfiles[i];
+                Axes[i].SetSpeed(speedProfile);
             }
             else
             {
