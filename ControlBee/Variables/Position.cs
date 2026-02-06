@@ -103,7 +103,7 @@ public abstract class Position
         switch (message.Name)
         {
             case "MoveToSavedPos":
-                MoveToSavedPos();
+                MoveToSavedPos(message);
                 return true;
             case "MoveToHomePos":
                 MoveToHomePos();
@@ -233,11 +233,24 @@ public abstract class Position
         }
     }
 
-    public void MoveToSavedPos()
+    public void MoveToSavedPos(ActorItemMessage? message = null)
     {
+        SpeedProfile[]? speedProfiles = null;
+        if (message?.DictPayload?.TryGetValue("Speed", out var speedValue) == true)
+        {
+            speedProfiles = speedValue as SpeedProfile[];
+        }
+
         for (var i = 0; i < Axes.Length; i++)
         {
-            Axes[i].SetSpeed(Axes[i].GetJogSpeed(JogSpeedLevel.Fast));
+            if (speedProfiles != null && i < speedProfiles.Length && speedProfiles[i] != null)
+            {
+                Axes[i].SetSpeed(speedProfiles[i]);
+            }
+            else
+            {
+                Axes[i].SetSpeed(Axes[i].GetJogSpeed(JogSpeedLevel.Fast));
+            }
             Axes[i].MoveAndWait(this[i]);
         }
     }
