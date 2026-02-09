@@ -326,7 +326,8 @@ public class SqliteDatabase : IDatabase, IDisposable
             INNER JOIN variables b ON a.variable_id = b.id
             {whereClause}
             ORDER BY a.id DESC
-            """;
+            LIMIT 300
+            """; // TODO: Support paging
 
         var dt = new DataTable();
         try
