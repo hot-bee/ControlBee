@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using ControlBee.Constants;
+using ControlBee.Models;
 
 namespace ControlBee.Interfaces;
 
@@ -14,6 +15,6 @@ public interface IEventManager
     );
 
     public IDatabase GetDatabase();
-    DataTable ReadAll(string tableName);
+    DataTable ReadAll(string tableName, QueryOptions? options = null);
     event EventHandler<EventMessage>? EventOccured;
 }

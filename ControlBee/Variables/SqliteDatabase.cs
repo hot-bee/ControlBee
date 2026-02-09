@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Data;
 using ControlBee.Interfaces;
+using ControlBee.Models;
 using ControlBee.Utils;
 using ControlBeeAbstract.Exceptions;
 using log4net;
@@ -87,15 +88,33 @@ public class SqliteDatabase : IDatabase, IDisposable
         command.ExecuteNonQuery();
     }
 
-    public DataTable ReadAll(string tableName)
+    public DataTable ReadAll(string tableName, QueryOptions? options = null)
     {
-        // TODO: Should not read all. This is a very expensive.
+        var conditions = new List<string>();
+        if (options?.StartDate.HasValue == true)
+            conditions.Add("created_at >= @start_date");
+        if (options?.EndDate.HasValue == true)
+            conditions.Add("created_at < @end_date");
+
         var sql = $"SELECT * FROM {tableName}";
+        if (conditions.Count > 0)
+            sql += " WHERE " + string.Join(" AND ", conditions);
+        sql += " ORDER BY id DESC";
 
         var dt = new DataTable();
         try
         {
             using var command = new SqliteCommand(sql, GetConnection());
+            if (options?.StartDate.HasValue == true)
+                command.Parameters.AddWithValue(
+                    "@start_date",
+                    options.StartDate.Value.ToString("yyyy-MM-dd HH:mm:ss")
+                );
+            if (options?.EndDate.HasValue == true)
+                command.Parameters.AddWithValue(
+                    "@end_date",
+                    options.EndDate.Value.ToString("yyyy-MM-dd HH:mm:ss")
+                );
             using var reader = command.ExecuteReader();
             dt.Load(reader);
         }
@@ -290,21 +309,39 @@ public class SqliteDatabase : IDatabase, IDisposable
         return dt;
     }
 
-    public DataTable ReadVariableChanges()
+    public DataTable ReadVariableChanges(QueryOptions? options = null)
     {
-        var sql = """
-            SELECT a.id, b.local_name, b.scope, a.variable_id, b.actor_name, b.item_path, 
+        var conditions = new List<string>();
+        if (options?.StartDate.HasValue == true)
+            conditions.Add("a.created_at >= @start_date");
+        if (options?.EndDate.HasValue == true)
+            conditions.Add("a.created_at < @end_date");
+
+        var whereClause = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
+
+        var sql = $"""
+            SELECT a.id, b.local_name, b.scope, a.variable_id, b.actor_name, b.item_path,
             a.location, a.old_value, a.new_value, a.created_at
             FROM variable_changes a
             INNER JOIN variables b ON a.variable_id = b.id
+            {whereClause}
             ORDER BY a.id DESC
-            LIMIT 300
-            """; // TODO: Support paging
+            """;
 
         var dt = new DataTable();
         try
         {
             using var command = new SqliteCommand(sql, GetConnection());
+            if (options?.StartDate.HasValue == true)
+                command.Parameters.AddWithValue(
+                    "@start_date",
+                    options.StartDate.Value.ToString("yyyy-MM-dd HH:mm:ss")
+                );
+            if (options?.EndDate.HasValue == true)
+                command.Parameters.AddWithValue(
+                    "@end_date",
+                    options.EndDate.Value.ToString("yyyy-MM-dd HH:mm:ss")
+                );
             using var reader = command.ExecuteReader();
             dt.Load(reader);
         }

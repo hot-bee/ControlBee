@@ -2,6 +2,7 @@
 using System.Data;
 using System.Runtime.CompilerServices;
 using ControlBee.Interfaces;
+using ControlBee.Models;
 
 namespace ControlBee.Variables;
 
@@ -26,7 +27,7 @@ public class EmptyVariableManager : IVariableManager
         // Empty
     }
 
-    public DataTable ReadVariableChanges()
+    public DataTable ReadVariableChanges(QueryOptions? options = null)
     {
         throw new NotImplementedException();
     }

@@ -39,9 +39,7 @@ public class VariableManager(
         ISystemConfigurations systemConfigurations,
         IDeviceManager deviceManager
     )
-        : this(database, EmptyActorRegistry.Instance, systemConfigurations, deviceManager, null)
-    {
-    }
+        : this(database, EmptyActorRegistry.Instance, systemConfigurations, deviceManager, null) { }
 
     public VariableManager(
         IDatabase database,
@@ -49,9 +47,7 @@ public class VariableManager(
         ISystemConfigurations systemConfigurations,
         IDeviceManager deviceManager
     )
-        : this(database, actorRegistry, systemConfigurations, deviceManager, null)
-    {
-    }
+        : this(database, actorRegistry, systemConfigurations, deviceManager, null) { }
 
     private IActor? UiActor
     {
@@ -195,8 +191,7 @@ public class VariableManager(
                 variable.OldValueObject = oldValue;
             }
 
-            foreach (var ((_, _), variable) in
-                     _variables) // TODO: Remove this safety check as soon as the code is confirmed.
+            foreach (var ((_, _), variable) in _variables) // TODO: Remove this safety check as soon as the code is confirmed.
                 if (
                     variable.Scope != VariableScope.Temporary
                     && originalValues[variable] != variable.ToJson()
@@ -227,9 +222,9 @@ public class VariableManager(
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public DataTable ReadVariableChanges()
+    public DataTable ReadVariableChanges(QueryOptions? options = null)
     {
-        return database.ReadVariableChanges();
+        return database.ReadVariableChanges(options);
     }
 
     public void SaveTemporaryVariables()
@@ -285,7 +280,8 @@ public class VariableManager(
         catch (JsonException)
         {
             Logger.Error(
-                $"Deserialize failed. actor={actorName}, path={itemPath}, value={row.Value.value}");
+                $"Deserialize failed. actor={actorName}, path={itemPath}, value={row.Value.value}"
+            );
             WriteVariable(localName, actorName, itemPath, variable.ToJson());
         }
 
