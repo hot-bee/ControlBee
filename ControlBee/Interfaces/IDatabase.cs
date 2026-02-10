@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using ControlBee.Models;
 using ControlBee.Variables;
 
 namespace ControlBee.Interfaces;
@@ -21,7 +22,7 @@ public interface IDatabase
         string? desc = null
     );
 
-    DataTable ReadAll(string tableName);
+    DataTable ReadAll(string tableName, QueryOptions? options = null);
 
     (int id, string value)? Read(string localName, string actorName, string itemPath);
     Dictionary<
@@ -32,7 +33,7 @@ public interface IDatabase
     void DeleteLocal(string localName);
     void RenameLocalName(string sourceLocalName, string targetLocalName);
     void WriteVariableChange(IVariable variable, ValueChangedArgs valueChangedArgs);
-    DataTable ReadVariableChanges();
+    DataTable ReadVariableChanges(QueryOptions? options = null);
     object GetConnection();
     DataTable ReadLatestVariableChanges();
 }

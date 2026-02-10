@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using ControlBee.Constants;
 using ControlBee.Interfaces;
+using ControlBee.Models;
 
 namespace ControlBee.Services;
 
@@ -33,9 +34,9 @@ public class EventManager(IDatabase db) : IEventManager
         return db;
     }
 
-    public DataTable ReadAll(string tableName)
+    public DataTable ReadAll(string tableName, QueryOptions? options = null)
     {
-        return db.ReadAll(tableName);
+        return db.ReadAll(tableName, options);
     }
 
     public event EventHandler<EventMessage>? EventOccured;

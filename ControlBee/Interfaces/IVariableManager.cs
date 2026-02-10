@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Data;
+using ControlBee.Models;
 
 namespace ControlBee.Interfaces;
 
@@ -12,7 +13,7 @@ public interface IVariableManager : INotifyPropertyChanged
     void Save(string? localName = null);
     void Load(string? localName = null);
     void Delete(string localName);
-    DataTable ReadVariableChanges();
+    DataTable ReadVariableChanges(QueryOptions? options = null);
     void SaveTemporaryVariables();
     void DiscardChanges();
     T ReadVariable<T>(string localName, string actorName, string itemPath)
