@@ -29,6 +29,28 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
         return Channel;
     }
 
+    public override bool ProcessMessage(ActorItemMessage message)
+    {
+        switch (message.Name)
+        {
+            case "_itemMetaDataRead":
+            {
+                var payload = new Dictionary<string, object?>
+                {
+                    [nameof(Name)] = Name,
+                    [nameof(Desc)] = Desc,
+                    [nameof(Channel)] = Channel,
+                };
+                message.Sender.Send(
+                    new ActorItemMessage(message.Id, Actor, ItemPath, "_itemMetaData", payload)
+                );
+                return true;
+            }
+        }
+
+        return base.ProcessMessage(message);
+    }
+
     public override void InjectProperties(ISystemPropertiesDataSource dataSource)
     {
         base.InjectProperties(dataSource);
