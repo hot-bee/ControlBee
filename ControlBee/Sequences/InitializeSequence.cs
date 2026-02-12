@@ -99,8 +99,8 @@ public class InitializeSequence(
                     !reverse
                     && sensorType == AxisSensorType.Home
                     && (
-                        axis.GetSensorValue(AxisSensorType.PositiveLimit)
-                        || axis.GetSensorValue(AxisSensorType.NegativeLimit)
+                        (searchDirection == AxisDirection.Positive && axis.GetSensorValue(AxisSensorType.PositiveLimit))
+                        || (searchDirection == AxisDirection.Negative && axis.GetSensorValue(AxisSensorType.NegativeLimit))
                     )
                 )
                     throw new LimitTouchException();
