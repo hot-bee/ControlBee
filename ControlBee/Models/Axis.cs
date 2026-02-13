@@ -1105,7 +1105,7 @@ public class Axis : DeviceChannel, IAxis
         return true;
     }
 
-    protected void ValidateAxisState()
+    public void ValidateNotAlarmed()
     {
         if (IsAlarmed())
         {
@@ -1114,6 +1114,10 @@ public class Axis : DeviceChannel, IAxis
             AxisAlarmError.Show();
             throw new AxisAlarmError();
         }
+    }
+
+    public void ValidateEnabled()
+    {
         if (!IsEnabled())
         {
             Logger.Error($"Axis is not enabled. ({ActorName}, {ItemPath})");
@@ -1121,6 +1125,12 @@ public class Axis : DeviceChannel, IAxis
             AxisNotEnabledError.Show();
             throw new AxisNotEnabledError();
         }
+    }
+
+    protected void ValidateAxisState()
+    {
+        ValidateNotAlarmed();
+        ValidateEnabled();
     }
 
     protected void ValidateBeforeMove(bool @override)
