@@ -14,6 +14,8 @@ public interface IAxis : IDeviceChannel
     void Disable();
     bool IsAlarmed();
     void ClearAlarm();
+    void ValidateNotAlarmed();
+    void ValidateEnabled();
     bool IsEnabled();
     bool IsInitializing();
     bool IsInitialized();
