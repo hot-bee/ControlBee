@@ -39,8 +39,6 @@ public class Actor : IActorInternal, IDisposable
 
     public PlatformException? ExitError;
 
-    public IDialog FatalError = new DialogPlaceholder();
-
     public Dictionary<string, IActor> PeerDict = [];
     public Dictionary<IActor, Dict> PeerStatus = new();
 
@@ -614,7 +612,6 @@ public class Actor : IActorInternal, IDisposable
                 Logger.Fatal("Fatal Sequence Error", fatalError);
                 oldStateHashes.ToList().ForEach(x => x.Dispose());
                 State = CreateFatalErrorState(fatalError);
-                FatalError.Show(fatalError.Message);
             }
             else
             {
