@@ -13,7 +13,10 @@ public interface IAxis : IDeviceChannel
     void Enable();
     void Disable();
     bool IsAlarmed();
+    bool IsAborted();
     void ClearAlarm();
+    void ResetAbort();
+    void ValidateNotAborted();
     void ValidateNotAlarmed();
     void ValidateEnabled();
     bool IsEnabled();
@@ -71,5 +74,5 @@ public interface IAxis : IDeviceChannel
     void WaitUntilMoveQueueEmpty(int millisecondsTimeout = 10000);
     int GetPreparedMoveCount();
     event EventHandler<bool>? InitializedChanged;
-    void Abort();
+    void AbortDevice();
 }

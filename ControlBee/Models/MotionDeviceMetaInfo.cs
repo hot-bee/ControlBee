@@ -1,16 +1,16 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace ControlBee.Models;
 
-public class AxisMetaInfo : INotifyPropertyChanged
+public class MotionDeviceMetaInfo : INotifyPropertyChanged
 {
-    private bool _initialized;
+    private bool _aborted;
 
-    public bool Initialized
+    public bool Aborted
     {
-        get => _initialized;
-        set => SetField(ref _initialized, value);
+        get => _aborted;
+        set => SetField(ref _aborted, value);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
