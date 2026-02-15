@@ -21,7 +21,9 @@ public class Axis : DeviceChannel, IAxis
 
     private static readonly Dictionary<(string deviceName, int channel), AxisMetaInfo> MetaInfo =
     [];
+    private static readonly Dictionary<string, MotionDeviceMetaInfo> MotionDeviceMetaInfo = [];
     private AxisMetaInfo _localMetaInfo = new();
+    private MotionDeviceMetaInfo _localMotionDeviceMetaInfo = new();
 
     private Action _initializeAction;
     private bool _initializing;
@@ -29,6 +31,7 @@ public class Axis : DeviceChannel, IAxis
     protected bool _velocityMoving;
     public IDialog AxisAlarmError = new DialogPlaceholder();
     public IDialog AxisNotEnabledError = new DialogPlaceholder();
+    public IDialog MotionDeviceAbortedError = new DialogPlaceholder();
 
     protected SpeedProfile? CurrentSpeedProfile;
 
@@ -352,9 +355,12 @@ public class Axis : DeviceChannel, IAxis
             return false;
         }
 
-        if (GetMetaInfo().Aborted)
-            return true;
         return MotionDevice.IsAlarmed(Channel);
+    }
+
+    public bool IsAborted()
+    {
+        return GetMotionDeviceMetaInfo().Aborted;
     }
 
     public void ClearAlarm()
@@ -365,7 +371,6 @@ public class Axis : DeviceChannel, IAxis
             return;
         }
 
-        GetMetaInfo().Aborted = false;
         MotionDevice.ClearAlarm(Channel);
         Stopwatch sw = new();
         sw.Restart();
@@ -375,6 +380,14 @@ public class Axis : DeviceChannel, IAxis
                 throw new TimeoutError($"Failed to clear alarm of axis. ({Channel})");
             Thread.Sleep(1);
         }
+    }
+
+    public void ResetAbort()
+    {
+        if (!GetMotionDeviceMetaInfo().Aborted)
+            return;
+        Logger.Info($"Reset device abort. ({ActorName}, {ItemPath}, {Channel})");
+        GetMotionDeviceMetaInfo().Aborted = false;
     }
 
     public virtual bool IsEnabled()
@@ -418,7 +431,7 @@ public class Axis : DeviceChannel, IAxis
     {
         while (true)
         {
-            ValidateAxisState();
+            ValidateCanMove();
             if (IsNear(position, range))
                 return true;
             if (!IsMoving())
@@ -453,7 +466,7 @@ public class Axis : DeviceChannel, IAxis
     {
         while (true)
         {
-            ValidateAxisState();
+            ValidateCanMove();
             if (IsPosition(type, position))
                 return true;
             if (!IsMoving())
@@ -476,7 +489,7 @@ public class Axis : DeviceChannel, IAxis
     {
         while (true)
         {
-            ValidateAxisState();
+            ValidateCanMove();
             if (IsFar(position, range))
                 return true;
             if (!IsMoving())
@@ -757,7 +770,7 @@ public class Axis : DeviceChannel, IAxis
         while (IsMoving(type)) // Fallback
             _timeManager.Sleep(1);
 
-        ValidateAxisState();
+        ValidateCanMove();
     }
 
     public virtual double GetPosition(PositionType type)
@@ -834,7 +847,7 @@ public class Axis : DeviceChannel, IAxis
         var watch = _timeManager.CreateWatch();
         while (GetSensorValue(type) != waitingValue)
         {
-            ValidateAxisState();
+            ValidateCanMove();
             if (watch.ElapsedMilliseconds > millisecondsTimeout || millisecondsTimeout == 0)
             {
                 switch (type)
@@ -1026,11 +1039,27 @@ public class Axis : DeviceChannel, IAxis
         }
     }
 
-    public void Abort()
+    private MotionDeviceMetaInfo GetMotionDeviceMetaInfo()
     {
-        Logger.Info($"Abort motion. ({ActorName}, {ItemPath}, {Channel})");
+        if (MotionDevice == null)
+            return _localMotionDeviceMetaInfo;
+        var deviceName = MotionDevice.DeviceName;
+        lock (MotionDeviceMetaInfo)
+        {
+            if (!MotionDeviceMetaInfo.TryGetValue(deviceName, out var metaInfo))
+            {
+                metaInfo = new MotionDeviceMetaInfo();
+                MotionDeviceMetaInfo[deviceName] = metaInfo;
+            }
+            return metaInfo;
+        }
+    }
 
-        GetMetaInfo().Aborted = true;
+    public void AbortDevice()
+    {
+        Logger.Info($"Abort device motion. ({ActorName}, {ItemPath}, {Channel})");
+
+        GetMotionDeviceMetaInfo().Aborted = true;
         GetMetaInfo().Initialized = false;
         Stop();
     }
@@ -1105,30 +1134,39 @@ public class Axis : DeviceChannel, IAxis
         return true;
     }
 
+    public void ValidateNotAborted()
+    {
+        if (!IsAborted())
+            return;
+        Logger.Error($"Motion device aborted. ({ActorName}, {ItemPath})");
+        GetMetaInfo().Initialized = false;
+        MotionDeviceAbortedError.Show();
+        throw new MotionDeviceAbortedError();
+    }
+
     public void ValidateNotAlarmed()
     {
-        if (IsAlarmed())
-        {
-            Logger.Error($"Axis alarm. ({ActorName}, {ItemPath})");
-            GetMetaInfo().Initialized = false;
-            AxisAlarmError.Show();
-            throw new AxisAlarmError();
-        }
+        if (!IsAlarmed())
+            return;
+        Logger.Error($"Axis alarm. ({ActorName}, {ItemPath})");
+        GetMetaInfo().Initialized = false;
+        AxisAlarmError.Show();
+        throw new AxisAlarmError();
     }
 
     public void ValidateEnabled()
     {
-        if (!IsEnabled())
-        {
-            Logger.Error($"Axis is not enabled. ({ActorName}, {ItemPath})");
-            GetMetaInfo().Initialized = false;
-            AxisNotEnabledError.Show();
-            throw new AxisNotEnabledError();
-        }
+        if (IsEnabled())
+            return;
+        Logger.Error($"Axis is not enabled. ({ActorName}, {ItemPath})");
+        GetMetaInfo().Initialized = false;
+        AxisNotEnabledError.Show();
+        throw new AxisNotEnabledError();
     }
 
-    protected void ValidateAxisState()
+    public void ValidateCanMove()
     {
+        ValidateNotAborted();
         ValidateNotAlarmed();
         ValidateEnabled();
     }
@@ -1140,7 +1178,7 @@ public class Axis : DeviceChannel, IAxis
         if (CurrentSpeedProfile!.Velocity == 0)
             throw new ValueError("You must provide a speed greater than 0 to move the axis.");
 
-        ValidateAxisState();
+        ValidateCanMove();
 
         if (!@override)
         {

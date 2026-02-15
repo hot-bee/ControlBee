@@ -2,6 +2,7 @@
 using ControlBee.Interfaces;
 using ControlBee.Services;
 using ControlBeeAbstract.Constants;
+using ControlBeeAbstract.Devices;
 using ControlBeeAbstract.Exceptions;
 using log4net;
 
@@ -14,6 +15,7 @@ public class FakeAxis : Axis, IDisposable
     private readonly IScenarioFlowTester _flowTester;
     private readonly bool _skipWaitSensor;
     private readonly ITimeManager _timeManager;
+    private readonly IMotionDevice _fakeMotionDevice = new FakeMotionDevice();
     private double _actualPosition;
     private double _commandPosition;
     private bool _homeSensor;
@@ -24,6 +26,8 @@ public class FakeAxis : Axis, IDisposable
     private bool _negativeLimitSensor;
     private bool _positiveLimitSensor;
     private double _targetPosition;
+
+    protected override IMotionDevice? MotionDevice => _fakeMotionDevice;
 
     public FakeAxis(
         IDeviceManager deviceManager,
