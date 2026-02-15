@@ -1,6 +1,8 @@
+using ControlBeeAbstract.Exceptions;
+
 namespace ControlBee.Exceptions;
 
-public class MotionDeviceAbortedError : Exception
+public class MotionDeviceAbortedError : SequenceError
 {
     public MotionDeviceAbortedError() { }
 
