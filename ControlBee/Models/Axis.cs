@@ -384,6 +384,7 @@ public class Axis : DeviceChannel, IAxis
 
     public void ResetAbort()
     {
+        if (!GetMotionDeviceMetaInfo().Aborted) return;
         Logger.Info($"Reset device abort. ({ActorName}, {ItemPath}, {Channel})");
         GetMotionDeviceMetaInfo().Aborted = false;
     }
