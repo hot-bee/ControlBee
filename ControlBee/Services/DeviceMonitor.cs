@@ -1,4 +1,5 @@
 ﻿using ControlBee.Interfaces;
+using ControlBeeAbstract.Exceptions;
 using log4net;
 
 namespace ControlBee.Services;
@@ -69,6 +70,7 @@ public class DeviceMonitor : IDeviceMonitor
     private void Monitoring()
     {
         var token = _cancellationTokenSource.Token;
+        var monitoringError = false;
         try
         {
             while (true)
@@ -76,7 +78,32 @@ public class DeviceMonitor : IDeviceMonitor
                 {
                     token.ThrowIfCancellationRequested();
                     var alwaysUpdate = GetAlwaysUpdate(key.actorName, key.itemPath);
-                    channel.RefreshCache(alwaysUpdate);
+
+                    try
+                    {
+                        channel.RefreshCache(alwaysUpdate);
+
+                        if (monitoringError)
+                        {
+                            Logger.Info(
+                                $"Device communication recovered [{key.actorName}.{key.itemPath}]"
+                            );
+                            monitoringError = false;
+                        }
+                    }
+                    catch (DeviceError ex)
+                    {
+                        if (!monitoringError)
+                        {
+                            Logger.Error(
+                                $"Device communication error [{key.actorName}.{key.itemPath}]: {ex.Message} (ErrorCode: {ex.ErrorCode}). Retrying every 1 second..."
+                            );
+                            monitoringError = true;
+                        }
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
                     Thread.Sleep(1);
                 }
         }
