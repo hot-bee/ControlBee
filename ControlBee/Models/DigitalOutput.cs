@@ -157,6 +157,11 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         Sync();
     }
 
+    private void DigitalIoDeviceOnReconnected(object? sender, EventArgs e)
+    {
+        DigitalIoDevice?.SetDigitalOutputBit(Channel, CommandOn);
+    }
+
     private void DigitalIoDeviceOnOutputBitChanged(object? sender, (int channel, bool value) e)
     {
         if (e.channel != Channel)
@@ -178,7 +183,10 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         CommandOn = DigitalIoDevice.GetDigitalOutputBit(Channel);
         ActualOn = CommandOn;
         if (DigitalIoDevice != null)
+        {
             DigitalIoDevice.OutputBitChanged += DigitalIoDeviceOnOutputBitChanged;
+            DigitalIoDevice.Reconnected += DigitalIoDeviceOnReconnected;
+        }
     }
 
     private void SendDataToUi(Guid requestId)
