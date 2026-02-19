@@ -231,6 +231,12 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         if (Inverted)
             DigitalIoDevice.SetDigitalInputBitInverted(Channel, Inverted);
         DigitalIoDevice.InputBitChanged += DigitalIoDeviceOnInputBitChanged;
+        DigitalIoDevice.Reconnected += DigitalIoDeviceOnReconnected;
+    }
+
+    private void DigitalIoDeviceOnReconnected(object? sender, EventArgs e)
+    {
+        RefreshCache();
     }
 
     private void DigitalIoDeviceOnInputBitChanged(object? sender, (int channel, bool value) e)
