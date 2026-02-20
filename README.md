@@ -10,6 +10,10 @@ The world's first open-source platform for machine control in manufacturing fiel
 
 This project is licensed under the MIT License - see the LICENSE.md file for details
 
+## Documentation
+
+https://controlbee.hotbee.ai/
+
 ## Acknowledgments
 
 Inspiration, code snippets, etc.
