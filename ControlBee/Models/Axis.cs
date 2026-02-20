@@ -1150,7 +1150,7 @@ public class Axis : DeviceChannel, IAxis
             return;
         Logger.Error($"Axis alarm. ({ActorName}, {ItemPath})");
         GetMetaInfo().Initialized = false;
-        AxisAlarmError.Show();
+        AxisAlarmError.Show(Name);
         throw new AxisAlarmError();
     }
 

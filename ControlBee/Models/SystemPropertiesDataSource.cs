@@ -47,7 +47,9 @@ public class SystemPropertiesDataSource(
     public object? GetValue(string propertyPath)
     {
         var localizationKey = propertyPath.Replace('/', '.');
-        var localizationValue = _localizationManager.GetValue(localizationKey);
+        var localizationValue =
+            _localizationManager.GetValue(localizationKey)
+            ?? FindLocalizationFallback(localizationKey);
         if (localizationValue != null)
             return localizationValue;
 
@@ -122,6 +124,29 @@ public class SystemPropertiesDataSource(
         var destFile = Path.Combine(BackupDir, $"{timestamp}{PropertyFileName}");
 
         File.Copy(PropertyFileName, destFile, true);
+    }
+
+    private string? FindLocalizationFallback(string localizationKey)
+    {
+        var segments = localizationKey.Split('.');
+        if (segments.Length < 3)
+            return null;
+
+        var actorSegment = segments[..1];
+        var itemFieldAndProperty = segments[^2..];
+        var skippableSegments = segments[1..^2];
+        for (var skip = 1; skip <= skippableSegments.Length; skip++)
+        {
+            var key = string.Join(
+                '.',
+                actorSegment.Concat(skippableSegments[skip..]).Concat(itemFieldAndProperty)
+            );
+            var value = _localizationManager.GetValue(key);
+            if (value != null)
+                return value;
+        }
+
+        return null;
     }
 
     private Dict ParseYaml(string content)
