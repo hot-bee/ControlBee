@@ -126,15 +126,18 @@ public class SystemPropertiesDataSource(
         File.Copy(PropertyFileName, destFile, true);
     }
 
+    private const int ActorSegmentCount = 1;
+    private const int ItemFieldAndPropertyCount = 2;
+
     private string? FindLocalizationFallback(string localizationKey)
     {
         var segments = localizationKey.Split('.');
-        if (segments.Length < 3)
+        if (segments.Length <= ActorSegmentCount + ItemFieldAndPropertyCount)
             return null;
 
-        var actorSegment = segments[..1];
-        var itemFieldAndProperty = segments[^2..];
-        var skippableSegments = segments[1..^2];
+        var actorSegment = segments[..ActorSegmentCount];
+        var itemFieldAndProperty = segments[^ItemFieldAndPropertyCount..];
+        var skippableSegments = segments[ActorSegmentCount..^ItemFieldAndPropertyCount];
         for (var skip = 1; skip <= skippableSegments.Length; skip++)
         {
             var key = string.Join(
