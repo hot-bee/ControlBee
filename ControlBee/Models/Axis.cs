@@ -549,7 +549,7 @@ public class Axis : DeviceChannel, IAxis
             Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
             return;
         }
-
+        Logger.Debug($"Move axis. ({ActorName}, {ItemPath}, {position}, {@override})");
         ValidateBeforeMove(@override);
         _targetPosition = position * Resolution.Value;
         MotionDevice.JerkRatioSCurveMove(
@@ -764,11 +764,14 @@ public class Axis : DeviceChannel, IAxis
         MotionDevice.Wait(Channel, type);
         if (!IsMoving(type))
             return;
-        Logger.Error(
+        Logger.Warn(
             $"Monitoring task finished but axis is still moving. Fallback by spinning wait. ({ActorName}, {ItemPath})"
         );
         while (IsMoving(type)) // Fallback
             _timeManager.Sleep(1);
+        Logger.Warn(
+            $"Finished spinning wait fallback. ({ActorName}, {ItemPath})"
+        );
 
         ValidateCanMove();
     }
