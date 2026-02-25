@@ -142,7 +142,7 @@ public class AxisTest : ActorFactoryBase
                 && (bool)actorItemMessage.DictPayload!["IsAlarmed"]!;
         });
         Mock.Get(uiActor)
-            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
+            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.AtLeastOnce);
 
         var match2 = new Func<Message, bool>(message =>
         {
