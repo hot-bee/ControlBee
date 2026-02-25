@@ -19,7 +19,6 @@ public class FakeAxis : Axis, IDisposable
     private double _actualPosition;
     private double _commandPosition;
     private bool _homeSensor;
-    private bool _isAlarmed;
     private bool _isEnabled;
     private bool _isMoving;
 
@@ -239,19 +238,7 @@ public class FakeAxis : Axis, IDisposable
 
     public override bool IsAlarmed()
     {
-        return _isAlarmed;
-    }
-
-    public override void ClearAlarm()
-    {
-        _isAlarmed = false;
-        RefreshCache();
-    }
-
-    public void SetAlarmed(bool value)
-    {
-        _isAlarmed = value;
-        RefreshCache();
+        return false;
     }
 
     public override bool IsEnabled()

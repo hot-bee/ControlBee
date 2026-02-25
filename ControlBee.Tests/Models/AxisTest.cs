@@ -138,7 +138,14 @@ public class AxisTest : ActorFactoryBase
 
         actor.Start();
         actor.Send(new ActorItemMessage(uiActor, "/X", "_itemDataRead"));
-        actor.Send(new ActorItemMessage(uiActor, "/X", "_clearAlarm"));
+        actor.Send(
+            new ActorItemMessage(
+                uiActor,
+                "/X",
+                "_itemDataWrite",
+                new Dict { ["ClearAlarm"] = true }
+            )
+        );
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 

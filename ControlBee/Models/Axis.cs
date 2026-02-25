@@ -195,11 +195,10 @@ public class Axis : DeviceChannel, IAxis
             {
                 if (message.DictPayload!.GetValueOrDefault("Enable") is bool enable)
                     Enable(enable);
+                if (message.DictPayload!.GetValueOrDefault("ClearAlarm") is true)
+                    ClearAlarm();
                 return true;
             }
-            case "_clearAlarm":
-                ClearAlarm();
-                return true;
             case "_initialize":
                 Initialize();
                 return true;
