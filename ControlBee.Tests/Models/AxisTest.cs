@@ -120,15 +120,22 @@ public class AxisTest : ActorFactoryBase
     [Fact]
     public void ClearAlarmTest()
     {
-        SetupWithDevice();
+        Recreate(
+            new ActorFactoryBaseConfig
+            {
+                SystemConfigurations = new SystemConfigurations() { FakeMode = false },
+            }
+        );
+        var device = SetupWithDevice();
+        var alarmed = true;
+        Mock.Get(device).Setup(m => m.IsAlarmed(0)).Returns(() => alarmed);
+        Mock.Get(device).Setup(m => m.ClearAlarm(0)).Callback(() => alarmed = false);
 
         var uiActor = Mock.Of<IUiActor>();
         Mock.Get(uiActor).Setup(m => m.Name).Returns("Ui");
         ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
-        var fakeAxis = (FakeAxis)actor.X;
-        fakeAxis.FakeDevice.AlarmSignal[fakeAxis.GetChannel()] = true;
         actor.Start();
         actor.Send(new ActorItemMessage(uiActor, "/X", "_itemDataRead"));
         actor.Send(new ActorItemMessage(uiActor, "/X", "_clearAlarm"));

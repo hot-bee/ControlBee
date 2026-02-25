@@ -15,10 +15,11 @@ public class FakeAxis : Axis, IDisposable
     private readonly IScenarioFlowTester _flowTester;
     private readonly bool _skipWaitSensor;
     private readonly ITimeManager _timeManager;
-    private readonly FakeMotionDevice _fakeMotionDevice = new();
+    private readonly IMotionDevice _fakeMotionDevice = new FakeMotionDevice();
     private double _actualPosition;
     private double _commandPosition;
     private bool _homeSensor;
+    private bool _isAlarmed;
     private bool _isEnabled;
     private bool _isMoving;
 
@@ -26,8 +27,6 @@ public class FakeAxis : Axis, IDisposable
     private bool _negativeLimitSensor;
     private bool _positiveLimitSensor;
     private double _targetPosition;
-
-    public FakeMotionDevice FakeDevice => _fakeMotionDevice;
 
     protected override IMotionDevice? MotionDevice => _fakeMotionDevice;
 
@@ -240,12 +239,18 @@ public class FakeAxis : Axis, IDisposable
 
     public override bool IsAlarmed()
     {
-        return MotionDevice!.IsAlarmed(Channel);
+        return _isAlarmed;
     }
 
     public override void ClearAlarm()
     {
-        MotionDevice!.ClearAlarm(Channel);
+        _isAlarmed = false;
+        RefreshCache();
+    }
+
+    public void SetAlarmed(bool value)
+    {
+        _isAlarmed = value;
         RefreshCache();
     }
 
