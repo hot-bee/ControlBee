@@ -365,7 +365,7 @@ public class Axis : DeviceChannel, IAxis
         return GetMotionDeviceMetaInfo().Aborted;
     }
 
-    public virtual void ClearAlarm()
+    public void ClearAlarm()
     {
         if (MotionDevice == null)
         {
