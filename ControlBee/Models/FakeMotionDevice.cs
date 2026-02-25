@@ -6,15 +6,20 @@ namespace ControlBee.Models;
 
 public class FakeMotionDevice : IMotionDevice
 {
+    public readonly Dictionary<int, bool> AlarmSignal = new();
+
     public string DeviceName { get; set; } = "FakeDevice";
 
     public void Enable(int channel, bool value) { }
 
     public bool IsEnabled(int channel) => false;
 
-    public bool IsAlarmed(int channel) => false;
+    public bool IsAlarmed(int channel) => AlarmSignal.GetValueOrDefault(channel);
 
-    public void ClearAlarm(int channel) { }
+    public void ClearAlarm(int channel)
+    {
+        AlarmSignal[channel] = false;
+    }
 
     public void OnBeforeInitialize(int channel) { }
 

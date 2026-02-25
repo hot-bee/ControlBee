@@ -127,7 +127,8 @@ public class AxisTest : ActorFactoryBase
         ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
-        ((FakeAxis)actor.X).SetAlarmed(true);
+        var fakeAxis = (FakeAxis)actor.X;
+        fakeAxis.FakeDevice.AlarmSignal[fakeAxis.GetChannel()] = true;
         actor.Start();
         actor.Send(new ActorItemMessage(uiActor, "/X", "_itemDataRead"));
         actor.Send(new ActorItemMessage(uiActor, "/X", "_clearAlarm"));
