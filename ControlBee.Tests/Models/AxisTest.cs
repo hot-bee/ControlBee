@@ -127,8 +127,8 @@ public class AxisTest : ActorFactoryBase
         ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<TestActor>("MyActor");
 
-        actor.Start();
         ((FakeAxis)actor.X).SetAlarmed(true);
+        actor.Start();
         actor.Send(new ActorItemMessage(uiActor, "/X", "_itemDataRead"));
         actor.Send(new ActorItemMessage(uiActor, "/X", "_clearAlarm"));
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
@@ -142,7 +142,7 @@ public class AxisTest : ActorFactoryBase
                 && (bool)actorItemMessage.DictPayload!["IsAlarmed"]!;
         });
         Mock.Get(uiActor)
-            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.AtLeastOnce);
+            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
 
         var match2 = new Func<Message, bool>(message =>
         {
@@ -152,7 +152,7 @@ public class AxisTest : ActorFactoryBase
                 && !(bool)actorItemMessage.DictPayload!["IsAlarmed"]!;
         });
         Mock.Get(uiActor)
-            .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.AtLeastOnce);
+            .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
     }
 
     [Fact]
