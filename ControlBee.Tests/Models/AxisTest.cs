@@ -118,6 +118,44 @@ public class AxisTest : ActorFactoryBase
     }
 
     [Fact]
+    public void ClearAlarmTest()
+    {
+        SetupWithDevice();
+
+        var uiActor = Mock.Of<IUiActor>();
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("Ui");
+        ActorRegistry.Add(uiActor);
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        actor.Start();
+        ((FakeAxis)actor.X).SetAlarmed(true);
+        actor.Send(new ActorItemMessage(uiActor, "/X", "_itemDataRead"));
+        actor.Send(new ActorItemMessage(uiActor, "/X", "_clearAlarm"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        var match1 = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = message as ActorItemMessage;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/X" }
+                && (bool)actorItemMessage.DictPayload!["IsAlarmed"]!;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.AtLeastOnce);
+
+        var match2 = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = message as ActorItemMessage;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/X" }
+                && !(bool)actorItemMessage.DictPayload!["IsAlarmed"]!;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.AtLeastOnce);
+    }
+
+    [Fact]
     public void InitializeTest()
     {
         RecreateWithSkipWaitSensor();

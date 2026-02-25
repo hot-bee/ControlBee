@@ -197,6 +197,9 @@ public class Axis : DeviceChannel, IAxis
                     Enable(enable);
                 return true;
             }
+            case "_clearAlarm":
+                ClearAlarm();
+                return true;
             case "_initialize":
                 Initialize();
                 return true;
@@ -363,7 +366,7 @@ public class Axis : DeviceChannel, IAxis
         return GetMotionDeviceMetaInfo().Aborted;
     }
 
-    public void ClearAlarm()
+    public virtual void ClearAlarm()
     {
         if (MotionDevice == null)
         {
@@ -380,6 +383,8 @@ public class Axis : DeviceChannel, IAxis
                 throw new TimeoutError($"Failed to clear alarm of axis. ({Channel})");
             Thread.Sleep(1);
         }
+
+        RefreshCache();
     }
 
     public void ResetAbort()
@@ -769,9 +774,7 @@ public class Axis : DeviceChannel, IAxis
         );
         while (IsMoving(type)) // Fallback
             _timeManager.Sleep(1);
-        Logger.Warn(
-            $"Finished spinning wait fallback. ({ActorName}, {ItemPath})"
-        );
+        Logger.Warn($"Finished spinning wait fallback. ({ActorName}, {ItemPath})");
 
         ValidateCanMove();
     }
