@@ -195,6 +195,8 @@ public class Axis : DeviceChannel, IAxis
             {
                 if (message.DictPayload!.GetValueOrDefault("Enable") is bool enable)
                     Enable(enable);
+                if (message.DictPayload!.GetValueOrDefault("ClearAlarm") is true)
+                    ClearAlarm();
                 return true;
             }
             case "_initialize":
@@ -380,6 +382,8 @@ public class Axis : DeviceChannel, IAxis
                 throw new TimeoutError($"Failed to clear alarm of axis. ({Channel})");
             Thread.Sleep(1);
         }
+
+        RefreshCache();
     }
 
     public void ResetAbort()
@@ -769,9 +773,7 @@ public class Axis : DeviceChannel, IAxis
         );
         while (IsMoving(type)) // Fallback
             _timeManager.Sleep(1);
-        Logger.Warn(
-            $"Finished spinning wait fallback. ({ActorName}, {ItemPath})"
-        );
+        Logger.Warn($"Finished spinning wait fallback. ({ActorName}, {ItemPath})");
 
         ValidateCanMove();
     }
