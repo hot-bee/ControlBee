@@ -128,16 +128,16 @@ public abstract class Position
             Logger.Warn("Location arguments too many.");
     }
 
-    public void Move()
+    public bool Move()
     {
-        Move(Axes, false);
+        return Move(Axes, false);
     }
 
-    public void Move(bool @override)
+    public bool Move(bool @override)
     {
         if (Axes == null)
             throw new ApplicationException();
-        Move(Axes, @override);
+        return Move(Axes, @override);
     }
 
     public void Stop()
@@ -155,8 +155,8 @@ public abstract class Position
 
     public void MoveAndWait()
     {
-        Move();
-        Wait();
+        if (Move())
+            Wait();
     }
 
     public void WaitForPosition(PositionComparisonType type)
@@ -173,12 +173,12 @@ public abstract class Position
         return true;
     }
 
-    public void Move(IAxis[] axes)
+    public bool Move(IAxis[] axes)
     {
-        Move(axes, false);
+        return Move(axes, false);
     }
 
-    public void Move(IAxis[] axes, bool @override)
+    public bool Move(IAxis[] axes, bool @override)
     {
         if (Axes.Length == 0)
             throw new ApplicationException("No axis information is defined.");
@@ -188,9 +188,22 @@ public abstract class Position
                 "Mismatch between the position dimension and the axis dimension. Please ensure they align."
             );
 
+        var allAtTarget = Enumerable
+            .Range(0, Rank)
+            .Where(i => axes.Contains(Axes[i]))
+            .All(i => Axes[i].GetPosition() == Vector.Values[i]);
+
+        if (allAtTarget)
+        {
+            Logger.Debug("Skipping Move() because all axes are already at the target position.");
+            return false;
+        }
+
         for (var i = 0; i < Rank; i++)
             if (axes.Contains(Axes[i]))
                 Axes[i].Move(Vector.Values[i], @override);
+
+        return true;
     }
 
     public void Wait(IAxis[] axes)
@@ -202,8 +215,8 @@ public abstract class Position
 
     public void MoveAndWait(IAxis[] axes)
     {
-        Move(axes);
-        Wait(axes);
+        if (Move(axes))
+            Wait(axes);
     }
 
     protected virtual void OnValueChanged(ValueChangedArgs e)

@@ -541,17 +541,24 @@ public class Axis : DeviceChannel, IAxis
 
     public IInitializeSequence InitializeSequence => InternalInitializeSequence;
 
-    public void Move(double position)
+    public bool Move(double position)
     {
-        Move(position, false);
+        return Move(position, false);
     }
 
-    public virtual void Move(double position, bool @override)
+    public virtual bool Move(double position, bool @override)
     {
         if (MotionDevice == null)
         {
             Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
-            return;
+            return false;
+        }
+        if (GetPosition(PositionType.Command) == position)
+        {
+            Logger.Debug(
+                $"Already at the target position. Skipping move. ({ActorName}, {ItemPath}, {position})"
+            );
+            return false;
         }
         Logger.Debug($"Move axis. ({ActorName}, {ItemPath}, {position}, {@override})");
         ValidateBeforeMove(@override);
@@ -567,6 +574,7 @@ public class Axis : DeviceChannel, IAxis
         );
         MonitorMoving();
         _velocityMoving = false;
+        return true;
     }
 
     public virtual void RelativeMove(double distance)
@@ -600,15 +608,8 @@ public class Axis : DeviceChannel, IAxis
 
     public void MoveAndWait(double position, PositionType type = PositionType.CommandAndActual)
     {
-        if (GetPosition(PositionType.Command) == position)
-        {
-            Logger.Debug(
-                $"Already at the target position. Skipping move. ({ActorName}, {ItemPath}, {position})"
-            );
-            return;
-        }
-        Move(position);
-        Wait(type);
+        if (Move(position))
+            Wait(type);
     }
 
     public void RelativeMoveAndWait(double distance)

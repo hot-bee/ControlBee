@@ -30,8 +30,8 @@ public interface IAxis : IDeviceChannel
     bool IsFar(double position, double range);
     bool WaitFar(double position, double range);
     bool IsMoving(PositionType type = PositionType.CommandAndActual);
-    void Move(double position);
-    void Move(double position, bool @override);
+    bool Move(double position);
+    bool Move(double position, bool @override);
     void MoveAndWait(double position, PositionType type = PositionType.CommandAndActual);
     void SetSpeed(IVariable speedProfileVariable);
     void SetSpeed(SpeedProfile speedProfile);
