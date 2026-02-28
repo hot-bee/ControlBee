@@ -600,6 +600,13 @@ public class Axis : DeviceChannel, IAxis
 
     public void MoveAndWait(double position, PositionType type = PositionType.CommandAndActual)
     {
+        if (GetPosition(PositionType.Command) == position)
+        {
+            Logger.Debug(
+                $"Already at the target position. Skipping move. ({ActorName}, {ItemPath}, {position})"
+            );
+            return;
+        }
         Move(position);
         Wait(type);
     }
