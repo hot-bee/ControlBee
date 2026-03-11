@@ -31,6 +31,7 @@ public class VariableManager(
     private readonly Dictionary<(string actorName, string itemPath), IVariable> _variables = [];
     private bool _loading;
     private string _localName = "Default";
+    private bool isLoadedOnce = false;
     private bool _modified;
     private IActor? _uiActor;
 
@@ -200,8 +201,9 @@ public class VariableManager(
                         $"Critical error. The saved data has been changed. Contact author. ({variable.ActorName}, {variable.ItemPath})"
                     );
 
-            if (localNameChanged)
+            if (localNameChanged || !isLoadedOnce)
             {
+                isLoadedOnce = true;
                 systemConfigurations.RecipeName = LocalName;
                 systemConfigurations.Save();
                 LoadVisionRecipe(LocalName);
