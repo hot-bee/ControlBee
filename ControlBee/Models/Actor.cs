@@ -247,7 +247,7 @@ public class Actor : IActorInternal, IDisposable
         if (value != null && Status.TryGetValue(name, out var oldValue))
             if (value.Equals(oldValue))
                 return;
-        StatusLogger.Debug($"SetStatus: {name}, {value}");
+        // StatusLogger.Debug($"SetStatus: {name}, {value}");  // TODO: Optionalize logging
         Status[name] = value;
         PublishStatus();
     }
@@ -263,7 +263,7 @@ public class Actor : IActorInternal, IDisposable
         if (value != null && statusByActor.TryGetValue(keyName, out var oldValue))
             if (value.Equals(oldValue))
                 return;
-        StatusLogger.Debug($"SetStatusByActor: {actorName}, {keyName}, {value}");
+        // StatusLogger.Debug($"SetStatusByActor: {actorName}, {keyName}, {value}");  // TODO: Optionalize logging
         statusByActor[keyName] = value;
         Status[actorName] = statusByActor;
         PublishStatus();
