@@ -112,9 +112,7 @@ public class Actor : IActorInternal, IDisposable
 
         var content =
             $"{message.Sender.Name}->{Name}: {message.Name} ({message.Id.ToString()[..6]},{message.RequestId.ToString()[..6]})";
-        if (message.Name == "_status")
-            MessageLogger.Debug(content);
-        else
+        if (message.Name != "_status")
             MessageLogger.Debug(content);
         return message.Id;
     }
