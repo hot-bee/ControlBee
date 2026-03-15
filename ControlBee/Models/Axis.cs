@@ -230,6 +230,19 @@ public class Axis : DeviceChannel, IAxis
                             SetSpeed(speed);
                         }
                         else if (
+                            DictPath.Start(message.DictPayload)["JogSpeedProfile"].Value
+                            is SpeedProfile jogSpeedProfile
+                        )
+                        {
+                            var speed = (SpeedProfile)jogSpeedProfile.Clone();
+                            if (
+                                DictPath.Start(message.DictPayload)["JogSpeedRatio"].Value
+                                is double speedRatio
+                            )
+                                speed.Velocity *= speedRatio;
+                            SetSpeed(speed);
+                        }
+                        else if (
                             DictPath.Start(message.DictPayload)["JogSpeedRatio"].Value
                             is double jogSpeedRatio
                         )
