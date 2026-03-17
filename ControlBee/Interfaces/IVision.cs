@@ -22,4 +22,8 @@ public interface IVision : IDeviceChannel
     void SaveImage(string savePath);
     void SetLightValue(int inspectionIndex, int lightChannel, double value);
     void SetResolution(double resolution);
+    bool IsConnected();
+
+    event EventHandler? VisionConnected;
+    event EventHandler? VisionDisconnected;
 }

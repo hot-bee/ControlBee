@@ -155,6 +155,14 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         }
     }
 
+    public bool IsConnected()
+    {
+        return VisionDevice?.IsConnected() ?? false;
+    }
+
+    public event EventHandler? VisionConnected;
+    public event EventHandler? VisionDisconnected;
+
     public virtual void Wait(int inspectionIndex, int timeout)
     {
         if (VisionDevice == null)
@@ -251,5 +259,20 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         }
 
         return VisionDevice.GetResult(triggerId);
+    }
+
+    public override void PostInit()
+    {
+        base.PostInit();
+        Sync();
+    }
+
+    public override void Sync()
+    {
+        if (VisionDevice == null)
+            return;
+
+        VisionDevice.VisionConnected += (sender, args) => VisionConnected?.Invoke(this, args);
+        VisionDevice.VisionDisconnected += (sender, args) => VisionDisconnected?.Invoke(this, args);
     }
 }
