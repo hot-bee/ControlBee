@@ -57,7 +57,9 @@ public class UiActor(ActorConfig config) : Actor(config), IUiActor
     {
         lock (PeerStatus)
         {
-            return PeerStatus[actor].GetValueOrDefault(keyName);
+            return PeerStatus.TryGetValue(actor, out var peerStatus)
+                ? peerStatus.GetValueOrDefault(keyName)
+                : null;
         }
     }
 }
