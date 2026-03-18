@@ -1,4 +1,5 @@
 ﻿using ControlBee.Constants;
+using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
@@ -15,6 +16,7 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
     private static readonly ILog Logger = LogManager.GetLogger(nameof(DigitalOutput));
     private bool? _actualOn;
     private bool _commandOn;
+    private bool _aborted;
     private Task? _task;
     public Variable<int> OffDelay = new(VariableScope.Global, 0);
     public Variable<int> OnDelay = new(VariableScope.Global, 0);
@@ -133,10 +135,28 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
 
     public void Wait()
     {
+        if (_aborted)
+            throw new MotionDeviceAbortedError();
         if (_task == null)
             return;
         _task.Wait();
         _ = IsOn();
+        if (_aborted)
+            throw new MotionDeviceAbortedError();
+    }
+
+    public void AbortDevice()
+    {
+        Logger.Info($"Abort device. ({ActorName}, {ItemPath}, {Channel})");
+        _aborted = true;
+    }
+
+    public void ResetAbort()
+    {
+        if (!_aborted)
+            return;
+        Logger.Info($"Reset device abort. ({ActorName}, {ItemPath}, {Channel})");
+        _aborted = false;
     }
 
     public void OnAndWait()
