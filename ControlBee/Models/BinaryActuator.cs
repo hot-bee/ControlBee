@@ -165,14 +165,9 @@ public class BinaryActuator : ActorItem, IBinaryActuator
     {
         if (_task == null)
             return;
-        try
-        {
-            _task.Wait();
-        }
-        catch (AggregateException ex) when (ex.InnerException is MotionDeviceAbortedError)
-        {
-            throw ex.InnerException;
-        }
+        _task.Wait();
+        if (_aborted)
+            throw new DigitalIOAbortedError();
         _ = IsOn();
     }
 
@@ -208,7 +203,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
             while (true)
             {
                 if (_aborted)
-                    throw new MotionDeviceAbortedError();
+                    return false;
                 if (CommandOn && OnDetect())
                     break;
                 if (!CommandOn && OffDetect())
