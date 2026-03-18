@@ -13,6 +13,7 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
     protected IDevice? Device { get; set; }
     protected string? DeviceName { get; set; }
     protected int Channel { get; set; } = -1;
+    protected int ChannelOffset = 0;
 
     public virtual void RefreshCache(bool alwaysUpdate = false)
     {
@@ -77,7 +78,7 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
 
     public void SetChannel(int channel)
     {
-        Channel = channel;
+        Channel = ChannelOffset + channel;
     }
 
     public void SetDevice(string deviceName)
