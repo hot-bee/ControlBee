@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using ControlBee.Constants;
+using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
@@ -16,6 +17,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
     private IDigitalInput? _inputOn;
 
     private bool? _actualOn;
+    private bool _aborted;
     private bool _commandOn;
     private IDigitalOutput? _outputOff;
     private IDigitalOutput? _outputOn;
@@ -163,8 +165,25 @@ public class BinaryActuator : ActorItem, IBinaryActuator
     {
         if (_task == null)
             return;
-        _task.Wait();
+        try
+        {
+            _task.Wait();
+        }
+        catch (AggregateException ex) when (ex.InnerException is MotionDeviceAbortedError)
+        {
+            throw ex.InnerException;
+        }
         _ = IsOn();
+    }
+
+    public void AbortDevice()
+    {
+        _aborted = true;
+    }
+
+    public void ResetAbort()
+    {
+        _aborted = false;
     }
 
     private void SetOn(bool on)
@@ -188,6 +207,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
             var watch = _timeManager.CreateWatch();
             while (true)
             {
+                if (_aborted)
+                    throw new MotionDeviceAbortedError();
                 if (CommandOn && OnDetect())
                     break;
                 if (!CommandOn && OffDetect())

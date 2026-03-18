@@ -82,6 +82,8 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
             var watch = timeManager.CreateWatch();
             while (true)
             {
+                if (_aborted)
+                    throw new MotionDeviceAbortedError();
                 if (watch.ElapsedMilliseconds >= delay)
                     break;
 
@@ -135,14 +137,17 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
 
     public void Wait()
     {
-        if (_aborted)
-            throw new MotionDeviceAbortedError();
         if (_task == null)
             return;
-        _task.Wait();
+        try
+        {
+            _task.Wait();
+        }
+        catch (AggregateException ex) when (ex.InnerException is MotionDeviceAbortedError)
+        {
+            throw ex.InnerException;
+        }
         _ = IsOn();
-        if (_aborted)
-            throw new MotionDeviceAbortedError();
     }
 
     public void AbortDevice()
