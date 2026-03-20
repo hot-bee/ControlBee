@@ -136,6 +136,25 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         }
     }
 
+    public void SetResolution(double resolution)
+    {
+        if (VisionDevice == null)
+        {
+            Logger.Error($"VisionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        try
+        {
+            VisionDevice.SetResolution(Channel, resolution);
+        }
+        catch (ConnectionError)
+        {
+            ConnectionError.Show();
+            throw;
+        }
+    }
+
     public virtual void Wait(int inspectionIndex, int timeout)
     {
         if (VisionDevice == null)
