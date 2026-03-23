@@ -45,6 +45,12 @@ public class DeviceMonitor : IDeviceMonitor
         return _alwaysUpdates.GetValueOrDefault((actorName, itemPath), false);
     }
 
+    public long ReadAnalogInput(string actorName, string itemPath)
+    {
+        var channel = _channelMap[(actorName, itemPath)];
+        return ((IAnalogInput)channel).Read();
+    }
+
     public void Start()
     {
         if (_thread.ThreadState != ThreadState.Unstarted)

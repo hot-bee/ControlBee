@@ -6,4 +6,5 @@ public interface IDeviceMonitor : IDisposable
     void Start();
     void SetAlwaysUpdate(string actorName, string itemPath);
     bool GetAlwaysUpdate(string actorName, string itemPath);
+    long ReadAnalogInput(string actorName, string itemPath);
 }
