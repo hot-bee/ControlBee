@@ -129,4 +129,17 @@ public class VisionPlaceholder : IPlaceholder, IVision
     {
         throw new NotImplementedException();
     }
+
+    public void SetResolution(double resolution)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool IsConnected()
+    {
+        throw new NotImplementedException();
+    }
+
+    public event EventHandler? VisionConnected;
+    public event EventHandler? VisionDisconnected;
 }
