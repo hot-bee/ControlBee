@@ -95,12 +95,19 @@ public class InitializeSequence(
                     break;
                 if (axis.IsAlarmed())
                     throw new AxisAlarmError();
+                axis.ValidateNotAborted();
                 if (
                     !reverse
                     && sensorType == AxisSensorType.Home
                     && (
-                        (searchDirection == AxisDirection.Positive && axis.GetSensorValue(AxisSensorType.PositiveLimit))
-                        || (searchDirection == AxisDirection.Negative && axis.GetSensorValue(AxisSensorType.NegativeLimit))
+                        (
+                            searchDirection == AxisDirection.Positive
+                            && axis.GetSensorValue(AxisSensorType.PositiveLimit)
+                        )
+                        || (
+                            searchDirection == AxisDirection.Negative
+                            && axis.GetSensorValue(AxisSensorType.NegativeLimit)
+                        )
                     )
                 )
                     throw new LimitTouchException();
