@@ -17,7 +17,6 @@ public class BinaryActuator : ActorItem, IBinaryActuator
     private IDigitalInput? _inputOn;
 
     private bool? _actualOn;
-    private bool _aborted;
     private bool _commandOn;
     private IDigitalOutput? _outputOff;
     private IDigitalOutput? _outputOn;
@@ -161,24 +160,28 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         SetOn(false);
     }
 
+    private bool IsAborted => (_outputOn?.IsAborted ?? false) || (_outputOff?.IsAborted ?? false);
+
     public void Wait()
     {
         if (_task == null)
             return;
         _task.Wait();
-        if (_aborted)
+        if (IsAborted)
             throw new DigitalIOAbortedError();
         _ = IsOn();
     }
 
     public void AbortDevice()
     {
-        _aborted = true;
+        _outputOn?.AbortDevice();
+        _outputOff?.AbortDevice();
     }
 
     public void ResetAbort()
     {
-        _aborted = false;
+        _outputOn?.ResetAbort();
+        _outputOff?.ResetAbort();
     }
 
     private void SetOn(bool on)
@@ -202,7 +205,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
             var watch = _timeManager.CreateWatch();
             while (true)
             {
-                if (_aborted)
+                if (IsAborted)
                     return false;
                 if (CommandOn && OnDetect())
                     break;

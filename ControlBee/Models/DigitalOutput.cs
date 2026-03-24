@@ -14,9 +14,13 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         IDigitalOutput
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(DigitalOutput));
+
+    private static readonly Dictionary<string, DigitalOutputMetaInfo> DigitalOutputDeviceMetaInfo =
+    [];
+    private DigitalOutputMetaInfo _localMetaInfo = new();
+
     private bool? _actualOn;
     private bool _commandOn;
-    private bool _aborted;
     private Task? _task;
     public Variable<int> OffDelay = new(VariableScope.Global, 0);
     public Variable<int> OnDelay = new(VariableScope.Global, 0);
@@ -82,7 +86,7 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
             var watch = timeManager.CreateWatch();
             while (true)
             {
-                if (_aborted)
+                if (IsAborted)
                     return;
                 if (watch.ElapsedMilliseconds >= delay)
                     break;
@@ -140,23 +144,41 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         if (_task == null)
             return;
         _task.Wait();
-        if (_aborted)
+        if (IsAborted)
             throw new DigitalIOAbortedError();
         _ = IsOn();
     }
 
+    public bool IsAborted => GetDigitalOutputDeviceMetaInfo().Aborted;
+
     public void AbortDevice()
     {
         Logger.Info($"Abort device. ({ActorName}, {ItemPath}, {Channel})");
-        _aborted = true;
+        GetDigitalOutputDeviceMetaInfo().Aborted = true;
     }
 
     public void ResetAbort()
     {
-        if (!_aborted)
+        if (!GetDigitalOutputDeviceMetaInfo().Aborted)
             return;
         Logger.Info($"Reset device abort. ({ActorName}, {ItemPath}, {Channel})");
-        _aborted = false;
+        GetDigitalOutputDeviceMetaInfo().Aborted = false;
+    }
+
+    private DigitalOutputMetaInfo GetDigitalOutputDeviceMetaInfo()
+    {
+        if (DigitalIoDevice == null)
+            return _localMetaInfo;
+        var deviceName = DigitalIoDevice.DeviceName;
+        lock (DigitalOutputDeviceMetaInfo)
+        {
+            if (!DigitalOutputDeviceMetaInfo.TryGetValue(deviceName, out var metaInfo))
+            {
+                metaInfo = new DigitalOutputMetaInfo();
+                DigitalOutputDeviceMetaInfo[deviceName] = metaInfo;
+            }
+            return metaInfo;
+        }
     }
 
     public void OnAndWait()
