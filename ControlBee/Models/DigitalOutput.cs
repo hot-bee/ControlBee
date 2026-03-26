@@ -15,10 +15,6 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(DigitalOutput));
 
-    private static readonly Dictionary<string, DigitalOutputMetaInfo> DigitalOutputDeviceMetaInfo =
-    [];
-    private DigitalOutputMetaInfo _localMetaInfo = new();
-
     private bool? _actualOn;
     private bool _commandOn;
     private Task? _task;
@@ -149,36 +145,20 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         _ = IsOn();
     }
 
-    public bool IsAborted => GetDigitalOutputDeviceMetaInfo().Aborted;
+    public bool IsAborted => GetDeviceMetaInfo().Aborted;
 
     public void AbortDevice()
     {
         Logger.Info($"Abort device. ({ActorName}, {ItemPath}, {Channel})");
-        GetDigitalOutputDeviceMetaInfo().Aborted = true;
+        GetDeviceMetaInfo().Aborted = true;
     }
 
     public void ResetAbort()
     {
-        if (!GetDigitalOutputDeviceMetaInfo().Aborted)
+        if (!GetDeviceMetaInfo().Aborted)
             return;
         Logger.Info($"Reset device abort. ({ActorName}, {ItemPath}, {Channel})");
-        GetDigitalOutputDeviceMetaInfo().Aborted = false;
-    }
-
-    private DigitalOutputMetaInfo GetDigitalOutputDeviceMetaInfo()
-    {
-        if (DigitalIoDevice == null)
-            return _localMetaInfo;
-        var deviceName = DigitalIoDevice.DeviceName;
-        lock (DigitalOutputDeviceMetaInfo)
-        {
-            if (!DigitalOutputDeviceMetaInfo.TryGetValue(deviceName, out var metaInfo))
-            {
-                metaInfo = new DigitalOutputMetaInfo();
-                DigitalOutputDeviceMetaInfo[deviceName] = metaInfo;
-            }
-            return metaInfo;
-        }
+        GetDeviceMetaInfo().Aborted = false;
     }
 
     public void OnAndWait()
