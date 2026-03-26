@@ -92,15 +92,14 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
 
     protected DeviceMetaInfo GetDeviceMetaInfo()
     {
-        if (Device == null)
+        if (DeviceName == null)
             return _localDeviceMetaInfo;
-        var deviceName = Device.DeviceName;
         lock (DeviceMetaInfoMap)
         {
-            if (!DeviceMetaInfoMap.TryGetValue(deviceName, out var metaInfo))
+            if (!DeviceMetaInfoMap.TryGetValue(DeviceName, out var metaInfo))
             {
                 metaInfo = new DeviceMetaInfo();
-                DeviceMetaInfoMap[deviceName] = metaInfo;
+                DeviceMetaInfoMap[DeviceName] = metaInfo;
             }
             return metaInfo;
         }
