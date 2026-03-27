@@ -225,7 +225,11 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
 
                     var payload = new Dict
                     {
-                        ["ErrorMessage"] =
+                        ["ErrorType"] = "ValueOutOfRange",
+                        ["NewValue"] = args.NewValue,
+                        ["MinValue"] = MinValue,
+                        ["MaxValue"] = MaxValue,
+                        ["Message"] =
                             $"Value out of range.\nEntered: {args.NewValue}\nAllowed: {args.MinValue} ~ {args.MaxValue}",
                     };
 

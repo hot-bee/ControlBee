@@ -41,18 +41,12 @@ public class LocalizationManager : ILocalizationManager
         }
     }
 
-    public string? GetValue(string key)
+    public string? GetValue(string key, Dictionary<string, string>? args = null)
     {
-        return _translations?.SelectToken(key)?.ToString();
-    }
-
-    public string Translate(string key, Dictionary<string, string>? args = null)
-    {
-        var value = GetValue(key);
+        var value = _translations?.SelectToken(key)?.ToString();
         if (value == null)
-            return $"[MISSING:{key}]";
+            return null;
 
-        // Replace placeholders like ${username}
         if (args != null)
             value = Regex.Replace(
                 value,
@@ -67,5 +61,10 @@ public class LocalizationManager : ILocalizationManager
             );
 
         return value;
+    }
+
+    public string Translate(string key, Dictionary<string, string>? args = null)
+    {
+        return GetValue(key, args) ?? $"[MISSING:{key}]";
     }
 }
