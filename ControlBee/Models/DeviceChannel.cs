@@ -10,6 +10,10 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
         IDeviceChannelModifier
 {
     private static readonly ILog Logger = LogManager.GetLogger("General");
+
+    private static readonly Dictionary<string, DeviceMetaInfo> DeviceMetaInfoMap = [];
+    private DeviceMetaInfo _localDeviceMetaInfo = new();
+
     protected IDevice? Device { get; set; }
     protected string? DeviceName { get; set; }
     protected int Channel { get; set; } = -1;
@@ -84,6 +88,21 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
     {
         DeviceName = deviceName;
         Device = deviceManager.Get(DeviceName!);
+    }
+
+    protected DeviceMetaInfo GetDeviceMetaInfo()
+    {
+        if (DeviceName == null)
+            return _localDeviceMetaInfo;
+        lock (DeviceMetaInfoMap)
+        {
+            if (!DeviceMetaInfoMap.TryGetValue(DeviceName, out var metaInfo))
+            {
+                metaInfo = new DeviceMetaInfo();
+                DeviceMetaInfoMap[DeviceName] = metaInfo;
+            }
+            return metaInfo;
+        }
     }
 
     public virtual void Sync()

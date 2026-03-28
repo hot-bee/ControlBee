@@ -111,6 +111,18 @@ public class DigitalOutputPlaceholder : IPlaceholder, IDigitalOutput
         throw new UnimplementedByDesignError();
     }
 
+    public bool IsAborted => throw new UnimplementedByDesignError();
+
+    public void AbortDevice()
+    {
+        throw new UnimplementedByDesignError();
+    }
+
+    public void ResetAbort()
+    {
+        throw new UnimplementedByDesignError();
+    }
+
     public event EventHandler<bool>? CommandOnChanged;
     public event EventHandler<bool?>? ActualOnChanged;
 }

@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace ControlBee.Models;
 
-public class MotionDeviceMetaInfo : INotifyPropertyChanged
+public class DeviceMetaInfo : INotifyPropertyChanged
 {
     private bool _aborted;
 

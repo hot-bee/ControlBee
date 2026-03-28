@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using ControlBee.Constants;
+using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
@@ -159,12 +160,28 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         SetOn(false);
     }
 
+    private bool IsAborted => (_outputOn?.IsAborted ?? false) || (_outputOff?.IsAborted ?? false);
+
     public void Wait()
     {
         if (_task == null)
             return;
         _task.Wait();
+        if (IsAborted)
+            throw new DigitalIOAbortedError();
         _ = IsOn();
+    }
+
+    public void AbortDevice()
+    {
+        _outputOn?.AbortDevice();
+        _outputOff?.AbortDevice();
+    }
+
+    public void ResetAbort()
+    {
+        _outputOn?.ResetAbort();
+        _outputOff?.ResetAbort();
     }
 
     private void SetOn(bool on)
@@ -188,6 +205,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
             var watch = _timeManager.CreateWatch();
             while (true)
             {
+                if (IsAborted)
+                    return false;
                 if (CommandOn && OnDetect())
                     break;
                 if (!CommandOn && OffDetect())

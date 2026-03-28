@@ -1,4 +1,5 @@
 ﻿using ControlBee.Constants;
+using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Variables;
 using ControlBeeAbstract.Devices;
@@ -13,6 +14,7 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         IDigitalOutput
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(DigitalOutput));
+
     private bool? _actualOn;
     private bool _commandOn;
     private Task? _task;
@@ -80,6 +82,8 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
             var watch = timeManager.CreateWatch();
             while (true)
             {
+                if (IsAborted)
+                    return;
                 if (watch.ElapsedMilliseconds >= delay)
                     break;
 
@@ -136,7 +140,25 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         if (_task == null)
             return;
         _task.Wait();
+        if (IsAborted)
+            throw new DigitalIOAbortedError();
         _ = IsOn();
+    }
+
+    public bool IsAborted => GetDeviceMetaInfo().Aborted;
+
+    public void AbortDevice()
+    {
+        Logger.Info($"Abort device. ({ActorName}, {ItemPath}, {Channel})");
+        GetDeviceMetaInfo().Aborted = true;
+    }
+
+    public void ResetAbort()
+    {
+        if (!GetDeviceMetaInfo().Aborted)
+            return;
+        Logger.Info($"Reset device abort. ({ActorName}, {ItemPath}, {Channel})");
+        GetDeviceMetaInfo().Aborted = false;
     }
 
     public void OnAndWait()
