@@ -10,7 +10,11 @@ public class FatalErrorState<T>(T actor, SequenceError error) : ErrorState<T>(ac
         switch (message.Name)
         {
             case StateEntryMessage.MessageName:
-                Actor.SetStatus("Fatal", true);
+                Actor.SetStatus("_error", true);
+                Actor.SetStatus("_fatal", true);
+                return true;
+            case "_resetError":
+                Actor.State = Actor.CreateInitialState();
                 return true;
         }
 
@@ -19,6 +23,7 @@ public class FatalErrorState<T>(T actor, SequenceError error) : ErrorState<T>(ac
 
     public override void Dispose()
     {
-        Actor.SetStatus("Fatal", false);
+        Actor.SetStatus("_error", false);
+        Actor.SetStatus("_fatal", false);
     }
 }
