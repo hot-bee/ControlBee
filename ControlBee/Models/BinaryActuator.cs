@@ -168,7 +168,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
             return;
         _task.Wait();
         if (IsAborted)
-            throw new DigitalIOAbortedError();
+            throw new DeviceAbortedError();
         _ = IsOn();
     }
 

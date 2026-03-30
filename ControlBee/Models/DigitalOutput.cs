@@ -141,7 +141,7 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
             return;
         _task.Wait();
         if (IsAborted)
-            throw new DigitalIOAbortedError();
+            throw new DeviceAbortedError();
         _ = IsOn();
     }
 

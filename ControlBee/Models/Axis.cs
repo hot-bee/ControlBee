@@ -29,7 +29,7 @@ public class Axis : DeviceChannel, IAxis
     protected bool _velocityMoving;
     public IDialog AxisAlarmError = new DialogPlaceholder();
     public IDialog AxisNotEnabledError = new DialogPlaceholder();
-    public IDialog MotionDeviceAbortedError = new DialogPlaceholder();
+    public IDialog DeviceAbortedError = new DialogPlaceholder();
 
     protected SpeedProfile? CurrentSpeedProfile;
 
@@ -1142,8 +1142,8 @@ public class Axis : DeviceChannel, IAxis
             return;
         Logger.Error($"Motion device aborted. ({ActorName}, {ItemPath})");
         GetMetaInfo().Initialized = false;
-        MotionDeviceAbortedError.Show();
-        throw new MotionDeviceAbortedError();
+        DeviceAbortedError.Show();
+        throw new DeviceAbortedError();
     }
 
     public void ValidateNotAlarmed()
