@@ -105,6 +105,25 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
         }
     }
 
+    public bool IsAborted()
+    {
+        return GetDeviceMetaInfo().Aborted;
+    }
+
+    public virtual void AbortDevice()
+    {
+        Logger.Info($"Abort device. ({ActorName}, {ItemPath}, {Channel})");
+        GetDeviceMetaInfo().Aborted = true;
+    }
+
+    public void ResetAbort()
+    {
+        if (!GetDeviceMetaInfo().Aborted)
+            return;
+        Logger.Info($"Reset device abort. ({ActorName}, {ItemPath}, {Channel})");
+        GetDeviceMetaInfo().Aborted = false;
+    }
+
     public virtual void Sync()
     {
         // Empty

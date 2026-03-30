@@ -160,14 +160,17 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         SetOn(false);
     }
 
-    private bool IsAborted => (_outputOn?.IsAborted ?? false) || (_outputOff?.IsAborted ?? false);
+    private bool IsAborted()
+    {
+        return (_outputOn?.IsAborted() ?? false) || (_outputOff?.IsAborted() ?? false);
+    }
 
     public void Wait()
     {
         if (_task == null)
             return;
         _task.Wait();
-        if (IsAborted)
+        if (IsAborted())
             throw new DeviceAbortedError();
         _ = IsOn();
     }
@@ -205,7 +208,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
             var watch = _timeManager.CreateWatch();
             while (true)
             {
-                if (IsAborted)
+                if (IsAborted())
                     return false;
                 if (CommandOn && OnDetect())
                     break;

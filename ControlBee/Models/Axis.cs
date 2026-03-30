@@ -365,11 +365,6 @@ public class Axis : DeviceChannel, IAxis
         return MotionDevice.IsAlarmed(Channel);
     }
 
-    public bool IsAborted()
-    {
-        return GetDeviceMetaInfo().Aborted;
-    }
-
     public void ClearAlarm()
     {
         if (MotionDevice == null)
@@ -389,14 +384,6 @@ public class Axis : DeviceChannel, IAxis
         }
 
         RefreshCache();
-    }
-
-    public void ResetAbort()
-    {
-        if (!GetDeviceMetaInfo().Aborted)
-            return;
-        Logger.Info($"Reset device abort. ({ActorName}, {ItemPath}, {Channel})");
-        GetDeviceMetaInfo().Aborted = false;
     }
 
     public virtual bool IsEnabled()
@@ -1057,11 +1044,9 @@ public class Axis : DeviceChannel, IAxis
         }
     }
 
-    public void AbortDevice()
+    public override void AbortDevice()
     {
-        Logger.Info($"Abort device motion. ({ActorName}, {ItemPath}, {Channel})");
-
-        GetDeviceMetaInfo().Aborted = true;
+        base.AbortDevice();
         GetMetaInfo().Initialized = false;
         Stop();
     }
