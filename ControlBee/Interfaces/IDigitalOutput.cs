@@ -12,6 +12,9 @@ public interface IDigitalOutput : IDigitalIO
     void Wait();
     void OnAndWait();
     void OffAndWait();
+    bool IsAborted();
+    void AbortDevice();
+    void ResetAbort();
     event EventHandler<bool>? CommandOnChanged;
     event EventHandler<bool?>? ActualOnChanged;
 }

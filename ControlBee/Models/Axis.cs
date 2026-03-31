@@ -21,9 +21,7 @@ public class Axis : DeviceChannel, IAxis
 
     private static readonly Dictionary<(string deviceName, int channel), AxisMetaInfo> MetaInfo =
     [];
-    private static readonly Dictionary<string, MotionDeviceMetaInfo> MotionDeviceMetaInfo = [];
     private AxisMetaInfo _localMetaInfo = new();
-    private MotionDeviceMetaInfo _localMotionDeviceMetaInfo = new();
 
     private Action _initializeAction;
     private bool _initializing;
@@ -31,7 +29,7 @@ public class Axis : DeviceChannel, IAxis
     protected bool _velocityMoving;
     public IDialog AxisAlarmError = new DialogPlaceholder();
     public IDialog AxisNotEnabledError = new DialogPlaceholder();
-    public IDialog MotionDeviceAbortedError = new DialogPlaceholder();
+    public IDialog DeviceAbortedError = new DialogPlaceholder();
 
     protected SpeedProfile? CurrentSpeedProfile;
 
@@ -367,11 +365,6 @@ public class Axis : DeviceChannel, IAxis
         return MotionDevice.IsAlarmed(Channel);
     }
 
-    public bool IsAborted()
-    {
-        return GetMotionDeviceMetaInfo().Aborted;
-    }
-
     public void ClearAlarm()
     {
         if (MotionDevice == null)
@@ -391,14 +384,6 @@ public class Axis : DeviceChannel, IAxis
         }
 
         RefreshCache();
-    }
-
-    public void ResetAbort()
-    {
-        if (!GetMotionDeviceMetaInfo().Aborted)
-            return;
-        Logger.Info($"Reset device abort. ({ActorName}, {ItemPath}, {Channel})");
-        GetMotionDeviceMetaInfo().Aborted = false;
     }
 
     public virtual bool IsEnabled()
@@ -1059,27 +1044,9 @@ public class Axis : DeviceChannel, IAxis
         }
     }
 
-    private MotionDeviceMetaInfo GetMotionDeviceMetaInfo()
+    public override void AbortDevice()
     {
-        if (MotionDevice == null)
-            return _localMotionDeviceMetaInfo;
-        var deviceName = MotionDevice.DeviceName;
-        lock (MotionDeviceMetaInfo)
-        {
-            if (!MotionDeviceMetaInfo.TryGetValue(deviceName, out var metaInfo))
-            {
-                metaInfo = new MotionDeviceMetaInfo();
-                MotionDeviceMetaInfo[deviceName] = metaInfo;
-            }
-            return metaInfo;
-        }
-    }
-
-    public void AbortDevice()
-    {
-        Logger.Info($"Abort device motion. ({ActorName}, {ItemPath}, {Channel})");
-
-        GetMotionDeviceMetaInfo().Aborted = true;
+        base.AbortDevice();
         GetMetaInfo().Initialized = false;
         Stop();
     }
@@ -1160,8 +1127,8 @@ public class Axis : DeviceChannel, IAxis
             return;
         Logger.Error($"Motion device aborted. ({ActorName}, {ItemPath})");
         GetMetaInfo().Initialized = false;
-        MotionDeviceAbortedError.Show();
-        throw new MotionDeviceAbortedError();
+        DeviceAbortedError.Show();
+        throw new DeviceAbortedError();
     }
 
     public void ValidateNotAlarmed()
