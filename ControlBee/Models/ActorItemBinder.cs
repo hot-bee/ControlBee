@@ -48,6 +48,13 @@ public class ActorItemBinder : IDisposable
         if (e.RequestId == _itemMetaDataReadMessageId && e.Name == "_itemMetaData")
             OnMetaDataChanged((Dict)e.Payload!);
 
+        if (e.Name == "_itemMetaDataChanged")
+        {
+            var actorItemMessage = (ActorItemMessage)e;
+            if (actorItemMessage.ActorName == _actorName && actorItemMessage.ItemPath == _itemPath)
+                OnMetaDataChanged((Dict)e.Payload!);
+        }
+
         if (e.Name == "_itemDataChanged")
         {
             var actorItemMessage = (ActorItemMessage)e;

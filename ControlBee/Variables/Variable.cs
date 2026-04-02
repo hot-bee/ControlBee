@@ -27,6 +27,7 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
     where T : new()
 {
     private static readonly ILog Logger = LogManager.GetLogger("Variable");
+    private ISystemPropertiesDataSource? _systemPropertiesDataSource;
     private T _value;
     private T _oldValue;
 
@@ -173,6 +174,41 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
     {
         switch (message.Name)
         {
+            case "_itemMetaDataWrite":
+            {
+                var writePayload = (Dict)message.Payload!;
+                if (writePayload.TryGetValue(nameof(MinValue), out var min) && min != null)
+                {
+                    MinValue = Convert.ToDouble(min);
+                    _systemPropertiesDataSource?.SetValue(
+                        ActorName,
+                        $"{ItemPath.TrimStart('/')}/{nameof(MinValue)}",
+                        MinValue
+                    );
+                }
+                if (writePayload.TryGetValue(nameof(MaxValue), out var max) && max != null)
+                {
+                    MaxValue = Convert.ToDouble(max);
+                    _systemPropertiesDataSource?.SetValue(
+                        ActorName,
+                        $"{ItemPath.TrimStart('/')}/{nameof(MaxValue)}",
+                        MaxValue
+                    );
+                }
+                _systemPropertiesDataSource?.SaveToFile();
+                var changedPayload = new Dict
+                {
+                    [nameof(Name)] = Name,
+                    [nameof(Unit)] = Unit,
+                    [nameof(Desc)] = Desc,
+                    [nameof(MinValue)] = MinValue,
+                    [nameof(MaxValue)] = MaxValue,
+                };
+                message.Sender.Send(
+                    new ActorItemMessage(Actor, ItemPath, "_itemMetaDataChanged", changedPayload)
+                );
+                return true;
+            }
             case "_itemMetaDataRead":
             {
                 var payload = new Dict
@@ -266,6 +302,7 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
 
     public override void InjectProperties(ISystemPropertiesDataSource dataSource)
     {
+        _systemPropertiesDataSource = dataSource;
         base.InjectProperties(dataSource);
         if (dataSource.GetValue(ActorName, ItemPath, nameof(Unit)) is string unit)
             Unit = unit;
