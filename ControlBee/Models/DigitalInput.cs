@@ -44,6 +44,9 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
         if (dataSource.GetValue(ActorName, ItemPath, nameof(Inverted)) is string invertedValue)
             if (bool.TryParse(invertedValue, out var inverted))
                 Inverted |= inverted;
+        if (dataSource.GetValue(ActorName, "InputChannelOffset") is string inputOffsetValue)
+            if (int.TryParse(inputOffsetValue, out var inputOffset))
+                ChannelOffset = inputOffset;
     }
 
     public bool IsOn()

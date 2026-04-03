@@ -52,6 +52,14 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
     public event EventHandler<bool>? CommandOnChanged;
     public event EventHandler<bool?>? ActualOnChanged;
 
+    public override void InjectProperties(ISystemPropertiesDataSource dataSource)
+    {
+        base.InjectProperties(dataSource);
+        if (dataSource.GetValue(ActorName, "OutputChannelOffset") is string outputOffsetValue)
+            if (int.TryParse(outputOffsetValue, out var outputOffset))
+                ChannelOffset = outputOffset;
+    }
+
     public override bool ProcessMessage(ActorItemMessage message)
     {
         switch (message.Name)
