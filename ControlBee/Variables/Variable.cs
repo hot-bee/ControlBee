@@ -196,14 +196,7 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
                     );
                 }
                 _systemPropertiesDataSource?.SaveToFile();
-                var changedPayload = new Dict
-                {
-                    [nameof(Name)] = Name,
-                    [nameof(Unit)] = Unit,
-                    [nameof(Desc)] = Desc,
-                    [nameof(MinValue)] = MinValue,
-                    [nameof(MaxValue)] = MaxValue,
-                };
+                var changedPayload = CreateMetaDataPayload();
                 message.Sender.Send(
                     new ActorItemMessage(Actor, ItemPath, "_itemMetaDataChanged", changedPayload)
                 );
@@ -211,16 +204,9 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
             }
             case "_itemMetaDataRead":
             {
-                var payload = new Dict
-                {
-                    [nameof(Name)] = Name,
-                    [nameof(Unit)] = Unit,
-                    [nameof(Desc)] = Desc,
-                    [nameof(MinValue)] = MinValue,
-                    [nameof(MaxValue)] = MaxValue,
-                };
+                var readPayload = CreateMetaDataPayload();
                 message.Sender.Send(
-                    new ActorItemMessage(message.Id, Actor, ItemPath, "_itemMetaData", payload)
+                    new ActorItemMessage(message.Id, Actor, ItemPath, "_itemMetaData", readPayload)
                 );
                 return true;
             }
@@ -298,6 +284,18 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
             subItem.Actor = Actor;
             subItem.UpdateSubItem();
         }
+    }
+
+    private Dict CreateMetaDataPayload()
+    {
+        return new Dict
+        {
+            [nameof(Name)] = Name,
+            [nameof(Unit)] = Unit,
+            [nameof(Desc)] = Desc,
+            [nameof(MinValue)] = MinValue,
+            [nameof(MaxValue)] = MaxValue,
+        };
     }
 
     public override void InjectProperties(ISystemPropertiesDataSource dataSource)
