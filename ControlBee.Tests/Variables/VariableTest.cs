@@ -225,6 +225,99 @@ public class VariableTest : ActorFactoryBase
     }
 
     [Fact]
+    public void MetaDataWriteTest()
+    {
+        var actor = ActorFactory.Create<Actor>("MyActor");
+        var intVariable = new Variable<int>(
+            VariableManager,
+            actor,
+            "/MyVar",
+            VariableScope.Global,
+            1
+        );
+        var uiActor = Mock.Of<IActor>();
+
+        var dataSource = Mock.Of<ISystemPropertiesDataSource>();
+        intVariable.InjectProperties(dataSource);
+
+        var writePayload = new System.Collections.Generic.Dictionary<string, object?>
+        {
+            ["MinValue"] = 10.0,
+            ["MaxValue"] = 100.0,
+        };
+        var writeMessage = new ActorItemMessage(
+            uiActor,
+            "/MyVar",
+            "_itemMetaDataWrite",
+            writePayload
+        );
+        intVariable.ProcessMessage(writeMessage);
+
+        Assert.Equal(10.0, intVariable.MinValue);
+        Assert.Equal(100.0, intVariable.MaxValue);
+
+        Mock.Get(dataSource).Verify(m => m.SetValue("MyActor", "MyVar/MinValue", 10.0), Times.Once);
+        Mock.Get(dataSource)
+            .Verify(m => m.SetValue("MyActor", "MyVar/MaxValue", 100.0), Times.Once);
+        Mock.Get(dataSource).Verify(m => m.SaveToFile(), Times.Once);
+
+        var match = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = (ActorItemMessage)message;
+            return actorItemMessage
+                    is { Name: "_itemMetaDataChanged", ActorName: "MyActor", ItemPath: "/MyVar" }
+                && (double)actorItemMessage.DictPayload!["MinValue"]! == 10.0
+                && (double)actorItemMessage.DictPayload!["MaxValue"]! == 100.0;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);
+    }
+
+    [Fact]
+    public void MetaDataPartialWriteTest()
+    {
+        var actor = ActorFactory.Create<Actor>("MyActor");
+        var intVariable = new Variable<int>(
+            VariableManager,
+            actor,
+            "/MyVar",
+            VariableScope.Global,
+            1
+        );
+        var uiActor = Mock.Of<IActor>();
+
+        var dataSource = Mock.Of<ISystemPropertiesDataSource>();
+        intVariable.InjectProperties(dataSource);
+
+        var writePayload = new System.Collections.Generic.Dictionary<string, object?>
+        {
+            ["MinValue"] = 5.0,
+        };
+        var writeMessage = new ActorItemMessage(
+            uiActor,
+            "/MyVar",
+            "_itemMetaDataWrite",
+            writePayload
+        );
+        intVariable.ProcessMessage(writeMessage);
+
+        Assert.Equal(5.0, intVariable.MinValue);
+        Assert.Null(intVariable.MaxValue);
+
+        Mock.Get(dataSource).Verify(m => m.SetValue("MyActor", "MyVar/MinValue", 5.0), Times.Once);
+        Mock.Get(dataSource)
+            .Verify(
+                m =>
+                    m.SetValue(
+                        It.IsAny<string>(),
+                        It.Is<string>(s => s.Contains("MaxValue")),
+                        It.IsAny<object>()
+                    ),
+                Times.Never
+            );
+    }
+
+    [Fact]
     public void DataWriteTest()
     {
         var actor = ActorFactory.Create<Actor>("MyActor");
