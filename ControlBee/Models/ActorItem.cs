@@ -45,7 +45,7 @@ public abstract class ActorItem : IActorItem, IActorItemModifier
         switch (message.Name)
         {
             case "_itemMetaDataRead":
-                SendMetaData();
+                SendMetaData(message.Id);
                 return true;
         }
 
@@ -66,7 +66,7 @@ public abstract class ActorItem : IActorItem, IActorItemModifier
         SendMetaData();
     }
 
-    protected virtual void SendMetaData()
+    protected virtual void SendMetaData(Guid requestId = default)
     {
         if (Actor.Ui is not IUiActor uiActor)
             return;
@@ -75,7 +75,9 @@ public abstract class ActorItem : IActorItem, IActorItemModifier
             [nameof(Name)] = Name,
             [nameof(Desc)] = Desc,
         };
-        uiActor.Send(new ActorItemMessage(Actor, ItemPath, "_itemMetaDataChanged", payload));
+        uiActor.Send(
+            new ActorItemMessage(requestId, Actor, ItemPath, "_itemMetaDataChanged", payload)
+        );
     }
 
     public virtual void Init() { }

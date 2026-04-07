@@ -38,14 +38,14 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
         switch (message.Name)
         {
             case "_itemMetaDataRead":
-                SendMetaData();
+                SendMetaData(message.Id);
                 return true;
         }
 
         return base.ProcessMessage(message);
     }
 
-    protected override void SendMetaData()
+    protected override void SendMetaData(Guid requestId = default)
     {
         if (Actor.Ui == null)
             return;
@@ -55,7 +55,9 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
             [nameof(Desc)] = Desc,
             [nameof(Channel)] = Channel,
         };
-        Actor.Ui.Send(new ActorItemMessage(Actor, ItemPath, "_itemMetaDataChanged", payload));
+        Actor.Ui.Send(
+            new ActorItemMessage(requestId, Actor, ItemPath, "_itemMetaDataChanged", payload)
+        );
     }
 
     public override void InjectProperties(ISystemPropertiesDataSource dataSource)

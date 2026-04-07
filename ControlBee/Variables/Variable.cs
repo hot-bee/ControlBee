@@ -198,12 +198,18 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
                 _systemPropertiesDataSource?.SaveToFile();
                 var changedPayload = CreateMetaDataPayload();
                 message.Sender.Send(
-                    new ActorItemMessage(Actor, ItemPath, "_itemMetaDataChanged", changedPayload)
+                    new ActorItemMessage(
+                        message.Id,
+                        Actor,
+                        ItemPath,
+                        "_itemMetaDataChanged",
+                        changedPayload
+                    )
                 );
                 return true;
             }
             case "_itemMetaDataRead":
-                SendMetaData();
+                SendMetaData(message.Id);
                 return true;
             case "_itemDataRead":
             {
@@ -281,12 +287,18 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
         }
     }
 
-    protected override void SendMetaData()
+    protected override void SendMetaData(Guid requestId = default)
     {
         if (Actor.Ui == null)
             return;
         Actor.Ui.Send(
-            new ActorItemMessage(Actor, ItemPath, "_itemMetaDataChanged", CreateMetaDataPayload())
+            new ActorItemMessage(
+                requestId,
+                Actor,
+                ItemPath,
+                "_itemMetaDataChanged",
+                CreateMetaDataPayload()
+            )
         );
     }
 
