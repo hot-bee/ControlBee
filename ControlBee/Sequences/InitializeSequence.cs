@@ -52,6 +52,10 @@ public class InitializeSequence(
             case AxisSensorType.Builtin:
                 axis.BuiltinInitialize();
                 break;
+            case AxisSensorType.None:
+                axis.SetSpeed(axis.GetJogSpeed(JogSpeedLevel.Fast));
+                homePosition.Value.MoveAndWait();
+                return;
             default:
                 throw new ValueError();
         }
