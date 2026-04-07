@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.ComponentModel;
+using System.Text.RegularExpressions;
 using ControlBee.Interfaces;
 using log4net;
 using Newtonsoft.Json;
@@ -11,6 +12,10 @@ public class LocalizationManager : ILocalizationManager
     private static readonly ILog Logger = LogManager.GetLogger(nameof(LocalizationManager));
     private static LocalizationManager? _instance;
     private JObject? _translations;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public string this[string key] => Translate(key);
 
     public LocalizationManager()
     {
@@ -34,6 +39,7 @@ public class LocalizationManager : ILocalizationManager
         {
             var json = File.ReadAllText(jsonPath);
             _translations = JObject.Parse(json);
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Item[]"));
         }
         catch (IOException)
         {

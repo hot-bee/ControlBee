@@ -45,23 +45,8 @@ public abstract class ActorItem : IActorItem, IActorItemModifier
         switch (message.Name)
         {
             case "_itemMetaDataRead":
-            {
-                var payload = new Dictionary<string, object?>
-                {
-                    [nameof(Name)] = Name,
-                    [nameof(Desc)] = Desc,
-                };
-                message.Sender.Send(
-                    new ActorItemMessage(
-                        message.Id,
-                        Actor,
-                        ItemPath,
-                        "_itemMetaDataChanged",
-                        payload
-                    )
-                );
+                SendMetaData();
                 return true;
-            }
         }
 
         return false;
@@ -71,10 +56,26 @@ public abstract class ActorItem : IActorItem, IActorItemModifier
 
     public virtual void InjectProperties(ISystemPropertiesDataSource dataSource)
     {
-        if (dataSource.GetValue(ActorName, ItemPath, nameof(Name)) is string name)
-            _name = name;
-        if (dataSource.GetValue(ActorName, ItemPath, nameof(Desc)) is string desc)
-            Desc = desc;
+        _name = dataSource.GetValue(ActorName, ItemPath, nameof(Name)) as string ?? string.Empty;
+        Desc = dataSource.GetValue(ActorName, ItemPath, nameof(Desc)) as string ?? string.Empty;
+    }
+
+    public virtual void ReloadProperties(ISystemPropertiesDataSource dataSource)
+    {
+        InjectProperties(dataSource);
+        SendMetaData();
+    }
+
+    protected virtual void SendMetaData()
+    {
+        if (Actor.Ui is not IUiActor uiActor)
+            return;
+        var payload = new Dictionary<string, object?>
+        {
+            [nameof(Name)] = Name,
+            [nameof(Desc)] = Desc,
+        };
+        uiActor.Send(new ActorItemMessage(Actor, ItemPath, "_itemMetaDataChanged", payload));
     }
 
     public virtual void Init() { }

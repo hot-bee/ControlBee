@@ -20,7 +20,8 @@ public class ActorFactory(
     IScenarioFlowTester scenarioFlowTester,
     ISystemPropertiesDataSource systemPropertiesDataSource,
     IActorRegistry actorRegistry,
-    IDeviceManager deviceManager
+    IDeviceManager deviceManager,
+    ILocalizationManager localizationManager
 ) : IActorFactory
 {
     public T Create<T>(string actorName, params object?[]? args)
@@ -49,6 +50,7 @@ public class ActorFactory(
             scenarioFlowTester,
             systemPropertiesDataSource,
             deviceManager,
+            localizationManager,
             uiActor
         );
         var actorArgs = new List<object?> { actorConfig };

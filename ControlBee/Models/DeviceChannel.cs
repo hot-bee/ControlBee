@@ -38,27 +38,24 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
         switch (message.Name)
         {
             case "_itemMetaDataRead":
-            {
-                var payload = new Dictionary<string, object?>
-                {
-                    [nameof(Name)] = Name,
-                    [nameof(Desc)] = Desc,
-                    [nameof(Channel)] = Channel,
-                };
-                message.Sender.Send(
-                    new ActorItemMessage(
-                        message.Id,
-                        Actor,
-                        ItemPath,
-                        "_itemMetaDataChanged",
-                        payload
-                    )
-                );
+                SendMetaData();
                 return true;
-            }
         }
 
         return base.ProcessMessage(message);
+    }
+
+    protected override void SendMetaData()
+    {
+        if (Actor.Ui == null)
+            return;
+        var payload = new Dictionary<string, object?>
+        {
+            [nameof(Name)] = Name,
+            [nameof(Desc)] = Desc,
+            [nameof(Channel)] = Channel,
+        };
+        Actor.Ui.Send(new ActorItemMessage(Actor, ItemPath, "_itemMetaDataChanged", payload));
     }
 
     public override void InjectProperties(ISystemPropertiesDataSource dataSource)

@@ -46,6 +46,9 @@ public class ActorBuiltinMessageHandler(Actor actor)
             case "_requestStatus":
                 actor.PublishStatus();
                 return true;
+            case "_reloadProperties":
+                actor.ReloadAllProperties();
+                return true;
         }
 
         return false;

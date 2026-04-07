@@ -187,6 +187,9 @@ public class VariableTest : ActorFactoryBase
     [Fact]
     public void MetaDataReadTest()
     {
+        var uiActor = Mock.Of<IUiActor>();
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("Ui");
+        ActorRegistry.Add(uiActor);
         var actor = ActorFactory.Create<Actor>("MyActor");
         var intVariable = new Variable<int>(
             VariableManager,
@@ -195,7 +198,6 @@ public class VariableTest : ActorFactoryBase
             VariableScope.Global,
             1
         );
-        var uiActor = Mock.Of<IActor>();
         var reqMessage = new ActorItemMessage(uiActor, "/MyVar", "_itemMetaDataRead");
 
         var actorItemInjectionDataSource = Mock.Of<ISystemPropertiesDataSource>();

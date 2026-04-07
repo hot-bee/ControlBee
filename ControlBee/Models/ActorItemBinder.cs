@@ -1,4 +1,4 @@
-﻿using ControlBee.Interfaces;
+using ControlBee.Interfaces;
 using log4net;
 using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
@@ -8,8 +8,8 @@ public class ActorItemBinder : IDisposable
 {
     private static readonly ILog Logger = LogManager.GetLogger("General");
     private static int _instanceCount;
+    private readonly IActor _actor;
     private readonly string _actorName;
-    private readonly Guid? _itemMetaDataReadMessageId;
     private readonly string _itemPath;
     private readonly IUiActor _uiActor;
 
@@ -23,14 +23,22 @@ public class ActorItemBinder : IDisposable
         _actorName = actorName;
         _itemPath = itemPath;
         _uiActor = (IUiActor)actorRegistry.Get("Ui")!;
-        var actor = actorRegistry.Get(actorName)!;
+        _actor = actorRegistry.Get(actorName)!;
         _uiActor.MessageArrived += _uiActor_MessageArrived;
-        _itemMetaDataReadMessageId = actor.Send(
-            new ActorItemMessage(_uiActor, _itemPath, "_itemMetaDataRead")
-        );
-        actor.Send(new ActorItemMessage(_uiActor, _itemPath, "_itemDataRead"));
+        RequestMetaData();
+        RequestData();
         _instanceCount++;
         Logger.Debug($"Active Instance Count: {_instanceCount}");
+    }
+
+    public void RequestMetaData()
+    {
+        _actor.Send(new ActorItemMessage(_uiActor, _itemPath, "_itemMetaDataRead"));
+    }
+
+    public void RequestData()
+    {
+        _actor.Send(new ActorItemMessage(_uiActor, _itemPath, "_itemDataRead"));
     }
 
     public void Dispose()
@@ -45,9 +53,6 @@ public class ActorItemBinder : IDisposable
 
     private void _uiActor_MessageArrived(object? sender, Message e)
     {
-        if (e.RequestId == _itemMetaDataReadMessageId && e.Name == "_itemMetaDataChanged")
-            OnMetaDataChanged((Dict)e.Payload!);
-
         if (e.Name == "_itemMetaDataChanged")
         {
             var actorItemMessage = (ActorItemMessage)e;

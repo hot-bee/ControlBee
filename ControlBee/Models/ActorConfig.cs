@@ -20,6 +20,7 @@ public class ActorConfig(
     IScenarioFlowTester scenarioFlowTester,
     ISystemPropertiesDataSource systemPropertiesDataSource,
     IDeviceManager deviceManager,
+    ILocalizationManager localizationManager,
     IActor? uiActor
 )
 {
@@ -42,6 +43,8 @@ public class ActorConfig(
     public IInitializeSequenceFactory InitializeSequenceFactory => initializeSequenceFactory;
 
     public ISystemPropertiesDataSource SystemPropertiesDataSource => systemPropertiesDataSource;
+
+    public ILocalizationManager LocalizationManager => localizationManager;
 
     public IActor? UiActor => uiActor;
 }

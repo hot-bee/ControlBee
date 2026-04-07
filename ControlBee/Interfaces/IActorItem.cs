@@ -13,6 +13,7 @@ public interface IActorItem : INotifyPropertyChanged
     bool ProcessMessage(ActorItemMessage message);
     void UpdateSubItem();
     void InjectProperties(ISystemPropertiesDataSource dataSource);
+    void ReloadProperties(ISystemPropertiesDataSource dataSource) => InjectProperties(dataSource);
     void Init();
     void PostInit();
 }

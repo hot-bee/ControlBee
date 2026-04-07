@@ -24,6 +24,7 @@ public class EmptyActor : Actor
             EmptyScenarioFlowTester.Instance,
             EmptySystemPropertiesDataSource.Instance,
             null!,
+            null!,
             null
         )
     );

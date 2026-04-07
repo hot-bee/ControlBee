@@ -144,7 +144,8 @@ public abstract class ActorFactoryBase : IDisposable
                 ScenarioFlowTester,
                 SystemPropertiesDataSource,
                 ActorRegistry,
-                DeviceManager
+                DeviceManager,
+                LocalizationManager
             );
     }
 }

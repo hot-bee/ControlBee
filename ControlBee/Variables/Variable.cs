@@ -203,19 +203,8 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
                 return true;
             }
             case "_itemMetaDataRead":
-            {
-                var readPayload = CreateMetaDataPayload();
-                message.Sender.Send(
-                    new ActorItemMessage(
-                        message.Id,
-                        Actor,
-                        ItemPath,
-                        "_itemMetaDataChanged",
-                        readPayload
-                    )
-                );
+                SendMetaData();
                 return true;
-            }
             case "_itemDataRead":
             {
                 if (ReadLevel.HasValue && UserInfo != null)
@@ -290,6 +279,15 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
             subItem.Actor = Actor;
             subItem.UpdateSubItem();
         }
+    }
+
+    protected override void SendMetaData()
+    {
+        if (Actor.Ui == null)
+            return;
+        Actor.Ui.Send(
+            new ActorItemMessage(Actor, ItemPath, "_itemMetaDataChanged", CreateMetaDataPayload())
+        );
     }
 
     private Dict CreateMetaDataPayload()

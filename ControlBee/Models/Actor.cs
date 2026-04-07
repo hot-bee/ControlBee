@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Reflection;
 using ControlBee.Interfaces;
 using ControlBee.Utils;
@@ -23,6 +24,7 @@ public class Actor : IActorInternal, IDisposable
 
     private readonly Stack<IState> _stateStack = new(new List<IState> { new EmptyState() });
     private readonly ISystemPropertiesDataSource _systemPropertiesDataSource;
+    private readonly ILocalizationManager _localizationManager;
     private readonly Thread _thread;
 
     protected readonly ActorBuiltinMessageHandler ActorBuiltinMessageHandler;
@@ -56,6 +58,7 @@ public class Actor : IActorInternal, IDisposable
         TimeManager = config.TimeManager;
         ScenarioFlowTester = config.ScenarioFlowTester;
         _systemPropertiesDataSource = config.SystemPropertiesDataSource;
+        _localizationManager = config.LocalizationManager;
         EventManager = config.EventManager;
         PositionAxesMap = new PositionAxesMap();
         Name = config.ActorName;
@@ -150,6 +153,20 @@ public class Actor : IActorInternal, IDisposable
         PositionAxesMap.UpdateMap();
 
         UpdateTitle();
+
+        _localizationManager.PropertyChanged += OnLanguageChanged;
+    }
+
+    private void OnLanguageChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        Send(new Message(this, "_reloadProperties"));
+        UpdateTitle();
+    }
+
+    internal void ReloadAllProperties()
+    {
+        foreach (var actorItem in _actorItems.Values)
+            actorItem.ReloadProperties(_systemPropertiesDataSource);
     }
 
     public IActorItem? GetItem(string itemPath)
