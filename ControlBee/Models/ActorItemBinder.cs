@@ -45,7 +45,7 @@ public class ActorItemBinder : IDisposable
 
     private void _uiActor_MessageArrived(object? sender, Message e)
     {
-        if (e.RequestId == _itemMetaDataReadMessageId && e.Name == "_itemMetaData")
+        if (e.RequestId == _itemMetaDataReadMessageId && e.Name == "_itemMetaDataChanged")
             OnMetaDataChanged((Dict)e.Payload!);
 
         if (e.Name == "_itemMetaDataChanged")

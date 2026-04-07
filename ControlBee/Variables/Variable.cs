@@ -206,7 +206,13 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
             {
                 var readPayload = CreateMetaDataPayload();
                 message.Sender.Send(
-                    new ActorItemMessage(message.Id, Actor, ItemPath, "_itemMetaData", readPayload)
+                    new ActorItemMessage(
+                        message.Id,
+                        Actor,
+                        ItemPath,
+                        "_itemMetaDataChanged",
+                        readPayload
+                    )
                 );
                 return true;
             }

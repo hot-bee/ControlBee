@@ -215,7 +215,7 @@ public class VariableTest : ActorFactoryBase
         {
             var actorItemMessage = (ActorItemMessage)message;
             return actorItemMessage
-                    is { Name: "_itemMetaData", ActorName: "MyActor", ItemPath: "/MyVar" }
+                    is { Name: "_itemMetaDataChanged", ActorName: "MyActor", ItemPath: "/MyVar" }
                 && actorItemMessage.DictPayload!["Name"] as string == "My variable"
                 && actorItemMessage.DictPayload!["Unit"] as string == "bool"
                 && actorItemMessage.DictPayload!["Desc"] as string == "This is a my variable.";

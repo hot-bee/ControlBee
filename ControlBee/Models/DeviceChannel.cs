@@ -46,7 +46,13 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
                     [nameof(Channel)] = Channel,
                 };
                 message.Sender.Send(
-                    new ActorItemMessage(message.Id, Actor, ItemPath, "_itemMetaData", payload)
+                    new ActorItemMessage(
+                        message.Id,
+                        Actor,
+                        ItemPath,
+                        "_itemMetaDataChanged",
+                        payload
+                    )
                 );
                 return true;
             }

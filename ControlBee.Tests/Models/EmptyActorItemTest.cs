@@ -40,7 +40,7 @@ MyActor:
         var match = new Func<Message, bool>(message =>
         {
             var metaData = message.DictPayload;
-            return message.Name == "_itemMetaData"
+            return message.Name == "_itemMetaDataChanged"
                 && metaData!["Name"] as string == "My Empty Item"
                 && metaData["Desc"] as string
                     == "The description describing what my empty item is.";
