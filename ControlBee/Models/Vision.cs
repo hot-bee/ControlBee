@@ -21,7 +21,7 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
     public IDialog TimeoutError = new DialogPlaceholder();
     protected virtual IVisionDevice? VisionDevice => Device as IVisionDevice;
 
-    public virtual void Trigger(int inspectionIndex, string? triggerId, Dict? options = null)
+    public virtual void Trigger(int inspectionIndex, string? triggerId, Dict? options = null, bool softwareTrigger = true)
     {
         if (VisionDevice == null)
         {
@@ -33,7 +33,7 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         {
             if (PreDelay.Value > 0)
                 Thread.Sleep(PreDelay.Value);
-            VisionDevice.Trigger(Channel, inspectionIndex, triggerId, options);
+            VisionDevice.Trigger(Channel, inspectionIndex, triggerId, options, softwareTrigger);
         }
         catch (ConnectionError)
         {
@@ -42,9 +42,9 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         }
     }
 
-    public void Trigger(int inspectionIndex, Dict? options = null)
+    public void Trigger(int inspectionIndex, Dict? options = null, bool softwareTrigger = true)
     {
-        Trigger(inspectionIndex, null, options);
+        Trigger(inspectionIndex, null, options, softwareTrigger);
     }
 
     public void StartContinuous()

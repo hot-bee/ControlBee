@@ -5,8 +5,8 @@ namespace ControlBee.Interfaces;
 
 public interface IVision : IDeviceChannel
 {
-    void Trigger(int inspectionIndex, string? triggerId, Dict? options = null);
-    void Trigger(int inspectionIndex, Dict? options = null);
+    void Trigger(int inspectionIndex, string? triggerId, Dict? options = null, bool softwareTrigger = true);
+    void Trigger(int inspectionIndex, Dict? options = null, bool softwareTrigger = true);
     void StartContinuous();
     void StopContinuous();
     bool IsContinuousMode();

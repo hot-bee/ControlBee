@@ -55,12 +55,12 @@ public class VisionPlaceholder : IPlaceholder, IVision
         throw new NotImplementedException();
     }
 
-    public void Trigger(int inspectionIndex, string? triggerId, Dict? options = null)
+    public void Trigger(int inspectionIndex, string? triggerId, Dict? options = null, bool softwareTrigger = true)
     {
         throw new NotImplementedException();
     }
 
-    public void Trigger(int inspectionIndex, Dict? options = null)
+    public void Trigger(int inspectionIndex, Dict? options = null, bool softwareTrigger = true)
     {
         throw new NotImplementedException();
     }
