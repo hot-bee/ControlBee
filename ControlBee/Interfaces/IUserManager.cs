@@ -5,7 +5,7 @@ namespace ControlBee.Interfaces;
 public interface IUserManager
 {
     bool Register(string userId, string rawPassword, string name, int level = 0);
-    bool Login(string userId, string userPassword);
+    bool Login(string userId, string userPassword, int? userLevel = null);
     void Logout();
     bool Delete(int id);
     IUserInfo? CurrentUser { get; }

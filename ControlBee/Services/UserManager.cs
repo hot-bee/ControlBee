@@ -83,12 +83,15 @@ public class UserManager : IUserManager
         }
     }
 
-    public bool Login(string userId, string userPassword)
+    public bool Login(string userId, string userPassword, int? userLevel = null)
     {
         try
         {
             var user = GetLoginUser(userId, userPassword);
             if (user is null)
+                return false;
+
+            if (userLevel is not null && user.Level != userLevel.Value)
                 return false;
 
             CurrentUser = user;
