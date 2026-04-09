@@ -68,6 +68,8 @@ public class Dialog(DialogContextFactory dialogContextFactory, IEventManager eve
             Context.ActionButtons = actionButtons;
         if (desc != null)
             Context.Desc = desc;
+        if (Context.IsActive)
+            return Guid.Empty;
         eventManager.Write(
             Context.ActorName,
             Context.Name,

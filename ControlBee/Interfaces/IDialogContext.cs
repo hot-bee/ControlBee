@@ -11,6 +11,7 @@ public interface IDialogContext
     int? Code { get; set; }
     DialogSeverity Severity { get; set; }
     string[] ActionButtons { get; set; }
+    bool IsActive { get; set; } // TODO: Not sure context should have this property, maybe should be managed by DialogService instead
     event EventHandler? CloseRequested;
     void Close();
 }
