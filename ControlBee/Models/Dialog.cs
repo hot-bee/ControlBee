@@ -40,6 +40,10 @@ public class Dialog(DialogContextFactory dialogContextFactory, IEventManager eve
         base.InjectProperties(dataSource);
         Context.Name = Name;
         Context.Desc = Desc;
+
+        if (dataSource.GetValue(ActorName, nameof(Actor.Name)) is string name)
+            Context.ActorName = name;
+
         if (
             dataSource.GetValue(ActorName, ItemPath, nameof(DialogContext.Code)) is string codeValue
         )
