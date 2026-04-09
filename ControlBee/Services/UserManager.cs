@@ -47,7 +47,8 @@ public class UserManager : IUserManager
         {
             using (var check = _connection.CreateCommand())
             {
-                check.CommandText = @"SELECT 1 FROM users WHERE user_id = @user_id LIMIT 1;";
+                check.CommandText =
+                    @"SELECT 1 FROM users WHERE user_id = @user_id AND is_deleted = 0 LIMIT 1;";
                 check.Parameters.AddWithValue("@user_id", userId);
                 using var reader = check.ExecuteReader();
                 if (reader.Read())
@@ -229,7 +230,7 @@ public class UserManager : IUserManager
 
             using var selectLevel = _connection.CreateCommand();
             selectLevel.Transaction = transaction;
-            selectLevel.CommandText = "SELECT level FROM users WHERE id=@id;";
+            selectLevel.CommandText = "SELECT level FROM users WHERE id=@id AND is_deleted=0;";
             var parameterTargetUserId = selectLevel.Parameters.Add("@id", SqliteType.Integer);
 
             using var commandWithoutPassword = _connection.CreateCommand();
@@ -238,7 +239,7 @@ public class UserManager : IUserManager
                 @"
                 UPDATE users
                 SET name=@name, level=@level, updated_at=datetime('now','localtime')
-                WHERE id=@id;
+                WHERE id=@id AND is_deleted=0;
             ";
             var nameWithoutPassword = commandWithoutPassword.Parameters.Add(
                 "@name",
@@ -259,7 +260,7 @@ public class UserManager : IUserManager
                 @"
                 UPDATE users
                 SET name=@name, password=@password, level=@level, updated_at=datetime('now','localtime')
-                WHERE id=@id;
+                WHERE id=@id AND is_deleted=0;
             ";
             var nameWithPassword = commandWithPassword.Parameters.Add("@name", SqliteType.Text);
             var password = commandWithPassword.Parameters.Add("@password", SqliteType.Text);

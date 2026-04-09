@@ -427,7 +427,7 @@ public class SqliteDatabase : IDatabase, IDisposable
                 );
             CREATE TABLE IF NOT EXISTS users(
                 id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id     TEXT    NOT NULL UNIQUE,
+                user_id     TEXT    NOT NULL,
                 password    TEXT    NOT NULL,
                 name        TEXT    NOT NULL,
                 level       INTEGER NOT NULL DEFAULT 0,
@@ -435,6 +435,8 @@ public class SqliteDatabase : IDatabase, IDisposable
                 updated_at  TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
                 is_deleted  INTEGER NOT NULL DEFAULT 0
             );
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_users_user_id_active
+                ON users(user_id) WHERE is_deleted = 0;
             """;
         using var command = new SqliteCommand(sql, GetConnection());
         command.ExecuteNonQuery();
