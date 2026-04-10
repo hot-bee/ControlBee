@@ -39,6 +39,7 @@ public class InitializeSequence(
         axis.OnBeforeInitialize();
         axis.SetSoftwareLimit(false, 0.0, 0.0);
 
+        var useClearPosition = true;
         switch (sensorType)
         {
             case AxisSensorType.Home:
@@ -52,21 +53,27 @@ public class InitializeSequence(
             case AxisSensorType.Builtin:
                 axis.BuiltinInitialize();
                 break;
+            case AxisSensorType.None:
+                useClearPosition = false;
+                break;
             default:
                 throw new ValueError();
         }
 
-        Thread.Sleep(DelayBeforeClearPosition.Value);
-        axis.ClearPosition();
+        if (useClearPosition)
+        {
+            Thread.Sleep(DelayBeforeClearPosition.Value);
+            axis.ClearPosition();
 
-        var useSoftwareLimit = axis.GetUseSoftwareLimit();
-        var negativeSoftwareLimitPosition = axis.GetNegativeSoftwareLimitPosition();
-        var positiveSoftwareLimitPosition = axis.GetPositiveSoftwareLimitPosition();
-        axis.SetSoftwareLimit(
-            useSoftwareLimit,
-            negativeSoftwareLimitPosition,
-            positiveSoftwareLimitPosition
-        );
+            var useSoftwareLimit = axis.GetUseSoftwareLimit();
+            var negativeSoftwareLimitPosition = axis.GetNegativeSoftwareLimitPosition();
+            var positiveSoftwareLimitPosition = axis.GetPositiveSoftwareLimitPosition();
+            axis.SetSoftwareLimit(
+                useSoftwareLimit,
+                negativeSoftwareLimitPosition,
+                positiveSoftwareLimitPosition
+            );
+        }
 
         axis.SetSpeed(axis.GetJogSpeed(JogSpeedLevel.Fast));
         homePosition.Value.MoveAndWait();
