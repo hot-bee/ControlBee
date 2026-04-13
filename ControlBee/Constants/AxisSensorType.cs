@@ -7,4 +7,5 @@ public enum AxisSensorType
     NegativeLimit,
     ZPhase,
     Builtin,
+    None,
 }
