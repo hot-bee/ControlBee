@@ -45,6 +45,8 @@ public interface IAxis : IDeviceChannel
     void Wait(PositionType type = PositionType.CommandAndActual);
     double GetPosition(PositionType type = PositionType.Command);
     double GetVelocity(VelocityType type);
+    double GetCommandTorque();
+    double GetActualTorque();
     bool GetSensorValue(AxisSensorType type);
     bool GetSensorValueOrTrue(AxisSensorType type);
     bool GetSensorValueOrFalse(AxisSensorType type);
