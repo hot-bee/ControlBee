@@ -11,7 +11,6 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
 {
     private static readonly ILog Logger = LogManager.GetLogger("General");
 
-    private static readonly Dictionary<string, DeviceMetaInfo> DeviceMetaInfoMap = [];
     private DeviceMetaInfo _localDeviceMetaInfo = new();
 
     protected IDevice? Device { get; set; }
@@ -99,15 +98,7 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
     {
         if (DeviceName == null)
             return _localDeviceMetaInfo;
-        lock (DeviceMetaInfoMap)
-        {
-            if (!DeviceMetaInfoMap.TryGetValue(DeviceName, out var metaInfo))
-            {
-                metaInfo = new DeviceMetaInfo();
-                DeviceMetaInfoMap[DeviceName] = metaInfo;
-            }
-            return metaInfo;
-        }
+        return deviceManager.GetDeviceMetaInfo(DeviceName);
     }
 
     public bool IsAborted()

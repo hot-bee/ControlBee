@@ -24,4 +24,9 @@ public class EmptyDeviceManager : IDeviceManager
     {
         throw new NotImplementedException();
     }
+
+    public DeviceMetaInfo GetDeviceMetaInfo(string deviceName)
+    {
+        return new DeviceMetaInfo();
+    }
 }

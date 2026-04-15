@@ -1,4 +1,5 @@
 ﻿using ControlBee.Interfaces;
+using ControlBee.Services;
 using ControlBeeAbstract.Devices;
 
 namespace ControlBee.Models;
@@ -6,6 +7,17 @@ namespace ControlBee.Models;
 public class DeviceManager : IDeviceManager, IDisposable
 {
     private readonly Dictionary<string, IDevice> _devices = [];
+    private readonly IDeviceMetaInfoStore _deviceMetaInfoStore;
+
+    public DeviceManager()
+    {
+        _deviceMetaInfoStore = new DeviceMetaInfoStore();
+    }
+
+    public DeviceManager(IDeviceMetaInfoStore deviceMetaInfoStore)
+    {
+        _deviceMetaInfoStore = deviceMetaInfoStore;
+    }
 
     public IDevice? Get(string name)
     {
@@ -27,5 +39,10 @@ public class DeviceManager : IDeviceManager, IDisposable
     public IDevice[] GetDevices()
     {
         return _devices.Values.ToArray();
+    }
+
+    public DeviceMetaInfo GetDeviceMetaInfo(string deviceName)
+    {
+        return _deviceMetaInfoStore.Get(deviceName);
     }
 }
