@@ -189,6 +189,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
 
     private void SetOn(bool on)
     {
+        if (IsAborted())
+            throw new DeviceAbortedError();
         Wait();
         if (ActualOn == on)
             return;
@@ -208,8 +210,6 @@ public class BinaryActuator : ActorItem, IBinaryActuator
             var watch = _timeManager.CreateWatch();
             while (true)
             {
-                if (IsAborted())
-                    return false;
                 if (CommandOn && OnDetect())
                     break;
                 if (!CommandOn && OffDetect())
