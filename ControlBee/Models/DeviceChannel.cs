@@ -11,7 +11,8 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
 {
     private static readonly ILog Logger = LogManager.GetLogger("General");
 
-    private DeviceMetaInfo _localDeviceMetaInfo = new();
+    private static readonly Dictionary<string, DeviceMetaInfo> DeviceMetaInfoMap = [];
+    private readonly DeviceMetaInfo _localDeviceMetaInfo = new();
 
     protected IDevice? Device { get; set; }
     protected string? DeviceName { get; set; }

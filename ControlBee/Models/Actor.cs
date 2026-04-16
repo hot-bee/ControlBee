@@ -445,6 +445,8 @@ public class Actor : IActorInternal, IDisposable
                 newItem = config.DialogFactory.Create();
             else if (type.IsAssignableTo(typeof(IVision)))
                 newItem = config.VisionFactory.Create();
+            else if (type.IsAssignableTo(typeof(ICounter)))
+                newItem = config.CounterFactory.Create();
             else
                 throw new ValueError();
             _placeholderManager.Add(placeHolder, newItem);
