@@ -15,6 +15,7 @@ public class ActorFactoryBaseConfig
     public IBinaryActuatorFactory? BinaryActuatorFactory;
     public IVariableManager? VariableManager;
     public IAxisFactory? AxisFactory;
+    public ICounterFactory? CounterFactory;
     public IScenarioFlowTester? ScenarioFlowTester;
     public ITimeManager? TimeManager;
     public IDeviceManager? DeviceManager;
