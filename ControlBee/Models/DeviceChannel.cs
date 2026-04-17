@@ -1,4 +1,5 @@
-﻿using ControlBee.Interfaces;
+﻿using System.ComponentModel;
+using ControlBee.Interfaces;
 using ControlBeeAbstract.Devices;
 using log4net;
 
@@ -13,6 +14,7 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
 
     private static readonly Dictionary<string, DeviceMetaInfo> DeviceMetaInfoMap = [];
     private readonly DeviceMetaInfo _localDeviceMetaInfo = new();
+    private bool _subscribedToDeviceMetaInfo;
 
     protected IDevice? Device { get; set; }
     protected string? DeviceName { get; set; }
@@ -82,6 +84,7 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
         }
 
         Device = deviceManager.Get(DeviceName!);
+        SubscribeToDeviceMetaInfoIfNeeded();
     }
 
     public void SetChannel(int channel)
@@ -93,7 +96,26 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
     {
         DeviceName = deviceName;
         Device = deviceManager.Get(DeviceName!);
+        SubscribeToDeviceMetaInfoIfNeeded();
     }
+
+    private void SubscribeToDeviceMetaInfoIfNeeded()
+    {
+        if (_subscribedToDeviceMetaInfo)
+            return;
+        GetDeviceMetaInfo().PropertyChanged += OnDeviceMetaInfoChanged;
+        _subscribedToDeviceMetaInfo = true;
+    }
+
+    private void OnDeviceMetaInfoChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(DeviceMetaInfo.Aborted))
+            return;
+        if (GetDeviceMetaInfo().Aborted)
+            OnDeviceAborted();
+    }
+
+    protected virtual void OnDeviceAborted() { }
 
     protected DeviceMetaInfo GetDeviceMetaInfo()
     {
