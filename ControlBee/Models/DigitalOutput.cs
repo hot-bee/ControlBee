@@ -72,6 +72,8 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
 
     protected virtual void SetOnImpl(bool on)
     {
+        if (IsAborted())
+            throw new DeviceAbortedError();
         if (CommandOn == on)
             return;
         CommandOn = on;
@@ -82,8 +84,6 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
             var watch = timeManager.CreateWatch();
             while (true)
             {
-                if (IsAborted())
-                    return;
                 if (watch.ElapsedMilliseconds >= delay)
                     break;
 
