@@ -8,6 +8,8 @@ public class FakeMotionDevice : IMotionDevice
 {
     public string DeviceName { get; set; } = "FakeDevice";
 
+    public string GetDeviceState() => "Communicating";
+
     public void Enable(int channel, bool value) { }
 
     public bool IsEnabled(int channel) => false;
