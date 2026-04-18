@@ -14,9 +14,19 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
 
     private static readonly Dictionary<string, DeviceMetaInfo> DeviceMetaInfoMap = [];
     private readonly DeviceMetaInfo _localDeviceMetaInfo = new();
-    private bool _subscribedToDeviceMetaInfo;
+    private IDevice? _device;
 
-    protected IDevice? Device { get; set; }
+    protected IDevice? Device
+    {
+        get => _device;
+        set
+        {
+            _device = value;
+            if (_device != null)
+                GetDeviceMetaInfo().PropertyChanged += OnDeviceMetaInfoChanged;
+        }
+    }
+
     protected string? DeviceName { get; set; }
     protected int Channel { get; set; } = -1;
 
@@ -84,7 +94,6 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
         }
 
         Device = deviceManager.Get(DeviceName!);
-        SubscribeToDeviceMetaInfoIfNeeded();
     }
 
     public void SetChannel(int channel)
@@ -96,15 +105,6 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
     {
         DeviceName = deviceName;
         Device = deviceManager.Get(DeviceName!);
-        SubscribeToDeviceMetaInfoIfNeeded();
-    }
-
-    private void SubscribeToDeviceMetaInfoIfNeeded()
-    {
-        if (_subscribedToDeviceMetaInfo)
-            return;
-        GetDeviceMetaInfo().PropertyChanged += OnDeviceMetaInfoChanged;
-        _subscribedToDeviceMetaInfo = true;
     }
 
     private void OnDeviceMetaInfoChanged(object? sender, PropertyChangedEventArgs e)
