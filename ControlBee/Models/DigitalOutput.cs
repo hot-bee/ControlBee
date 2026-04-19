@@ -20,6 +20,7 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
     private Task? _task;
     public Variable<int> OffDelay = new(VariableScope.Global, 0);
     public Variable<int> OnDelay = new(VariableScope.Global, 0);
+    public OutputSafeState SafeState = OutputSafeState.None;
 
     protected virtual IDigitalIoDevice? DigitalIoDevice => Device as IDigitalIoDevice;
 
@@ -72,8 +73,6 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
 
     protected virtual void SetOnImpl(bool on)
     {
-        if (IsAborted())
-            throw new DeviceAbortedError();
         if (CommandOn == on)
             return;
         CommandOn = on;
@@ -101,6 +100,8 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
             Logger.Debug("DigitalIoDevice is null.");
             return;
         }
+        if (IsAborted())
+            throw new DeviceAbortedError();
 
         SetOnImpl(on);
     }
@@ -161,6 +162,31 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
     {
         base.PostInit();
         Sync();
+    }
+
+    public override void InjectProperties(ISystemPropertiesDataSource dataSource)
+    {
+        base.InjectProperties(dataSource);
+        if (dataSource.GetValue(ActorName, ItemPath, nameof(SafeState)) is string safeState)
+            Enum.TryParse(safeState, ignoreCase: true, out SafeState);
+    }
+
+    protected override void OnDeviceAborted()
+    {
+        if (DigitalIoDevice == null)
+            return;
+        if (SafeState == OutputSafeState.None)
+            return;
+        Logger.Info($"Apply SafeState on abort. ({ActorName}, {ItemPath}, {Channel}, {SafeState})");
+        switch (SafeState)
+        {
+            case OutputSafeState.On:
+                SetOnImpl(true);
+                break;
+            case OutputSafeState.Off:
+                SetOnImpl(false);
+                break;
+        }
     }
 
     private void DigitalIoDeviceOnReconnected(object? sender, EventArgs e)
