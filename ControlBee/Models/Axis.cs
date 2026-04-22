@@ -820,6 +820,28 @@ public class Axis : DeviceChannel, IAxis
         }
     }
 
+    public virtual double GetCommandTorque()
+    {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return 0;
+        }
+
+        return MotionDevice.GetCommandTorque(Channel);
+    }
+
+    public virtual double GetActualTorque()
+    {
+        if (MotionDevice == null)
+        {
+            Logger.Error($"MotionDevice is not set. ({ActorName}, {ItemPath})");
+            return 0;
+        }
+
+        return MotionDevice.GetActualTorque(Channel);
+    }
+
     public virtual bool GetSensorValue(AxisSensorType type)
     {
         if (MotionDevice == null)

@@ -88,6 +88,10 @@ public class FakeMotionDevice : IMotionDevice
 
     public double GetActualVelocity(int channel) => 0;
 
+    public double GetCommandTorque(int channel) => 0;
+
+    public double GetActualTorque(int channel) => 0;
+
     public bool GetHomeSensor(int channel) => false;
 
     public bool GetPositiveLimitSensor(int channel) => false;
