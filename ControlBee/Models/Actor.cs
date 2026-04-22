@@ -446,7 +446,13 @@ public class Actor : IActorInternal, IDisposable
             else if (type.IsAssignableTo(typeof(IVision)))
                 newItem = config.VisionFactory.Create();
             else if (type.IsAssignableTo(typeof(ICounter)))
-                newItem = config.CounterFactory.Create();
+            {
+                var counter = config.SystemConfigurations.FakeMode
+                    ? new FakeCounter()
+                    : new Counter(config.DeviceManager);
+                config.DeviceMonitor.Add(counter);
+                newItem = counter;
+            }
             else
                 throw new ValueError();
             _placeholderManager.Add(placeHolder, newItem);

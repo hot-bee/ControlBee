@@ -23,7 +23,7 @@ public abstract class ActorFactoryBase : IDisposable
     protected IVisionFactory VisionFactory;
     protected IVariableManager VariableManager;
     protected IAxisFactory AxisFactory;
-    protected ICounterFactory CounterFactory;
+    protected IDeviceMonitor DeviceMonitor;
     protected IScenarioFlowTester ScenarioFlowTester;
     protected ITimeManager TimeManager;
     protected IDeviceManager DeviceManager;
@@ -123,8 +123,7 @@ public abstract class ActorFactoryBase : IDisposable
             config.BinaryActuatorFactory
             ?? new BinaryActuatorFactory(SystemConfigurations, TimeManager, ScenarioFlowTester);
         VisionFactory = config.VisionFactory ?? new VisionFactory(DeviceManager, TimeManager);
-        CounterFactory =
-            config.CounterFactory ?? new CounterFactory(SystemConfigurations, DeviceManager, deviceMonitor);
+        DeviceMonitor = deviceMonitor;
         SystemPropertiesDataSource =
             config.SystemPropertiesDataSource
             ?? new SystemPropertiesDataSource(SystemConfigurations, LocalizationManager);
@@ -141,7 +140,6 @@ public abstract class ActorFactoryBase : IDisposable
                 InitializeSequenceFactory,
                 BinaryActuatorFactory,
                 VisionFactory,
-                CounterFactory,
                 VariableManager,
                 EventManager,
                 TimeManager,
@@ -149,6 +147,7 @@ public abstract class ActorFactoryBase : IDisposable
                 SystemPropertiesDataSource,
                 ActorRegistry,
                 DeviceManager,
+                DeviceMonitor,
                 LocalizationManager
             );
     }

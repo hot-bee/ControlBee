@@ -18,12 +18,12 @@ public class EmptyActor : Actor
             EmptyInitializeSequenceFactory.Instance,
             EmptyBinaryActuatorFactory.Instance,
             null!,
-            EmptyCounterFactory.Instance,
             EmptyVariableManager.Instance,
             null!,
             EmptyTimeManager.Instance,
             EmptyScenarioFlowTester.Instance,
             EmptySystemPropertiesDataSource.Instance,
+            null!,
             null!,
             null!,
             null

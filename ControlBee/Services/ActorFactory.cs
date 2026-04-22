@@ -14,7 +14,6 @@ public class ActorFactory(
     IInitializeSequenceFactory initializeSequenceFactory,
     IBinaryActuatorFactory binaryActuatorFactory,
     IVisionFactory visionFactory,
-    ICounterFactory counterFactory,
     IVariableManager variableManager,
     IEventManager eventManager,
     ITimeManager timeManager,
@@ -22,6 +21,7 @@ public class ActorFactory(
     ISystemPropertiesDataSource systemPropertiesDataSource,
     IActorRegistry actorRegistry,
     IDeviceManager deviceManager,
+    IDeviceMonitor deviceMonitor,
     ILocalizationManager localizationManager
 ) : IActorFactory
 {
@@ -45,13 +45,13 @@ public class ActorFactory(
             initializeSequenceFactory,
             binaryActuatorFactory,
             visionFactory,
-            counterFactory,
             variableManager,
             eventManager,
             timeManager,
             scenarioFlowTester,
             systemPropertiesDataSource,
             deviceManager,
+            deviceMonitor,
             localizationManager,
             uiActor
         );

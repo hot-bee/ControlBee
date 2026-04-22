@@ -14,13 +14,13 @@ public class ActorConfig(
     IInitializeSequenceFactory initializeSequenceFactory,
     IBinaryActuatorFactory binaryActuatorFactory,
     IVisionFactory visionFactory,
-    ICounterFactory counterFactory,
     IVariableManager variableManager,
     IEventManager eventManager,
     ITimeManager timeManager,
     IScenarioFlowTester scenarioFlowTester,
     ISystemPropertiesDataSource systemPropertiesDataSource,
     IDeviceManager deviceManager,
+    IDeviceMonitor deviceMonitor,
     ILocalizationManager localizationManager,
     IActor? uiActor
 )
@@ -28,9 +28,9 @@ public class ActorConfig(
     public ISystemConfigurations SystemConfigurations { get; } = systemConfigurations;
     public IBinaryActuatorFactory BinaryActuatorFactory { get; } = binaryActuatorFactory;
     public IVisionFactory VisionFactory { get; } = visionFactory;
-    public ICounterFactory CounterFactory { get; } = counterFactory;
     public IScenarioFlowTester ScenarioFlowTester { get; } = scenarioFlowTester;
     public IDeviceManager DeviceManager { get; } = deviceManager;
+    public IDeviceMonitor DeviceMonitor { get; } = deviceMonitor;
     public string ActorName => actorName;
     public IVariableManager VariableManager => variableManager;
     public IEventManager EventManager => eventManager;
