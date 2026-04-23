@@ -147,7 +147,6 @@ public abstract class ActorFactoryBase : IDisposable
                 SystemPropertiesDataSource,
                 ActorRegistry,
                 DeviceManager,
-                DeviceMonitor,
                 LocalizationManager
             );
     }

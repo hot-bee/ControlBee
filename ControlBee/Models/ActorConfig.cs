@@ -20,7 +20,6 @@ public class ActorConfig(
     IScenarioFlowTester scenarioFlowTester,
     ISystemPropertiesDataSource systemPropertiesDataSource,
     IDeviceManager deviceManager,
-    IDeviceMonitor deviceMonitor,
     ILocalizationManager localizationManager,
     IActor? uiActor
 )
@@ -30,7 +29,6 @@ public class ActorConfig(
     public IVisionFactory VisionFactory { get; } = visionFactory;
     public IScenarioFlowTester ScenarioFlowTester { get; } = scenarioFlowTester;
     public IDeviceManager DeviceManager { get; } = deviceManager;
-    public IDeviceMonitor DeviceMonitor { get; } = deviceMonitor;
     public string ActorName => actorName;
     public IVariableManager VariableManager => variableManager;
     public IEventManager EventManager => eventManager;

@@ -25,7 +25,6 @@ public class EmptyActor : Actor
             EmptySystemPropertiesDataSource.Instance,
             null!,
             null!,
-            null!,
             null
         )
     );

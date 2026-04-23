@@ -21,7 +21,6 @@ public class ActorFactory(
     ISystemPropertiesDataSource systemPropertiesDataSource,
     IActorRegistry actorRegistry,
     IDeviceManager deviceManager,
-    IDeviceMonitor deviceMonitor,
     ILocalizationManager localizationManager
 ) : IActorFactory
 {
@@ -51,7 +50,6 @@ public class ActorFactory(
             scenarioFlowTester,
             systemPropertiesDataSource,
             deviceManager,
-            deviceMonitor,
             localizationManager,
             uiActor
         );
