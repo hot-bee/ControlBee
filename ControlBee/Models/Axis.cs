@@ -1050,6 +1050,12 @@ public class Axis : DeviceChannel, IAxis
         return (MotionDevice.DeviceName, GetChannel());
     }
 
+    public static void ResetMetaInfo()
+    {
+        lock (MetaInfo)
+            MetaInfo.Clear();
+    }
+
     private AxisMetaInfo GetMetaInfo()
     {
         var key = GetDeviceChannelKey();
