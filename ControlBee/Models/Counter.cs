@@ -13,6 +13,12 @@ public class Counter(IDeviceManager deviceManager) : DeviceChannel(deviceManager
 
     private double _count;
 
+    #region Cache
+
+    private double _countCache;
+
+    #endregion
+
     public EncoderMode EncoderMode;
 
     protected virtual ICounterDevice? CounterDevice => Device as ICounterDevice;
@@ -70,14 +76,37 @@ public class Counter(IDeviceManager deviceManager) : DeviceChannel(deviceManager
                 SendDataToUi(message.Id);
                 return true;
             case "_itemDataWrite":
-            {
-                var count = (int)message.DictPayload!["Count"]!;
-                SetCounterValue(count);
-                return true;
-            }
+                {
+                    var count = (int)message.DictPayload!["Count"]!;
+                    SetCounterValue(count);
+                    return true;
+                }
         }
 
         return base.ProcessMessage(message);
+    }
+
+    public override void RefreshCache(bool alwaysUpdate = false)
+    {
+        base.RefreshCache(alwaysUpdate);
+
+        if (CounterDevice == null)
+            return;
+        RefreshCacheImpl();
+    }
+
+    protected void RefreshCacheImpl()
+    {
+        var count = GetCounterValue();
+
+        var updated = false;
+        lock (this)
+        {
+            updated |= UpdateCache(ref _countCache, count);
+        }
+
+        if (updated)
+            SendDataToUi(Guid.Empty);
     }
 
     private void SendDataToUi(Guid requestId)
@@ -88,4 +117,11 @@ public class Counter(IDeviceManager deviceManager) : DeviceChannel(deviceManager
         );
     }
 
+    private static bool UpdateCache<T>(ref T field, T value)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value))
+            return false;
+        field = value;
+        return true;
+    }
 }
