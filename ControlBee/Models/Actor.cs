@@ -35,6 +35,7 @@ public class Actor : IActorInternal, IDisposable
     private long _lastTimerActivation;
 
     private int _publishStep;
+    private readonly object _statusLock = new();
 
     private string _title = string.Empty;
     public IDialog CrashError = new DialogPlaceholder();
@@ -255,18 +256,23 @@ public class Actor : IActorInternal, IDisposable
     {
         if (_publishStep > 0)
             return;
-        var clonedStatus = DictCopy.Copy(Status);
+        Dict clonedStatus;
+        lock (_statusLock)
+            clonedStatus = DictCopy.Copy(Status);
         foreach (var peer in PeerDict.Values)
             peer.Send(new Message(this, "_status", clonedStatus));
     }
 
     public void SetStatus(string name, object? value)
     {
-        if (value != null && Status.TryGetValue(name, out var oldValue))
-            if (value.Equals(oldValue))
-                return;
-        // StatusLogger.Debug($"SetStatus: {name}, {value}");  // TODO: Optionalize logging
-        Status[name] = value;
+        lock (_statusLock)
+        {
+            if (value != null && Status.TryGetValue(name, out var oldValue))
+                if (value.Equals(oldValue))
+                    return;
+            // StatusLogger.Debug($"SetStatus: {name}, {value}");  // TODO: Optionalize logging
+            Status[name] = value;
+        }
         PublishStatus();
     }
 
@@ -277,13 +283,16 @@ public class Actor : IActorInternal, IDisposable
 
     public void SetStatusByActor(string actorName, string keyName, object? value)
     {
-        var statusByActor = Status.GetValueOrDefault(actorName) as Dict ?? new Dict();
-        if (value != null && statusByActor.TryGetValue(keyName, out var oldValue))
-            if (value.Equals(oldValue))
-                return;
-        // StatusLogger.Debug($"SetStatusByActor: {actorName}, {keyName}, {value}");  // TODO: Optionalize logging
-        statusByActor[keyName] = value;
-        Status[actorName] = statusByActor;
+        lock (_statusLock)
+        {
+            var statusByActor = Status.GetValueOrDefault(actorName) as Dict ?? new Dict();
+            if (value != null && statusByActor.TryGetValue(keyName, out var oldValue))
+                if (value.Equals(oldValue))
+                    return;
+            // StatusLogger.Debug($"SetStatusByActor: {actorName}, {keyName}, {value}");  // TODO: Optionalize logging
+            statusByActor[keyName] = value;
+            Status[actorName] = statusByActor;
+        }
         PublishStatus();
     }
 
