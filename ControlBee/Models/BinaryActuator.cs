@@ -210,6 +210,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
             var watch = _timeManager.CreateWatch();
             while (true)
             {
+                if (IsAborted())
+                    return false;
                 if (CommandOn && OnDetect())
                     break;
                 if (!CommandOn && OffDetect())
