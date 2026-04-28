@@ -38,7 +38,15 @@ public class Counter(IDeviceManager deviceManager) : DeviceChannel(deviceManager
 
     public override void Sync()
     {
-        CounterDevice?.SetEncoderMode(Channel, EncoderMode);
+        if (CounterDevice == null)
+            return;
+        CounterDevice.SetEncoderMode(Channel, EncoderMode);
+        CounterDevice.Reconnected += CounterDeviceOnReconnected;
+    }
+
+    private void CounterDeviceOnReconnected(object? sender, EventArgs e)
+    {
+        RefreshCache();
     }
 
     public virtual void SetCounterValue(double value)
@@ -76,11 +84,11 @@ public class Counter(IDeviceManager deviceManager) : DeviceChannel(deviceManager
                 SendDataToUi(message.Id);
                 return true;
             case "_itemDataWrite":
-                {
-                    var count = (int)message.DictPayload!["Count"]!;
-                    SetCounterValue(count);
-                    return true;
-                }
+            {
+                var count = (int)message.DictPayload!["Count"]!;
+                SetCounterValue(count);
+                return true;
+            }
         }
 
         return base.ProcessMessage(message);
