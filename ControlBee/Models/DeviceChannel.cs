@@ -124,7 +124,7 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
         return deviceManager.GetDeviceMetaInfo(DeviceName);
     }
 
-    public bool IsAborted()
+    public virtual bool IsAborted()
     {
         return GetDeviceMetaInfo().Aborted;
     }

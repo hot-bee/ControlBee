@@ -21,6 +21,7 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
     public Variable<int> OffDelay = new(VariableScope.Global, 0);
     public Variable<int> OnDelay = new(VariableScope.Global, 0);
     public OutputSafeState SafeState = OutputSafeState.None;
+    public bool IgnoreAbort = false;
 
     protected virtual IDigitalIoDevice? DigitalIoDevice => Device as IDigitalIoDevice;
 
@@ -169,11 +170,22 @@ public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManage
         base.InjectProperties(dataSource);
         if (dataSource.GetValue(ActorName, ItemPath, nameof(SafeState)) is string safeState)
             Enum.TryParse(safeState, ignoreCase: true, out SafeState);
+        if (dataSource.GetValue(ActorName, ItemPath, nameof(IgnoreAbort)) is string ignoreAbort)
+            bool.TryParse(ignoreAbort, out IgnoreAbort);
+    }
+
+    public override bool IsAborted()
+    {
+        if (IgnoreAbort)
+            return false;
+        return base.IsAborted();
     }
 
     protected override void OnDeviceAborted()
     {
         if (DigitalIoDevice == null)
+            return;
+        if (IgnoreAbort)
             return;
         if (SafeState == OutputSafeState.None)
             return;
