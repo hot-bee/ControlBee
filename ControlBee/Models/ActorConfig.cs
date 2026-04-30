@@ -14,7 +14,6 @@ public class ActorConfig(
     IInitializeSequenceFactory initializeSequenceFactory,
     IBinaryActuatorFactory binaryActuatorFactory,
     IVisionFactory visionFactory,
-    ICounterFactory counterFactory,
     IVariableManager variableManager,
     IEventManager eventManager,
     ITimeManager timeManager,
@@ -28,7 +27,6 @@ public class ActorConfig(
     public ISystemConfigurations SystemConfigurations { get; } = systemConfigurations;
     public IBinaryActuatorFactory BinaryActuatorFactory { get; } = binaryActuatorFactory;
     public IVisionFactory VisionFactory { get; } = visionFactory;
-    public ICounterFactory CounterFactory { get; } = counterFactory;
     public IScenarioFlowTester ScenarioFlowTester { get; } = scenarioFlowTester;
     public IDeviceManager DeviceManager { get; } = deviceManager;
     public string ActorName => actorName;

@@ -455,7 +455,9 @@ public class Actor : IActorInternal, IDisposable
             else if (type.IsAssignableTo(typeof(IVision)))
                 newItem = config.VisionFactory.Create();
             else if (type.IsAssignableTo(typeof(ICounter)))
-                newItem = config.CounterFactory.Create();
+                newItem = config.SystemConfigurations.FakeMode
+                    ? new FakeCounter()
+                    : new Counter(config.DeviceManager);
             else
                 throw new ValueError();
             _placeholderManager.Add(placeHolder, newItem);

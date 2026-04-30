@@ -76,11 +76,11 @@ public class Counter(IDeviceManager deviceManager) : DeviceChannel(deviceManager
                 SendDataToUi(message.Id);
                 return true;
             case "_itemDataWrite":
-            {
-                var count = (int)message.DictPayload!["Count"]!;
-                SetCounterValue(count);
-                return true;
-            }
+                {
+                    var count = (int)message.DictPayload!["Count"]!;
+                    SetCounterValue(count);
+                    return true;
+                }
         }
 
         return base.ProcessMessage(message);
