@@ -210,6 +210,20 @@ public class AxisTest : ActorFactoryBase
     }
 
     [Fact]
+    public void InternalInitializeSequenceNotRecreatedOnReloadTest()
+    {
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+        var initialSequence = actor.X.InitializeSequence;
+
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "_reloadProperties"));
+        actor.Send(new TerminateMessage());
+        actor.Join();
+
+        Assert.Same(initialSequence, actor.X.InitializeSequence);
+    }
+
+    [Fact]
     public void GetStepJogSizesTest()
     {
         var client = MockActorFactory.Create("Client");

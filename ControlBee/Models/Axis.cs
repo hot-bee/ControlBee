@@ -161,17 +161,20 @@ public class Axis : DeviceChannel, IAxis
         )
             bool.TryParse(resetEnableToClearPosition, out ResetEnableToClearPosition);
 
-        InternalInitializeSequence = _initializeSequenceFactory.Create(
-            this,
-            InitSpeed,
-            InitPos,
-            InitSensorType,
-            InitDirection
-        );
-        _initializeAction = () =>
+        if (InternalInitializeSequence == null)
         {
-            InternalInitializeSequence.Run();
-        };
+            InternalInitializeSequence = _initializeSequenceFactory.Create(
+                this,
+                InitSpeed,
+                InitPos,
+                InitSensorType,
+                InitDirection
+            );
+            _initializeAction = () =>
+            {
+                InternalInitializeSequence.Run();
+            };
+        }
     }
 
     public override void RefreshCache(bool alwaysUpdate = false)
