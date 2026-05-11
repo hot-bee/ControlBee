@@ -128,7 +128,7 @@ public abstract class Position
             Logger.Warn("Location arguments too many.");
     }
 
-    public bool Move()
+    public virtual bool Move()
     {
         return Move(Axes, false);
     }
