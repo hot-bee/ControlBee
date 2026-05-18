@@ -124,6 +124,7 @@ public class FrozenTimeManagerTest : ActorFactoryBase
         );
         var initializeSequenceFactory = Mock.Of<IInitializeSequenceFactory>();
         var fakeAxis = new FakeAxis(
+            SystemConfigurations,
             DeviceManager,
             frozenTimeManager,
             scenarioFlowTester,

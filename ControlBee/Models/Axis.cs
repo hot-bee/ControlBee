@@ -43,33 +43,13 @@ public class Axis : DeviceChannel, IAxis
 
     public AxisSensorType InitSensorType;
 
-    public Variable<SpeedProfile> InitSpeed = new(
-        VariableScope.Global,
-        new SpeedProfile
-        {
-            Velocity = 10.0,
-            Accel = 100.0,
-            Decel = 100.0,
-            AccelJerkRatio = 0.75,
-            DecelJerkRatio = 0.75,
-        }
-    );
+    public Variable<SpeedProfile> InitSpeed = null!;
 
     public IInitializeSequence InternalInitializeSequence;
 
     public bool IsJogReversed;
 
-    public Variable<SpeedProfile> JogSpeed = new(
-        VariableScope.Global,
-        new SpeedProfile
-        {
-            Velocity = 10.0,
-            Accel = 100.0,
-            Decel = 100.0,
-            AccelJerkRatio = 0.75,
-            DecelJerkRatio = 0.75,
-        }
-    );
+    public Variable<SpeedProfile> JogSpeed = null!;
 
     public Variable<Array1D<double>> JogSpeedLevelFactors = new(
         VariableScope.Global,
@@ -80,17 +60,7 @@ public class Axis : DeviceChannel, IAxis
 
     public Variable<double> NegativeSoftwareLimitPosition = new(VariableScope.Global);
 
-    public Variable<SpeedProfile> NormalSpeed = new(
-        VariableScope.Global,
-        new SpeedProfile
-        {
-            Velocity = 10.0,
-            Accel = 100.0,
-            Decel = 100.0,
-            AccelJerkRatio = 0.75,
-            DecelJerkRatio = 0.75,
-        }
-    );
+    public Variable<SpeedProfile> NormalSpeed = null!;
 
     public IDialog PositiveLimitSensorTimeoutError = new DialogPlaceholder();
 
@@ -108,6 +78,7 @@ public class Axis : DeviceChannel, IAxis
     public Variable<bool> UseSoftwareLimit = new(VariableScope.Global);
 
     public Axis(
+        ISystemConfigurations systemConfigurations,
         IDeviceManager deviceManager,
         ITimeManager timeManager,
         IInitializeSequenceFactory initializeSequenceFactory
@@ -116,6 +87,29 @@ public class Axis : DeviceChannel, IAxis
     {
         _timeManager = timeManager;
         _initializeSequenceFactory = initializeSequenceFactory;
+        var speedScope = systemConfigurations.UseLocalSpeeds
+            ? VariableScope.Local
+            : VariableScope.Global;
+        var defaultSpeedProfile = new SpeedProfile
+        {
+            Velocity = 10.0,
+            Accel = 100.0,
+            Decel = 100.0,
+            AccelJerkRatio = 0.75,
+            DecelJerkRatio = 0.75,
+        };
+        InitSpeed = new Variable<SpeedProfile>(
+            speedScope,
+            (SpeedProfile)defaultSpeedProfile.Clone()
+        );
+        JogSpeed = new Variable<SpeedProfile>(
+            speedScope,
+            (SpeedProfile)defaultSpeedProfile.Clone()
+        );
+        NormalSpeed = new Variable<SpeedProfile>(
+            speedScope,
+            (SpeedProfile)defaultSpeedProfile.Clone()
+        );
     }
 
     public override void PostInit()

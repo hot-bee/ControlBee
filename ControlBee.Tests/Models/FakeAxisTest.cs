@@ -294,6 +294,7 @@ public class FakeAxisTest : ActorFactoryBase
         var initializeSequenceFactory = Mock.Of<IInitializeSequenceFactory>();
 
         var fakeAxis = new FakeAxis(
+            SystemConfigurations,
             DeviceManager,
             timeManager,
             scenarioFlowTester,
@@ -311,6 +312,7 @@ public class FakeAxisTest : ActorFactoryBase
         var initializeSequenceFactory = Mock.Of<IInitializeSequenceFactory>();
 
         var fakeAxis = new FakeAxis(
+            SystemConfigurations,
             DeviceManager,
             timeManager,
             scenarioFlowTester,
@@ -333,6 +335,7 @@ public class FakeAxisTest : ActorFactoryBase
         var initializeSequenceFactory = Mock.Of<IInitializeSequenceFactory>();
 
         var fakeAxis = new FakeAxis(
+            SystemConfigurations,
             DeviceManager,
             timeManager,
             scenarioFlowTester,
@@ -393,6 +396,7 @@ public class FakeAxisTest : ActorFactoryBase
         var scenarioFlowTester = Mock.Of<IScenarioFlowTester>();
         var initializeSequenceFactory = Mock.Of<IInitializeSequenceFactory>();
         var fakeAxis = new FakeAxis(
+            SystemConfigurations,
             DeviceManager,
             timeManager,
             scenarioFlowTester,
@@ -450,6 +454,7 @@ public class FakeAxisTest : ActorFactoryBase
 
         frozenTimeManager.Register();
         var fakeAxis = new FakeAxis(
+            SystemConfigurations,
             DeviceManager,
             frozenTimeManager,
             scenarioFlowTester,
@@ -475,6 +480,7 @@ public class FakeAxisTest : ActorFactoryBase
 
         frozenTimeManager.Register();
         var fakeAxis = new FakeAxis(
+            SystemConfigurations,
             DeviceManager,
             frozenTimeManager,
             scenarioFlowTester,
@@ -498,6 +504,7 @@ public class FakeAxisTest : ActorFactoryBase
 
         frozenTimeManager.Register();
         var fakeAxis = new FakeAxis(
+            SystemConfigurations,
             DeviceManager,
             frozenTimeManager,
             scenarioFlowTester,

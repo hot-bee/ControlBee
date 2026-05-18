@@ -30,21 +30,30 @@ public class FakeAxis : Axis, IDisposable
     protected override IMotionDevice? MotionDevice => _fakeMotionDevice;
 
     public FakeAxis(
+        ISystemConfigurations systemConfigurations,
         IDeviceManager deviceManager,
         ITimeManager timeManager,
         IScenarioFlowTester flowTester,
         IInitializeSequenceFactory initializeSequenceFactory
     )
-        : this(deviceManager, timeManager, flowTester, false, initializeSequenceFactory) { }
+        : this(
+            systemConfigurations,
+            deviceManager,
+            timeManager,
+            flowTester,
+            false,
+            initializeSequenceFactory
+        ) { }
 
     public FakeAxis(
+        ISystemConfigurations systemConfigurations,
         IDeviceManager deviceManager,
         ITimeManager timeManager,
         IScenarioFlowTester flowTester,
         bool skipWaitSensor,
         IInitializeSequenceFactory initializeSequenceFactory
     )
-        : base(deviceManager, timeManager, initializeSequenceFactory)
+        : base(systemConfigurations, deviceManager, timeManager, initializeSequenceFactory)
     {
         _timeManager = timeManager;
         _flowTester = flowTester;

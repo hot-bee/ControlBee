@@ -16,13 +16,14 @@ public class AxisFactory(
     {
         var axis = systemConfigurations.FakeMode
             ? new FakeAxis(
+                systemConfigurations,
                 deviceManager,
                 timeManager,
                 flowTester,
                 systemConfigurations.SkipWaitSensor,
                 initializeSequenceFactory
             )
-            : new Axis(deviceManager, timeManager, initializeSequenceFactory);
+            : new Axis(systemConfigurations, deviceManager, timeManager, initializeSequenceFactory);
         deviceMonitor.Add(axis);
         return axis;
     }

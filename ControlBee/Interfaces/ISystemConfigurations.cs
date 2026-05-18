@@ -13,6 +13,7 @@ public interface ISystemConfigurations
     bool IsTopLevelLogin { get; }
     int AdminLevel { get; set; }
     bool MonitorDigitalInputsByDevice { get; set; }
+    bool UseLocalSpeeds { get; set; }
     void Save();
     void Load();
 }
