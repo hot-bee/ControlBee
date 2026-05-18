@@ -170,4 +170,136 @@ public class VariableManagerTest : ActorFactoryBase
                 Times.Once
             );
     }
+
+    [Fact]
+    public void LoadFallbackFromGlobalToLocalScopeTest()
+    {
+        const string jsonString = "{\r\n  \"Version\": 2,\r\n  \"Value\": 42\r\n}";
+        Mock.Get(Database).Setup(m => m.Read("", "MyActor", "myId")).Returns((10, jsonString));
+        Mock.Get(Database).Setup(m => m.ReadLatestVariableChanges()).Returns(new DataTable());
+
+        var actor = ActorFactory.Create<Actor>("MyActor");
+        var variable = new Variable<int>(actor, "myId", VariableScope.Local, 0);
+        VariableManager.Load("myRecipe");
+
+        Assert.Equal(42, variable.Value);
+        Mock.Get(Database)
+            .Verify(
+                m =>
+                    m.WriteVariables(
+                        VariableScope.Local,
+                        "myRecipe",
+                        "MyActor",
+                        "myId",
+                        It.IsAny<string>()
+                    ),
+                Times.Once
+            );
+    }
+
+    [Fact]
+    public void LoadFallbackFromLocalToGlobalScopeTest()
+    {
+        const string jsonString = "{\r\n  \"Version\": 2,\r\n  \"Value\": 99\r\n}";
+        Mock.Get(Database)
+            .Setup(m => m.Read("myRecipe", "MyActor", "myId"))
+            .Returns((10, jsonString));
+        Mock.Get(Database).Setup(m => m.ReadLatestVariableChanges()).Returns(new DataTable());
+
+        var actor = ActorFactory.Create<Actor>("MyActor");
+        var variable = new Variable<int>(actor, "myId", VariableScope.Global, 0);
+        VariableManager.Load("myRecipe");
+
+        Assert.Equal(99, variable.Value);
+        Mock.Get(Database)
+            .Verify(
+                m =>
+                    m.WriteVariables(
+                        VariableScope.Global,
+                        "",
+                        "MyActor",
+                        "myId",
+                        It.IsAny<string>()
+                    ),
+                Times.Once
+            );
+    }
+
+    [Fact]
+    public void LoadFallbackFromGlobalToLocalScopeWithArray1DTest()
+    {
+        var helper = new Variable<Array1D<double>>(VariableScope.Global, new Array1D<double>(3));
+        helper.Value[0] = 1.0;
+        helper.Value[1] = 2.0;
+        helper.Value[2] = 3.0;
+        var jsonString = helper.ToJson();
+
+        Mock.Get(Database).Setup(m => m.Read("", "MyActor", "myId")).Returns((10, jsonString));
+        Mock.Get(Database).Setup(m => m.ReadLatestVariableChanges()).Returns(new DataTable());
+
+        var actor = ActorFactory.Create<Actor>("MyActor");
+        var variable = new Variable<Array1D<double>>(
+            actor,
+            "myId",
+            VariableScope.Local,
+            new Array1D<double>(3)
+        );
+        VariableManager.Load("myRecipe");
+
+        Assert.Equal(1.0, variable.Value[0]);
+        Assert.Equal(2.0, variable.Value[1]);
+        Assert.Equal(3.0, variable.Value[2]);
+        Mock.Get(Database)
+            .Verify(
+                m =>
+                    m.WriteVariables(
+                        VariableScope.Local,
+                        "myRecipe",
+                        "MyActor",
+                        "myId",
+                        It.IsAny<string>()
+                    ),
+                Times.Once
+            );
+    }
+
+    [Fact]
+    public void LoadFallbackFromGlobalToLocalScopeWithArray2DTest()
+    {
+        var helper = new Variable<Array2D<double>>(VariableScope.Global, new Array2D<double>(2, 2));
+        helper.Value[0, 0] = 1.0;
+        helper.Value[0, 1] = 2.0;
+        helper.Value[1, 0] = 3.0;
+        helper.Value[1, 1] = 4.0;
+        var jsonString = helper.ToJson();
+
+        Mock.Get(Database).Setup(m => m.Read("", "MyActor", "myId")).Returns((10, jsonString));
+        Mock.Get(Database).Setup(m => m.ReadLatestVariableChanges()).Returns(new DataTable());
+
+        var actor = ActorFactory.Create<Actor>("MyActor");
+        var variable = new Variable<Array2D<double>>(
+            actor,
+            "myId",
+            VariableScope.Local,
+            new Array2D<double>(2, 2)
+        );
+        VariableManager.Load("myRecipe");
+
+        Assert.Equal(1.0, variable.Value[0, 0]);
+        Assert.Equal(2.0, variable.Value[0, 1]);
+        Assert.Equal(3.0, variable.Value[1, 0]);
+        Assert.Equal(4.0, variable.Value[1, 1]);
+        Mock.Get(Database)
+            .Verify(
+                m =>
+                    m.WriteVariables(
+                        VariableScope.Local,
+                        "myRecipe",
+                        "MyActor",
+                        "myId",
+                        It.IsAny<string>()
+                    ),
+                Times.Once
+            );
+    }
 }

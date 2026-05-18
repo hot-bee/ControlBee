@@ -447,6 +447,47 @@ public class VariableManager(
 
         if (!row.HasValue)
         {
+            // When no value found for current scope, try the opposite scope so that
+            // the last saved value is preserved when scope type is switched.
+            if (variable.Scope == VariableScope.Global || variable.Scope == VariableScope.Local)
+            {
+                var fallbackLocalName = variable.Scope == VariableScope.Local ? "" : LocalName;
+                if (fallbackLocalName != dbLocalName)
+                {
+                    (int id, string value)? fallbackRow;
+                    if (allVariables != null)
+                    {
+                        fallbackRow = allVariables.TryGetValue(
+                            (fallbackLocalName, actorName, itemPath),
+                            out var cached
+                        )
+                            ? cached
+                            : null;
+                    }
+                    else
+                    {
+                        fallbackRow = database.Read(fallbackLocalName, actorName, itemPath);
+                    }
+
+                    if (fallbackRow.HasValue)
+                    {
+                        Logger.Info(
+                            $"Scope fallback used. actor={actorName}, path={itemPath}, scope={variable.Scope}, fallbackLocalName={fallbackLocalName}"
+                        );
+                        try
+                        {
+                            variable.FromJson(fallbackRow.Value.value);
+                        }
+                        catch (JsonException)
+                        {
+                            Logger.Error(
+                                $"Deserialize failed (scope fallback). actor={actorName}, path={itemPath}, value={fallbackRow.Value.value}"
+                            );
+                        }
+                    }
+                }
+            }
+
             Save(actorName, itemPath, variable);
             return;
         }
