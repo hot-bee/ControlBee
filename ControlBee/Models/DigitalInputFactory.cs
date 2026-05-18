@@ -13,7 +13,7 @@ public class DigitalInputFactory(
     {
         var input = systemConfigurations.FakeMode
             ? new FakeDigitalInput(systemConfigurations, scenarioFlowTester)
-            : new DigitalInput(deviceManager);
+            : new DigitalInput(systemConfigurations, deviceManager);
         if (!systemConfigurations.MonitorDigitalInputsByDevice)
             deviceMonitor.Add(input);
         return input;

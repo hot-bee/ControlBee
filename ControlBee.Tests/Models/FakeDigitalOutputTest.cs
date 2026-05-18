@@ -17,7 +17,7 @@ public class FakeDigitalOutputTest : ActorFactoryBase
     [Fact]
     public void OnOffTest()
     {
-        var fakeDigitalOutput = new FakeDigitalOutput(TimeManager);
+        var fakeDigitalOutput = new FakeDigitalOutput(SystemConfigurations, TimeManager);
         Assert.Null(fakeDigitalOutput.IsOn());
         Assert.Null(fakeDigitalOutput.IsOff());
 

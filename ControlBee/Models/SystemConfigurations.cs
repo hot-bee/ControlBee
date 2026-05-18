@@ -21,6 +21,7 @@ public class SystemConfigurations : ISystemConfigurations
     public int AdminLevel { get; set; } = 0;
     public bool MonitorDigitalInputsByDevice { get; set; }
     public bool UseLocalSpeeds { get; set; }
+    public bool UseLocalTimeouts { get; set; }
 
     public void Save()
     {

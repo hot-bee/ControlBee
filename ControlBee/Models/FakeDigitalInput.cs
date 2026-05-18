@@ -7,7 +7,7 @@ namespace ControlBee.Models;
 public class FakeDigitalInput(
     ISystemConfigurations systemConfigurations,
     IScenarioFlowTester flowTester
-) : DigitalInput(EmptyDeviceManager.Instance)
+) : DigitalInput(systemConfigurations, EmptyDeviceManager.Instance)
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(DigitalInput));
 

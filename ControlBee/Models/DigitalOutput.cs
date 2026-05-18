@@ -1,4 +1,4 @@
-﻿using ControlBee.Constants;
+using ControlBee.Constants;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
 using ControlBee.Variables;
@@ -9,19 +9,33 @@ using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
-public class DigitalOutput(IDeviceManager deviceManager, ITimeManager timeManager)
-    : DigitalIO(deviceManager),
-        IDigitalOutput
+public class DigitalOutput : DigitalIO, IDigitalOutput
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(DigitalOutput));
 
+    private readonly ITimeManager timeManager;
     private bool? _actualOn;
     private bool _commandOn;
     private Task? _task;
-    public Variable<int> OffDelay = new(VariableScope.Global, 0);
-    public Variable<int> OnDelay = new(VariableScope.Global, 0);
+    public Variable<int> OffDelay = null!;
+    public Variable<int> OnDelay = null!;
     public OutputSafeState SafeState = OutputSafeState.None;
     public bool IgnoreAbort = false;
+
+    public DigitalOutput(
+        ISystemConfigurations systemConfigurations,
+        IDeviceManager deviceManager,
+        ITimeManager timeManager
+    )
+        : base(deviceManager)
+    {
+        this.timeManager = timeManager;
+        var scope = systemConfigurations.UseLocalTimeouts
+            ? VariableScope.Local
+            : VariableScope.Global;
+        OffDelay = new Variable<int>(scope, 0);
+        OnDelay = new Variable<int>(scope, 0);
+    }
 
     protected virtual IDigitalIoDevice? DigitalIoDevice => Device as IDigitalIoDevice;
 

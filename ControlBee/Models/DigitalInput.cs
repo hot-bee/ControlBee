@@ -7,9 +7,19 @@ using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Models;
 
-public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManager), IDigitalInput
+public class DigitalInput : DigitalIO, IDigitalInput
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(DigitalInput));
+
+    public DigitalInput(ISystemConfigurations systemConfigurations, IDeviceManager deviceManager)
+        : base(deviceManager)
+    {
+        var scope = systemConfigurations.UseLocalTimeouts
+            ? VariableScope.Local
+            : VariableScope.Global;
+        OffTimeout = new Variable<int>(scope, 5000);
+        OnTimeout = new Variable<int>(scope, 5000);
+    }
 
     private bool _actualOn;
 
@@ -248,8 +258,8 @@ public class DigitalInput(IDeviceManager deviceManager) : DigitalIO(deviceManage
 
     #region Timeouts
 
-    public Variable<int> OffTimeout = new(VariableScope.Global, 5000);
-    public Variable<int> OnTimeout = new(VariableScope.Global, 5000);
+    public Variable<int> OffTimeout = null!;
+    public Variable<int> OnTimeout = null!;
 
     #endregion
 

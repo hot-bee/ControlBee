@@ -12,8 +12,8 @@ public class DigitalOutputFactory(
     public IDigitalOutput Create()
     {
         var output = systemConfigurations.FakeMode
-            ? new FakeDigitalOutput(timeManager)
-            : new DigitalOutput(deviceManager, timeManager);
+            ? new FakeDigitalOutput(systemConfigurations, timeManager)
+            : new DigitalOutput(systemConfigurations, deviceManager, timeManager);
         deviceMonitor.Add(output);
         return output;
     }

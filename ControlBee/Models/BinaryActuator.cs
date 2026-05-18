@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using ControlBee.Constants;
 using ControlBee.Exceptions;
 using ControlBee.Interfaces;
@@ -41,6 +41,13 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         _outputOff = outputOff;
         _inputOn = inputOn;
         _inputOff = inputOff;
+        var timeoutScope = systemConfigurations.UseLocalTimeouts
+            ? VariableScope.Local
+            : VariableScope.Global;
+        OffTimeout = new Variable<int>(timeoutScope, 5000);
+        OnTimeout = new Variable<int>(timeoutScope, 5000);
+        OffDelay = new Variable<int>(timeoutScope);
+        OnDelay = new Variable<int>(timeoutScope);
         Subscribe();
     }
 
@@ -287,10 +294,10 @@ public class BinaryActuator : ActorItem, IBinaryActuator
 
     #region Timeouts
 
-    public Variable<int> OffTimeout = new(VariableScope.Global, 5000);
-    public Variable<int> OnTimeout = new(VariableScope.Global, 5000);
-    public Variable<int> OffDelay = new(VariableScope.Global);
-    public Variable<int> OnDelay = new(VariableScope.Global);
+    public Variable<int> OffTimeout = null!;
+    public Variable<int> OnTimeout = null!;
+    public Variable<int> OffDelay = null!;
+    public Variable<int> OnDelay = null!;
 
     #endregion
 }

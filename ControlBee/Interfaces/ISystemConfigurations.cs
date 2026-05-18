@@ -14,6 +14,7 @@ public interface ISystemConfigurations
     int AdminLevel { get; set; }
     bool MonitorDigitalInputsByDevice { get; set; }
     bool UseLocalSpeeds { get; set; }
+    bool UseLocalTimeouts { get; set; }
     void Save();
     void Load();
 }
