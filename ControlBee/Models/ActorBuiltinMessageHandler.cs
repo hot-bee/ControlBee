@@ -34,7 +34,7 @@ public class ActorBuiltinMessageHandler(Actor actor)
 
                 foreach (var (key, value) in message.DictPayload!)
                     peerStatus[key] = value;
-                actor.PublishExecutableFunctionsInternal();
+                actor.PublishFunctionsInternal();
                 return true;
             }
             case "_propertyRead":

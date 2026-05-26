@@ -186,7 +186,7 @@ public class Actor : IActorInternal, IDisposable
 
     protected virtual bool IsFunctionExecutable(string functionName) => true;
 
-    protected void PublishExecutableFunctions()
+    protected void PublishFunctions()
     {
         var dict = new Dict();
         foreach (var functionName in GetFunctions())
@@ -208,7 +208,7 @@ public class Actor : IActorInternal, IDisposable
         SetStatus("_executableFunctions", dict);
     }
 
-    internal void PublishExecutableFunctionsInternal() => PublishExecutableFunctions();
+    internal void PublishFunctionsInternal() => PublishFunctions();
 
     public string[] GetAxisItemPaths(string positionItemPath)
     {
@@ -743,6 +743,5 @@ public class Actor : IActorInternal, IDisposable
     protected virtual void OnStateChanged((IState oldState, IState newState) e)
     {
         StateChanged?.Invoke(this, e);
-        PublishExecutableFunctions();
     }
 }
