@@ -40,6 +40,7 @@ public class Actor : IActorInternal, IDisposable
     private string _title = string.Empty;
     public IDialog CrashError = new DialogPlaceholder();
     public IDialog FatalError = new DialogPlaceholder();
+    public IDialog FunctionNotExecutableError = new DialogPlaceholder();
 
     public PlatformException? ExitError;
 
@@ -69,6 +70,7 @@ public class Actor : IActorInternal, IDisposable
 
         ActorBuiltinMessageHandler = new ActorBuiltinMessageHandler(this);
         _mailbox.Add(new StateEntryMessage(this));
+        Status["_executableFunctions"] = new Dict();
     }
 
     public IState State
@@ -181,6 +183,32 @@ public class Actor : IActorInternal, IDisposable
     {
         return GetRegisteredFunctions().Where(IsFunctionAvailable).ToArray();
     }
+
+    protected virtual bool IsFunctionExecutable(string functionName) => true;
+
+    protected void PublishExecutableFunctions()
+    {
+        var dict = new Dict();
+        foreach (var functionName in GetFunctions())
+            dict[functionName] = IsFunctionExecutable(functionName);
+
+        lock (_statusLock)
+        {
+            if (
+                Status.GetValueOrDefault("_executableFunctions") is Dict prev
+                && prev.Count == dict.Count
+                && prev.All(keyValuePair =>
+                    dict.TryGetValue(keyValuePair.Key, out var value)
+                    && Equals(value, keyValuePair.Value)
+                )
+            )
+                return;
+        }
+
+        SetStatus("_executableFunctions", dict);
+    }
+
+    internal void PublishExecutableFunctionsInternal() => PublishExecutableFunctions();
 
     public string[] GetAxisItemPaths(string positionItemPath)
     {
@@ -587,6 +615,15 @@ public class Actor : IActorInternal, IDisposable
 
     protected virtual bool ProcessMessage(Message message)
     {
+        if (Array.IndexOf(GetFunctions(), message.Name) >= 0 && !IsFunctionExecutable(message.Name))
+        {
+            Logger.Warn(
+                $"Function '{message.Name}' is not executable. Rejecting message from {message.Sender?.Name}."
+            );
+            FunctionNotExecutableError.Show($"'{message.Name}' is not executable right now.");
+            return false;
+        }
+
         var result = ActorBuiltinMessageHandler.ProcessMessage(message);
         result |= State.ProcessMessage(message);
         if (message is ActorItemMessage actorItemMessage)
@@ -706,5 +743,6 @@ public class Actor : IActorInternal, IDisposable
     protected virtual void OnStateChanged((IState oldState, IState newState) e)
     {
         StateChanged?.Invoke(this, e);
+        PublishExecutableFunctions();
     }
 }
