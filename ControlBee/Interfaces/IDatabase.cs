@@ -6,6 +6,8 @@ namespace ControlBee.Interfaces;
 
 public interface IDatabase
 {
+    IDatabaseTransaction? BeginTransaction();
+
     int WriteVariables(
         VariableScope scope,
         string localName,

@@ -120,18 +120,22 @@ public class VariableManager(
             LocalName = localName;
         }
 
-        foreach (var ((actorName, itemPath), variable) in _variables)
+        using (var tx = database.BeginTransaction())
         {
-            if (localNameChanged && variable.Scope != VariableScope.Local)
-                continue;
-            if (!(localNameChanged || variable.Dirty))
-                continue;
-            Save(actorName, itemPath, variable);
-        }
+            foreach (var ((actorName, itemPath), variable) in _variables)
+            {
+                if (localNameChanged && variable.Scope != VariableScope.Local)
+                    continue;
+                if (!(localNameChanged || variable.Dirty))
+                    continue;
+                Save(actorName, itemPath, variable);
+            }
 
-        foreach (var (variable, args) in _changedArgs)
-            database.WriteVariableChange(variable, args);
-        _changedArgs.Clear();
+            foreach (var (variable, args) in _changedArgs)
+                database.WriteVariableChange(variable, args);
+            _changedArgs.Clear();
+            tx?.Commit();
+        }
         Modified = false;
 
         if (localNameChanged)

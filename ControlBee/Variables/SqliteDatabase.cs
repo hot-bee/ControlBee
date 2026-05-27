@@ -13,6 +13,7 @@ namespace ControlBee.Variables;
 public class SqliteDatabase : IDatabase, IDisposable
 {
     private readonly ConcurrentDictionary<Thread, SqliteConnection> _connections = new();
+    private readonly ConcurrentDictionary<Thread, SqliteTransaction> _transactions = new();
     private const string DbFileName = "machine.db";
     private static readonly ILog Logger = LogManager.GetLogger("SqliteDatabase");
     private readonly ISystemConfigurations _systemConfigurations;
@@ -29,6 +30,79 @@ public class SqliteDatabase : IDatabase, IDisposable
         Formatting = Formatting.Indented,
     };
     private string DbFilePath => Path.Combine(_systemConfigurations.DataFolder, DbFileName);
+
+    public IDatabaseTransaction? BeginTransaction()
+    {
+        if (_transactions.ContainsKey(Thread.CurrentThread))
+        {
+            // Already inside a transaction on this thread; return a no-op wrapper
+            // so the outer scope retains ownership.
+            return new NoOpTransaction();
+        }
+
+        var tx = GetConnection().BeginTransaction();
+        _transactions[Thread.CurrentThread] = tx;
+        return new SqliteTransactionWrapper(this, tx);
+    }
+
+    private SqliteTransaction? GetCurrentTransaction()
+    {
+        _transactions.TryGetValue(Thread.CurrentThread, out var tx);
+        return tx;
+    }
+
+    private void EndTransaction()
+    {
+        _transactions.TryRemove(Thread.CurrentThread, out _);
+    }
+
+    private sealed class NoOpTransaction : IDatabaseTransaction
+    {
+        public void Commit() { }
+
+        public void Dispose() { }
+    }
+
+    private sealed class SqliteTransactionWrapper : IDatabaseTransaction
+    {
+        private readonly SqliteDatabase _db;
+        private readonly SqliteTransaction _tx;
+        private bool _committed;
+        private bool _disposed;
+
+        public SqliteTransactionWrapper(SqliteDatabase db, SqliteTransaction tx)
+        {
+            _db = db;
+            _tx = tx;
+        }
+
+        public void Commit()
+        {
+            _tx.Commit();
+            _committed = true;
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+            _disposed = true;
+            try
+            {
+                if (!_committed)
+                    _tx.Rollback();
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"Transaction rollback failed. {ex.Message}");
+            }
+            finally
+            {
+                _tx.Dispose();
+                _db.EndTransaction();
+            }
+        }
+    }
 
     public int WriteVariables(
         VariableScope scope,
@@ -50,6 +124,7 @@ public class SqliteDatabase : IDatabase, IDisposable
         try
         {
             using var command = new SqliteCommand(sql, GetConnection());
+            command.Transaction = GetCurrentTransaction();
             command.Parameters.AddWithValue("@scope", scope);
             command.Parameters.AddWithValue("@local_name", localName);
             command.Parameters.AddWithValue("@actor_name", actorName);
@@ -264,6 +339,7 @@ public class SqliteDatabase : IDatabase, IDisposable
             + "VALUES (@variable_id, @location, @old_value, @new_value)";
 
         using var command = new SqliteCommand(sql, GetConnection());
+        command.Transaction = GetCurrentTransaction();
         try
         {
             var location = JsonConvert.SerializeObject(valueChangedArgs.Location, JsonSettings);

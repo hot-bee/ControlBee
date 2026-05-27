@@ -264,6 +264,53 @@ public class VariableManagerTest : ActorFactoryBase
     }
 
     [Fact]
+    public void SaveWrapsWritesInTransactionTest()
+    {
+        var txMock = new Mock<IDatabaseTransaction>();
+        Mock.Get(Database).Setup(m => m.BeginTransaction()).Returns(txMock.Object);
+
+        var actor = ActorFactory.Create<Actor>("myActor");
+        _ = new Variable<int>(actor, "myId", VariableScope.Local, 1);
+
+        VariableManager.Save("myRecipe");
+
+        Mock.Get(Database).Verify(m => m.BeginTransaction(), Times.Once);
+        Mock.Get(Database)
+            .Verify(
+                m =>
+                    m.WriteVariables(
+                        VariableScope.Local,
+                        "myRecipe",
+                        "myActor",
+                        "myId",
+                        It.IsAny<string>()
+                    ),
+                Times.Once
+            );
+        txMock.Verify(m => m.Commit(), Times.Once);
+        txMock.Verify(m => m.Dispose(), Times.Once);
+    }
+
+    [Fact]
+    public void SaveStillDisposesTransactionWhenChangeWriteThrowsTest()
+    {
+        SystemConfigurations.AutoVariableSave = false;
+        var txMock = new Mock<IDatabaseTransaction>();
+        Mock.Get(Database).Setup(m => m.BeginTransaction()).Returns(txMock.Object);
+        Mock.Get(Database)
+            .Setup(m => m.WriteVariableChange(It.IsAny<IVariable>(), It.IsAny<ValueChangedArgs>()))
+            .Throws(new InvalidOperationException("boom"));
+
+        var actor = ActorFactory.Create<Actor>("myActor");
+        var variable = new Variable<int>(actor, "myId", VariableScope.Local, 1);
+        variable.Value = 2;
+
+        Assert.Throws<InvalidOperationException>(() => VariableManager.Save());
+        txMock.Verify(m => m.Commit(), Times.Never);
+        txMock.Verify(m => m.Dispose(), Times.Once);
+    }
+
+    [Fact]
     public void LoadFallbackFromGlobalToLocalScopeWithArray2DTest()
     {
         var helper = new Variable<Array2D<double>>(VariableScope.Global, new Array2D<double>(2, 2));
