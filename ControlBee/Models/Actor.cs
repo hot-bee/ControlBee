@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Reflection;
 using ControlBee.Interfaces;
+using ControlBee.Services;
 using ControlBee.Utils;
 using ControlBeeAbstract.Exceptions;
 using log4net;
@@ -34,6 +35,8 @@ public class Actor : IActorInternal, IDisposable
     private IState _initialState;
     private long _lastTimerActivation;
 
+    private readonly bool _healthMonitorEnabled;
+
     private int _publishStep;
     private readonly object _statusLock = new();
 
@@ -54,6 +57,7 @@ public class Actor : IActorInternal, IDisposable
         _thread = new Thread(RunThread);
 
         SkipWaitSensor = config.SystemConfigurations.SkipWaitSensor;
+        _healthMonitorEnabled = !config.SystemConfigurations.FakeMode;
         VariableManager = config.VariableManager;
         DeviceManager = config.DeviceManager;
         TimeManager = config.TimeManager;
@@ -526,6 +530,8 @@ public class Actor : IActorInternal, IDisposable
     public virtual void Start()
     {
         Logger.Info($"Starting Actor instance. ({Name})");
+        if (_healthMonitorEnabled)
+            ThreadHealthMonitor.EnsureStarted();
         _thread.Name = $"{Name}";
         _thread.Start();
     }
