@@ -184,21 +184,29 @@ public class Actor : IActorInternal, IDisposable
         return GetRegisteredFunctions().Where(IsFunctionAvailable).ToArray();
     }
 
-    private bool IsFunctionExecutable(string functionName)
+    protected virtual bool IsFunctionExecutable(string functionName) => true;
+
+    protected void PublishFunctions()
     {
+        var dict = new Dict();
+        foreach (var functionName in GetFunctions())
+            dict[functionName] = IsFunctionExecutable(functionName);
+
         lock (_statusLock)
         {
             if (
-                Status.GetValueOrDefault("_executableFunctions") is Dict dict
-                && dict.TryGetValue(functionName, out var value)
+                Status.GetValueOrDefault("_executableFunctions") is Dict prev
+                && prev.Count == dict.Count
+                && prev.All(keyValuePair =>
+                    dict.TryGetValue(keyValuePair.Key, out var value)
+                    && Equals(value, keyValuePair.Value)
+                )
             )
-                return value is not false;
+                return;
         }
 
-        return true;
+        SetStatus("_executableFunctions", dict);
     }
-
-    protected internal virtual void PublishFunctions() { }
 
     public string[] GetAxisItemPaths(string positionItemPath)
     {
