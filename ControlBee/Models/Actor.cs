@@ -186,7 +186,23 @@ public class Actor : IActorInternal, IDisposable
 
     protected virtual bool IsFunctionExecutable(string functionName) => true;
 
-    protected void PublishFunctions()
+    protected virtual string[] ExecutabilityStatusKeys => [];
+
+    private bool ExecutabilityDependencyChanged(Message message)
+    {
+        if (ExecutabilityStatusKeys.Length == 0)
+            return false;
+
+        if (!PeerStatus.TryGetValue(message.Sender, out var oldStatus))
+            return true;
+
+        var newStatus = message.DictPayload!;
+        return ExecutabilityStatusKeys.Any(key =>
+            !Equals(oldStatus.GetValueOrDefault(key), newStatus.GetValueOrDefault(key))
+        );
+    }
+
+    protected void PublishExecutableFunctions()
     {
         var dict = new Dict();
         foreach (var functionName in GetFunctions())
@@ -622,6 +638,9 @@ public class Actor : IActorInternal, IDisposable
             return false;
         }
 
+        var executabilityAffected =
+            message.Name == "_status" && ExecutabilityDependencyChanged(message);
+
         var result = ActorBuiltinMessageHandler.ProcessMessage(message);
         result |= State.ProcessMessage(message);
         if (message is ActorItemMessage actorItemMessage)
@@ -629,6 +648,9 @@ public class Actor : IActorInternal, IDisposable
             var item = GetItem(actorItemMessage.ItemPath);
             result |= item?.ProcessMessage(actorItemMessage) ?? false;
         }
+
+        if (executabilityAffected)
+            PublishExecutableFunctions();
 
         return result;
     }
