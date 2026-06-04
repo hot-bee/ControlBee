@@ -64,16 +64,16 @@ public class InitializeSequence(
         {
             Thread.Sleep(DelayBeforeClearPosition.Value);
             axis.ClearPosition();
-
-            var useSoftwareLimit = axis.GetUseSoftwareLimit();
-            var negativeSoftwareLimitPosition = axis.GetNegativeSoftwareLimitPosition();
-            var positiveSoftwareLimitPosition = axis.GetPositiveSoftwareLimitPosition();
-            axis.SetSoftwareLimit(
-                useSoftwareLimit,
-                negativeSoftwareLimitPosition,
-                positiveSoftwareLimitPosition
-            );
         }
+
+        var useSoftwareLimit = axis.GetUseSoftwareLimit();
+        var negativeSoftwareLimitPosition = axis.GetNegativeSoftwareLimitPosition();
+        var positiveSoftwareLimitPosition = axis.GetPositiveSoftwareLimitPosition();
+        axis.SetSoftwareLimit(
+            useSoftwareLimit,
+            negativeSoftwareLimitPosition,
+            positiveSoftwareLimitPosition
+        );
 
         axis.SetSpeed(axis.GetJogSpeed(JogSpeedLevel.Fast));
         homePosition.Value.MoveAndWait();
