@@ -253,7 +253,10 @@ public class Axis : DeviceChannel, IAxis
                     {
                         Logger.Debug("Step Jog Start");
                         if (IsMoving())
-                            Logger.Warn("Cancel jog. It's already moving now.");
+                        {
+                            Logger.Warn("Cancel step jog. It's already moving.");
+                            break;
+                        }
                         var jogStep = (JogStep)message.DictPayload!["JogStep"]!;
                         var customStepSize = (double?)
                             message.DictPayload!.GetValueOrDefault("CustomStepSize");
