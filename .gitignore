@@ -399,4 +399,6 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
+# Hotbee
 .claude/
+.vscode/

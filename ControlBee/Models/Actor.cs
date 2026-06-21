@@ -649,6 +649,7 @@ public class Actor : IActorInternal, IDisposable
                 var oldStateHashes = new HashSet<IState>(_stateStack);
                 var result = ProcessMessage(message);
                 OnMessageProcessed((message, oldState, State, result));
+                ScenarioFlowTester.OnCheckpoint();
                 if (oldState != State)
                 {
                     var newStateHashes = new HashSet<IState>(_stateStack);
@@ -657,7 +658,6 @@ public class Actor : IActorInternal, IDisposable
 
                     StateLogger.Debug($"{oldState.GetType().Name}->{State.GetType().Name}");
                     OnStateChanged((oldState, State));
-                    ScenarioFlowTester.OnCheckpoint();
                     message = new StateEntryMessage(this);
                     PublishStateChanged();
                     continue;
