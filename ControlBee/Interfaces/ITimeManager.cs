@@ -2,7 +2,7 @@
 
 public interface ITimeManager : IDisposable
 {
-    int CurrentMilliseconds { get; }
+    long CurrentMilliseconds { get; }
     void Sleep(int millisecondsTimeout);
     IStopwatch CreateWatch();
     void Register();

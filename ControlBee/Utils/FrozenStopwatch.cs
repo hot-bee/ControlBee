@@ -5,7 +5,7 @@ namespace ControlBee.Utils;
 public class FrozenStopwatch : IStopwatch
 {
     private readonly ITimeManager _frozenTimeManager;
-    private int _startTime;
+    private long _startTime;
 
     public FrozenStopwatch(ITimeManager frozenTimeManager)
     {

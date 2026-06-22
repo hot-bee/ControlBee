@@ -35,7 +35,7 @@ public class TimeManager : ITimeManager
         return Task.Run<T>(func);
     }
 
-    public int CurrentMilliseconds => 0;
+    public long CurrentMilliseconds => 0;
     public event EventHandler<int>? CurrentTimeChanged;
 
     protected virtual void OnCurrentTimeChanged(int e)

@@ -2,6 +2,7 @@
 using ControlBee.Models;
 using ControlBee.Utils;
 using ControlBeeAbstract.Exceptions;
+using log4net;
 
 namespace ControlBee.Services;
 
@@ -17,6 +18,8 @@ public class FrozenTimeManager : ITimeManager
         (KeyType keyType, int id),
         FrozenTimeManagerEvent
     > _concurrencyEvents = new();
+
+    private static readonly ILog Logger = LogManager.GetLogger("General");
 
     private readonly FrozenTimeManagerConfig _config;
     private readonly IScenarioFlowTester _scenarioFlowTester;
@@ -144,7 +147,7 @@ public class FrozenTimeManager : ITimeManager
         return new FrozenStopwatch(this);
     }
 
-    public int CurrentMilliseconds { get; private set; }
+    public long CurrentMilliseconds { get; private set; }
     public event EventHandler<int>? CurrentTimeChanged;
 
     public void Register()
@@ -210,6 +213,15 @@ public class FrozenTimeManager : ITimeManager
         if (_config.EmulationMode)
             Thread.Sleep(elapsedMilliseconds);
         CurrentMilliseconds += elapsedMilliseconds;
+        if (CurrentMilliseconds < 0)
+        {
+            Logger.Fatal(
+                $"CurrentMilliseconds overflowed to a negative value: {CurrentMilliseconds}"
+            );
+            throw new OverflowException(
+                $"CurrentMilliseconds overflowed to a negative value: {CurrentMilliseconds}"
+            );
+        }
         OnCurrentTimeChanged(elapsedMilliseconds);
     }
 

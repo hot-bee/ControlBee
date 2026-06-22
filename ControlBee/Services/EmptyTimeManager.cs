@@ -39,7 +39,7 @@ public class EmptyTimeManager : ITimeManager
         return Task.Run(func);
     }
 
-    public int CurrentMilliseconds => 0;
+    public long CurrentMilliseconds => 0;
     public event EventHandler<int>? CurrentTimeChanged;
 
     protected virtual void OnCurrentTimeChanged(int e)
