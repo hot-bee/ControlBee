@@ -20,6 +20,7 @@ public class Variable : ActorItem
     {
         ContractResolver = new RespectSystemTextJsonIgnoreResolver(),
         Formatting = Formatting.Indented,
+        TypeNameHandling = TypeNameHandling.Auto,
     };
 }
 
@@ -132,7 +133,10 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
 
     public string ToJson()
     {
-        return JsonConvert.SerializeObject(new DataV2(DataV2.ValidVersion, Value), JsonSettings);
+        return JsonConvert.SerializeObject(
+            new DataV2 { Version = DataV2.ValidVersion, Value = Value },
+            JsonSettings
+        );
     }
 
     public bool Dirty { get; set; }
@@ -141,7 +145,7 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
     {
         try
         {
-            var value = JsonConvert.DeserializeObject<DataV2>(data)!;
+            var value = JsonConvert.DeserializeObject<DataV2>(data, JsonSettings)!;
             if (value.Version != DataV2.ValidVersion)
                 throw new JsonException("Fallback");
             if (value.Value is IActorItemSub actorItemSub)
@@ -398,8 +402,10 @@ public class Variable<T> : Variable, IVariable, IWriteData, IDisposable
         ValueChanging?.Invoke(this, e);
     }
 
-    private record DataV2(int Version, T Value)
+    private class DataV2
     {
         public const int ValidVersion = 2;
+        public int Version { get; set; }
+        public T? Value { get; set; }
     }
 }

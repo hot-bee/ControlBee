@@ -55,6 +55,41 @@ public class VariableTest : ActorFactoryBase
     }
 
     [Fact]
+    public void SerializeDeserialize_PreservesDerivedRuntimeType()
+    {
+        // A Variable declared over a base type must round-trip a derived instance
+        // back as the derived type (Newtonsoft TypeNameHandling.Auto via $type).
+        var variable = new Variable<PolyBase>(VariableScope.Global);
+        variable.Value = new PolyDerived { BaseValue = 7, DerivedValue = 42 };
+
+        var json = variable.ToJson();
+        var loaded = new Variable<PolyBase>(VariableScope.Global);
+        loaded.FromJson(json);
+
+        var derived = Assert.IsType<PolyDerived>(loaded.Value);
+        Assert.Equal(7, derived.BaseValue);
+        Assert.Equal(42, derived.DerivedValue);
+    }
+
+    [Fact]
+    public void ToJson_WritesTypeDiscriminator_ForDerivedValue()
+    {
+        var variable = new Variable<PolyBase>(VariableScope.Global);
+        variable.Value = new PolyDerived();
+
+        Assert.Contains("$type", variable.ToJson());
+    }
+
+    [Fact]
+    public void ToJson_OmitsTypeDiscriminator_ForExactDeclaredType()
+    {
+        var variable = new Variable<PolyBase>(VariableScope.Global);
+        variable.Value = new PolyBase { BaseValue = 3 };
+
+        Assert.DoesNotContain("$type", variable.ToJson());
+    }
+
+    [Fact]
     public void StringVariableTest()
     {
         var variableManagerMock = new Mock<IVariableManager>();
@@ -382,5 +417,15 @@ MyActor:
         Assert.Equal("The first variable.", myVariable1.Desc);
         Assert.Equal("My Variable 2", myVariable2.Name);
         Assert.Equal(string.Empty, myVariable2.Unit);
+    }
+
+    public class PolyBase
+    {
+        public int BaseValue { get; set; }
+    }
+
+    public class PolyDerived : PolyBase
+    {
+        public int DerivedValue { get; set; }
     }
 }
