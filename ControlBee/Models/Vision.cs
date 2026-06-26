@@ -136,6 +136,17 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         }
     }
 
+    public virtual void CancelTrigger(int inspectionIndex)
+    {
+        if (VisionDevice == null)
+        {
+            Logger.Error($"VisionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        VisionDevice.CancelTrigger(Channel, inspectionIndex);
+    }
+
     public void SetResolution(double resolution)
     {
         if (VisionDevice == null)
