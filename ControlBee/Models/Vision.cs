@@ -136,7 +136,7 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         }
     }
 
-    public virtual void CancelTrigger(int inspectionIndex)
+    public virtual void CancelTrigger()
     {
         if (VisionDevice == null)
         {
@@ -144,7 +144,7 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
             return;
         }
 
-        VisionDevice.CancelTrigger(Channel, inspectionIndex);
+        VisionDevice.CancelTrigger(Channel);
     }
 
     public void SetResolution(double resolution)

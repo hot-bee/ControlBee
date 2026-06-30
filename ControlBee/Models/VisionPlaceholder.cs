@@ -125,7 +125,7 @@ public class VisionPlaceholder : IPlaceholder, IVision
         throw new NotImplementedException();
     }
 
-    public void CancelTrigger(int inspectionIndex)
+    public void CancelTrigger()
     {
         throw new NotImplementedException();
     }
