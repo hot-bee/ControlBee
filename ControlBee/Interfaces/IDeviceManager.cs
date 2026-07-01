@@ -9,4 +9,5 @@ public interface IDeviceManager
     void Add(string name, IDevice device);
     IDevice[] GetDevices();
     DeviceMetaInfo GetDeviceMetaInfo(string deviceName);
+    void AbortAll();
 }

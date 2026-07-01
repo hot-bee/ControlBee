@@ -132,7 +132,7 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
     public virtual void AbortDevice()
     {
         Logger.Info($"Abort device. ({ActorName}, {ItemPath}, {Channel})");
-        GetDeviceMetaInfo().Aborted = true;
+        GetDeviceMetaInfo().Abort();
     }
 
     public void ResetAbort()
@@ -140,7 +140,7 @@ public abstract class DeviceChannel(IDeviceManager deviceManager)
         if (!GetDeviceMetaInfo().Aborted)
             return;
         Logger.Info($"Reset device abort. ({ActorName}, {ItemPath}, {Channel})");
-        GetDeviceMetaInfo().Aborted = false;
+        GetDeviceMetaInfo().ResetAbort();
     }
 
     public virtual void Sync()
