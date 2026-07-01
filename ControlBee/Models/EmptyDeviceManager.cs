@@ -29,4 +29,6 @@ public class EmptyDeviceManager : IDeviceManager
     {
         return new DeviceMetaInfo();
     }
+
+    public void AbortAll() { }
 }
