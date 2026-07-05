@@ -10,7 +10,17 @@ public class DeviceMetaInfo : INotifyPropertyChanged
     public bool Aborted
     {
         get => _aborted;
-        set => SetField(ref _aborted, value);
+        private set => SetField(ref _aborted, value);
+    }
+
+    public void Abort()
+    {
+        Aborted = true;
+    }
+
+    public void ResetAbort()
+    {
+        Aborted = false;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

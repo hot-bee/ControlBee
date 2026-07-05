@@ -1,11 +1,13 @@
 ﻿using ControlBee.Interfaces;
 using ControlBee.Services;
 using ControlBeeAbstract.Devices;
+using log4net;
 
 namespace ControlBee.Models;
 
 public class DeviceManager : IDeviceManager, IDisposable
 {
+    private static readonly ILog Logger = LogManager.GetLogger(nameof(DeviceManager));
     private readonly Dictionary<string, IDevice> _devices = [];
     private readonly IDeviceMetaInfoStore _deviceMetaInfoStore;
 
@@ -44,5 +46,20 @@ public class DeviceManager : IDeviceManager, IDisposable
     public DeviceMetaInfo GetDeviceMetaInfo(string deviceName)
     {
         return _deviceMetaInfoStore.Get(deviceName);
+    }
+
+    public void AbortAll()
+    {
+        foreach (var name in _devices.Keys)
+        {
+            try
+            {
+                GetDeviceMetaInfo(name).Abort();
+            }
+            catch (Exception exception)
+            {
+                Logger.Error($"Failed to abort device. ({name})", exception);
+            }
+        }
     }
 }
