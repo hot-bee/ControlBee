@@ -34,6 +34,13 @@ public class Axis : DeviceChannel, IAxis
     protected SpeedProfile? CurrentSpeedProfile;
 
     public Variable<int> DisableDelay = new(VariableScope.Global, 200);
+
+    /// <summary>
+    ///     Display-only scale factor applied to positions shown on UIs (e.g. -1.0 to flip the
+    ///     displayed sign). Business logic keeps using the axis coordinate as-is.
+    /// </summary>
+    public Variable<double> DisplayResolution = new(VariableScope.Global, 1.0);
+
     public Variable<int> EnableDelay = new(VariableScope.Global, 200);
     public IDialog HomeSensorTimeoutError = new DialogPlaceholder();
 
@@ -116,6 +123,7 @@ public class Axis : DeviceChannel, IAxis
     {
         base.PostInit();
         GetMetaInfo().PropertyChanged += OnPropertyChanged;
+        DisplayResolution.ValueChanged += (_, _) => SendMetaData();
     }
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -177,6 +185,22 @@ public class Axis : DeviceChannel, IAxis
         if (MotionDevice == null)
             return;
         RefreshCacheImpl();
+    }
+
+    protected override void SendMetaData(Guid requestId = default)
+    {
+        if (Actor.Ui == null)
+            return;
+        var payload = new Dict
+        {
+            [nameof(Name)] = Name,
+            [nameof(Desc)] = Desc,
+            ["Channel"] = GetChannel(),
+            [nameof(DisplayResolution)] = DisplayResolution.Value,
+        };
+        Actor.Ui.Send(
+            new ActorItemMessage(requestId, Actor, ItemPath, "_itemMetaDataChanged", payload)
+        );
     }
 
     public override bool ProcessMessage(ActorItemMessage message)
