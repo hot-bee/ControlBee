@@ -293,6 +293,67 @@ public class AxisTest : ActorFactoryBase
         actor.Join();
     }
 
+    [Fact]
+    public void JogEndedAfterContinuousJogTest()
+    {
+        var client = MockActorFactory.Create("Client");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        ActorUtils.SetupActionOnGetMessage(
+            actor,
+            client,
+            "_jogStarted",
+            message => actor.Send(new ActorItemMessage(client, "/X", "_jogStop"))
+        );
+
+        actor.Start();
+        actor.Send(
+            new ActorItemMessage(
+                client,
+                "/X",
+                "_jogStart",
+                new Dict
+                {
+                    ["Type"] = "Continuous",
+                    ["Direction"] = AxisDirection.Positive,
+                    ["JogSpeed"] = JogSpeedLevel.Medium,
+                }
+            )
+        );
+        actor.Join();
+
+        Assert.True(actor.JogEndedReceived);
+        Assert.False(actor.MovingWhenJogEnded);
+    }
+
+    [Fact]
+    public void JogEndedAfterStepJogTest()
+    {
+        var client = MockActorFactory.Create("Client");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+        ((Axis)actor.X).JogSpeed.Value.Velocity = 1_000_000;
+
+        actor.Start();
+        actor.Send(
+            new ActorItemMessage(
+                client,
+                "/X",
+                "_jogStart",
+                new Dict
+                {
+                    ["Type"] = "Step",
+                    ["Direction"] = AxisDirection.Positive,
+                    ["JogStep"] = JogStep.Large,
+                }
+            )
+        );
+        actor.Join();
+
+        Assert.True(actor.JogEndedReceived);
+        Assert.False(actor.MovingWhenJogEnded);
+        Assert.Equal(110.0, actor.X.GetPosition());
+    }
+
     private IMotionDevice SetupWithDevice()
     {
         SystemPropertiesDataSource.ReadFromString(
@@ -372,6 +433,8 @@ public class AxisTest : ActorFactoryBase
     private class TestActor : Actor
     {
         public readonly IAxis X;
+        public bool JogEndedReceived;
+        public bool MovingWhenJogEnded;
 
         public TestActor(ActorConfig config)
             : base(config)
@@ -403,6 +466,11 @@ public class AxisTest : ActorFactoryBase
                     return true;
                 case "EnableX":
                     X.Enable();
+                    return true;
+                case "_jogEnded":
+                    JogEndedReceived = true;
+                    MovingWhenJogEnded = X.IsMoving();
+                    Send(new TerminateMessage());
                     return true;
             }
 

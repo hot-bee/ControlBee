@@ -293,6 +293,7 @@ public class Axis : DeviceChannel, IAxis
                         SetSpeed(speed);
                         RelativeMove(step);
                         message.Sender.Send(new Message(message, Actor, "_jogStarted"));
+                        NotifyJogEnded();
                         break;
                     }
                 }
@@ -304,11 +305,38 @@ public class Axis : DeviceChannel, IAxis
                 Logger.Debug("Continuous Jog Stop");
                 Stop();
                 message.Sender.Send(new Message(message, Actor, "_jogStopped"));
+                NotifyJogEnded();
                 return true;
             }
+            case "_jogEnded":
+                // Self-notification from NotifyJogEnded; consumed here so the actor's own state
+                // machine may observe it without it being reported as a dropped message.
+                return true;
         }
 
         return base.ProcessMessage(message);
+    }
+
+    /// <summary>
+    ///     Jog motions complete asynchronously (step: after <see cref="RelativeMove" /> returns;
+    ///     continuous: while decelerating after <see cref="Stop" />), so watch for standstill in the
+    ///     background and send `_jogEnded` to the owning actor once the axis has settled.
+    /// </summary>
+    private void NotifyJogEnded()
+    {
+        _timeManager.RunTask(() =>
+        {
+            try
+            {
+                while (IsMoving())
+                    _timeManager.Sleep(1);
+                Actor.Send(new ActorItemMessage(Actor, ItemPath, "_jogEnded"));
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to monitor jog end. ({ActorName}, {ItemPath})", ex);
+            }
+        });
     }
 
     public virtual void Enable(bool value)
