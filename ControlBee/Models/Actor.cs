@@ -308,7 +308,8 @@ public class Actor : IActorInternal, IDisposable
 
     public object? GetStatus(string name)
     {
-        return Status.GetValueOrDefault(name);
+        lock (_statusLock)
+            return Status.GetValueOrDefault(name);
     }
 
     public void SetStatusByActor(string actorName, string keyName, object? value)
@@ -335,9 +336,12 @@ public class Actor : IActorInternal, IDisposable
 
     public object? GetStatusByActor(string actorName, string keyName)
     {
-        var statusByActor = Status.GetValueOrDefault(actorName) as Dict ?? new Dict();
-        statusByActor.TryGetValue(keyName, out var value);
-        return value;
+        lock (_statusLock)
+        {
+            var statusByActor = Status.GetValueOrDefault(actorName) as Dict ?? new Dict();
+            statusByActor.TryGetValue(keyName, out var value);
+            return value;
+        }
     }
 
     public object? GetStatusByActor(IActor actor, string keyName)

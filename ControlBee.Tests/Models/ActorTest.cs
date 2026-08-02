@@ -1,4 +1,7 @@
-﻿using ControlBee.Interfaces;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
+using ControlBee.Interfaces;
 using ControlBee.Models;
 using ControlBee.TestUtils;
 using ControlBee.Utils;
@@ -247,6 +250,47 @@ public class ActorTest : ActorFactoryBase
         Assert.Null(actor.GetStatus("Not-existing-name"));
         Assert.Equal("KTWorld", actor.GetStatusByActor("Peer", "WifiId"));
         Assert.Null(actor.GetStatusByActor("Peer", "Not-existing-name"));
+    }
+
+    [Fact]
+    public async Task ConcurrentGetSetStatusTest()
+    {
+        var actor = ActorFactory.Create<Actor>("MyActor");
+        const int threadCount = 8;
+        const int iterations = 2000;
+        var exceptions = new ConcurrentBag<Exception>();
+
+        var tasks = new Task[threadCount];
+        for (var t = 0; t < threadCount; t++)
+        {
+            var key = $"Key{t}";
+            tasks[t] = Task.Run(() =>
+            {
+                try
+                {
+                    for (var i = 0; i < iterations; i++)
+                    {
+                        actor.SetStatus(key, i);
+                        actor.GetStatus(key);
+                        actor.SetStatusByActor("Peer", key, i);
+                        actor.GetStatusByActor("Peer", key);
+                    }
+                }
+                catch (Exception e)
+                {
+                    exceptions.Add(e);
+                }
+            });
+        }
+
+        await Task.WhenAll(tasks);
+
+        Assert.Empty(exceptions);
+        for (var t = 0; t < threadCount; t++)
+        {
+            Assert.Equal(iterations - 1, actor.GetStatus($"Key{t}"));
+            Assert.Equal(iterations - 1, actor.GetStatusByActor("Peer", $"Key{t}"));
+        }
     }
 
     private class TestActorC : Actor
