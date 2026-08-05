@@ -104,13 +104,11 @@ public abstract class Position
         {
             case "MoveToSavedPos":
                 MoveToSavedPos(message);
-                message.Sender.Send(new Message(message, Actor, "MoveToSavedPosDone"));
-                Actor.Send(new ActorItemMessage(message.Id, Actor, ItemPath, "MoveToSavedPosDone"));
+                NotifyMoveDone(message, "MoveToSavedPosDone");
                 return true;
             case "MoveToHomePos":
                 MoveToHomePos();
-                message.Sender.Send(new Message(message, Actor, "MoveToHomePosDone"));
-                Actor.Send(new ActorItemMessage(message.Id, Actor, ItemPath, "MoveToHomePosDone"));
+                NotifyMoveDone(message, "MoveToHomePosDone");
                 return true;
             case "SetPos":
                 SetPos();
@@ -123,6 +121,12 @@ public abstract class Position
         }
 
         return false;
+    }
+
+    private void NotifyMoveDone(ActorItemMessage message, string name)
+    {
+        message.Sender.Send(new Message(message, Actor, name));
+        Actor.Send(new ActorItemMessage(message.Id, Actor, ItemPath, name));
     }
 
     public event EventHandler<ValueChangedArgs>? ValueChanging;
