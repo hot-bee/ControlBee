@@ -14,6 +14,10 @@ This project is licensed under the MIT License - see the LICENSE.md file for det
 
 https://controlbee.hotbee.ai/
 
+## Examples
+
+https://github.com/hot-bee/ControlBeeExamples
+
 ## Acknowledgments
 
 Inspiration, code snippets, etc.
