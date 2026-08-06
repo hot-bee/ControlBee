@@ -24,8 +24,11 @@ public class StartupUtils
         Process.Start(
             new ProcessStartInfo
             {
-                FileName = executablePath,
+                FileName = "cmd.exe",
+                Arguments = $"/c start \"\" \"{executablePath}\"",
                 WorkingDirectory = Path.GetDirectoryName(executablePath),
+                UseShellExecute = false,
+                CreateNoWindow = true,
             }
         );
         for (var i = 0; i < retryCount; i++)
