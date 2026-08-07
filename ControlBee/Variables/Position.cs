@@ -104,11 +104,11 @@ public abstract class Position
         {
             case "MoveToSavedPos":
                 MoveToSavedPos(message);
-                NotifyMoveDone(message, "MoveToSavedPosDone");
+                ReplyWorkDone(message, "MoveToSavedPosDone");
                 return true;
             case "MoveToHomePos":
                 MoveToHomePos();
-                NotifyMoveDone(message, "MoveToHomePosDone");
+                ReplyWorkDone(message, "MoveToHomePosDone");
                 return true;
             case "SetPos":
                 SetPos();
@@ -123,7 +123,7 @@ public abstract class Position
         return false;
     }
 
-    private void NotifyMoveDone(ActorItemMessage message, string name)
+    private void ReplyWorkDone(ActorItemMessage message, string name)
     {
         message.Sender.Send(new Message(message, Actor, name));
         Actor.Send(new ActorItemMessage(message.Id, Actor, ItemPath, name));
