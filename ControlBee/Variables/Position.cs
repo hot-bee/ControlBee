@@ -104,16 +104,29 @@ public abstract class Position
         {
             case "MoveToSavedPos":
                 MoveToSavedPos(message);
+                ReplyWorkDone(message, "MoveToSavedPosDone");
                 return true;
             case "MoveToHomePos":
                 MoveToHomePos();
+                ReplyWorkDone(message, "MoveToHomePosDone");
                 return true;
             case "SetPos":
                 SetPos();
                 return true;
+            case "MoveToSavedPosDone":
+            case "MoveToHomePosDone":
+                // Self-notifications from the MoveTo* handlers; consumed here so the actor's own
+                // state machine may observe them without them being reported as dropped messages.
+                return true;
         }
 
         return false;
+    }
+
+    private void ReplyWorkDone(ActorItemMessage message, string name)
+    {
+        message.Sender.Send(new Message(message, Actor, name));
+        Actor.Send(new ActorItemMessage(message.Id, Actor, ItemPath, name));
     }
 
     public event EventHandler<ValueChangedArgs>? ValueChanging;

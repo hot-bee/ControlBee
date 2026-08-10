@@ -29,6 +29,49 @@ public class PositionTest : ActorFactoryBase
     }
 
     [Fact]
+    public void MoveToSavedPos_NotifiesRequesterAndOwningActor()
+    {
+        var client = MockActorFactory.Create("Client");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+        var clientDone = false;
+        ActorUtils.SetupActionOnGetMessage(
+            actor,
+            client,
+            "MoveToSavedPosDone",
+            _ => clientDone = true
+        );
+
+        actor.Start();
+        actor.Send(new ActorItemMessage(client, "/MyPosition", "MoveToSavedPos"));
+        actor.Join();
+
+        Assert.True(actor.MoveToSavedPosDoneReceived);
+        Assert.True(clientDone);
+        Assert.True(actor.MyPosition.Value.IsNear(1));
+    }
+
+    [Fact]
+    public void MoveToHomePos_NotifiesRequesterAndOwningActor()
+    {
+        var client = MockActorFactory.Create("Client");
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+        var clientDone = false;
+        ActorUtils.SetupActionOnGetMessage(
+            actor,
+            client,
+            "MoveToHomePosDone",
+            _ => clientDone = true
+        );
+
+        actor.Start();
+        actor.Send(new ActorItemMessage(client, "/MyPosition", "MoveToHomePos"));
+        actor.Join();
+
+        Assert.True(actor.MoveToHomePosDoneReceived);
+        Assert.True(clientDone);
+    }
+
+    [Fact]
     public void WaitForPositionTest()
     {
         var actor = ActorFactory.Create<TestActor>("MyActor");
@@ -55,6 +98,8 @@ public class PositionTest : ActorFactoryBase
 
         public readonly IAxis X;
         public readonly IAxis Y;
+        public bool MoveToSavedPosDoneReceived;
+        public bool MoveToHomePosDoneReceived;
 
         public TestActor(ActorConfig config)
             : base(config)
@@ -65,6 +110,23 @@ public class PositionTest : ActorFactoryBase
             PositionAxesMap.Add(MyPosition, [X, Y]);
             X.Enable(true);
             Y.Enable(true);
+        }
+
+        protected override bool ProcessMessage(Message message)
+        {
+            switch (message.Name)
+            {
+                case "MoveToSavedPosDone":
+                    MoveToSavedPosDoneReceived = true;
+                    Send(new TerminateMessage());
+                    break;
+                case "MoveToHomePosDone":
+                    MoveToHomePosDoneReceived = true;
+                    Send(new TerminateMessage());
+                    break;
+            }
+
+            return base.ProcessMessage(message);
         }
 
         protected override void MessageHandler(Message message)
