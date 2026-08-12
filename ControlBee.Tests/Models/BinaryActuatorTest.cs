@@ -626,4 +626,65 @@ public class BinaryActuatorTest
             return base.ProcessMessage(message);
         }
     }
+
+    [Fact]
+    public void MultipleInputsNullTest()
+    {
+        var config = new ActorFactoryBaseConfig
+        {
+            SystemConfigurations = new SystemConfigurations { FakeMode = false },
+        };
+        Recreate(config);
+
+        var ui = Mock.Of<IUiActor>();
+        Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
+        ActorRegistry.Add(ui);
+        var actor = ActorFactory.Create<NullMultipleInputTestActor>("myActor");
+
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "On"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        Assert.True(actor.Cyl.IsOn());
+        Assert.False(actor.Cyl.OnDetect());
+        Assert.False(actor.Cyl.OffDetect());
+        var match = new Func<Message, bool>(message => message.Name == "_displayDialog");
+        Mock.Get(ui).Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Never);
+        Assert.True(TimeManager.CurrentMilliseconds < 1000);
+    }
+
+    private class NullMultipleInputTestActor : Actor
+    {
+        public readonly IBinaryActuator Cyl;
+        public readonly IDigitalOutput CylBwd = new DigitalOutputPlaceholder();
+        public readonly IDigitalOutput CylFwd = new DigitalOutputPlaceholder();
+
+        public NullMultipleInputTestActor(ActorConfig config)
+            : base(config)
+        {
+            Cyl = config.BinaryActuatorFactory.Create(
+                CylFwd,
+                CylBwd,
+                (IDigitalInput[]?)null,
+                (IDigitalInput[]?)null
+            );
+        }
+
+        protected override IState CreateErrorState(SequenceError error)
+        {
+            return new ErrorState<NullMultipleInputTestActor>(this, error);
+        }
+
+        protected override bool ProcessMessage(Message message)
+        {
+            if (message.Name == "On")
+            {
+                Cyl.OnAndWait();
+                return true;
+            }
+
+            return base.ProcessMessage(message);
+        }
+    }
 }

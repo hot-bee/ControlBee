@@ -22,8 +22,8 @@ public class EmptyBinaryActuatorFactory : IBinaryActuatorFactory
     public IBinaryActuator Create(
         IDigitalOutput? outputOn,
         IDigitalOutput? outputOff,
-        IDigitalInput[] inputsOn,
-        IDigitalInput[] inputsOff
+        IDigitalInput[]? inputsOn,
+        IDigitalInput[]? inputsOff
     )
     {
         throw new UnimplementedByDesignError();

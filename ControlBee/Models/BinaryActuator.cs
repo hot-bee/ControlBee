@@ -39,8 +39,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
             scenarioFlowTester,
             outputOn,
             outputOff,
-            inputOn == null ? Array.Empty<IDigitalInput>() : new[] { inputOn },
-            inputOff == null ? Array.Empty<IDigitalInput>() : new[] { inputOff }
+            inputOn == null ? null : [inputOn],
+            inputOff == null ? null : [inputOff]
         ) { }
 
     public BinaryActuator(
@@ -49,8 +49,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         IScenarioFlowTester scenarioFlowTester,
         IDigitalOutput? outputOn,
         IDigitalOutput? outputOff,
-        IDigitalInput[] inputsOn,
-        IDigitalInput[] inputsOff
+        IDigitalInput[]? inputsOn,
+        IDigitalInput[]? inputsOff
     )
     {
         _systemConfigurations = systemConfigurations;
@@ -58,8 +58,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         _scenarioFlowTester = scenarioFlowTester;
         _outputOn = outputOn;
         _outputOff = outputOff;
-        _inputsOn = inputsOn;
-        _inputsOff = inputsOff;
+        _inputsOn = inputsOn ?? [];
+        _inputsOff = inputsOff ?? [];
         var timeoutScope = systemConfigurations.UseLocalTimeouts
             ? VariableScope.Local
             : VariableScope.Global;

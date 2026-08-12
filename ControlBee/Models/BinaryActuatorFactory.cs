@@ -29,8 +29,8 @@ public class BinaryActuatorFactory(
     public IBinaryActuator Create(
         IDigitalOutput? outputOn,
         IDigitalOutput? outputOff,
-        IDigitalInput[] inputsOn,
-        IDigitalInput[] inputsOff
+        IDigitalInput[]? inputsOn,
+        IDigitalInput[]? inputsOff
     )
     {
         return new BinaryActuator(
