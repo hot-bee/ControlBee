@@ -18,4 +18,14 @@ public class EmptyBinaryActuatorFactory : IBinaryActuatorFactory
     {
         throw new UnimplementedByDesignError();
     }
+
+    public IBinaryActuator Create(
+        IDigitalOutput? outputOn,
+        IDigitalOutput? outputOff,
+        IDigitalInput[] inputsOn,
+        IDigitalInput[] inputsOff
+    )
+    {
+        throw new UnimplementedByDesignError();
+    }
 }

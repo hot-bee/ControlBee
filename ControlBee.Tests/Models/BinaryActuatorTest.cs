@@ -405,4 +405,225 @@ public class BinaryActuatorTest
             return base.ProcessMessage(message);
         }
     }
+
+    [Fact]
+    public void OnAndWaitMultipleInputsTest()
+    {
+        var config = new ActorFactoryBaseConfig
+        {
+            SystemConfigurations = new SystemConfigurations { FakeMode = false },
+        };
+        Recreate(config);
+
+        var device = SetupMultipleInputDevice();
+        Mock.Get(device).Setup(m => m.GetDigitalInputBit(0)).Returns(false);
+        Mock.Get(device).Setup(m => m.GetDigitalInputBit(1)).Returns(false);
+        var actor = ActorFactory.Create<MultipleInputTestActor>("myActor");
+        ScenarioFlowTester.Setup([
+            [
+                // ReSharper disable once AccessToDisposedClosure
+                new ConditionStep(() => TimeManager.CurrentMilliseconds > 1000),
+                new BehaviorStep(() =>
+                    Mock.Get(device).Setup(m => m.GetDigitalInputBit(0)).Returns(true)
+                ),
+                new BehaviorStep(() => Assert.Null(actor.Cyl.IsOn())),
+                new ConditionStep(() => TimeManager.CurrentMilliseconds > 2000),
+                new BehaviorStep(() =>
+                    Mock.Get(device).Setup(m => m.GetDigitalInputBit(1)).Returns(true)
+                ),
+            ],
+        ]);
+
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "On"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        Assert.True(actor.Cyl.IsOn());
+        Assert.True(ScenarioFlowTester.Complete);
+        Assert.True(TimeManager.CurrentMilliseconds is > 2000 and < 3000);
+    }
+
+    [Fact]
+    public void OnAndWaitMultipleInputsTimeoutTest()
+    {
+        var config = new ActorFactoryBaseConfig
+        {
+            SystemConfigurations = new SystemConfigurations { FakeMode = false },
+        };
+        Recreate(config);
+
+        var device = SetupMultipleInputDevice();
+        Mock.Get(device).Setup(m => m.GetDigitalInputBit(0)).Returns(false);
+        Mock.Get(device).Setup(m => m.GetDigitalInputBit(1)).Returns(false);
+
+        var ui = Mock.Of<IUiActor>();
+        Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
+        ActorRegistry.Add(ui);
+        var actor = ActorFactory.Create<MultipleInputTestActor>("myActor");
+        ScenarioFlowTester.Setup([
+            [
+                // ReSharper disable once AccessToDisposedClosure
+                new ConditionStep(() => TimeManager.CurrentMilliseconds > 1000),
+                new BehaviorStep(() =>
+                    Mock.Get(device).Setup(m => m.GetDigitalInputBit(0)).Returns(true)
+                ),
+            ],
+        ]);
+
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "On"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        var match = new Func<Message, bool>(message => message.Name == "_displayDialog");
+        Mock.Get(ui).Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);
+        Assert.True(ScenarioFlowTester.Complete);
+        Assert.True(TimeManager.CurrentMilliseconds >= 5000);
+    }
+
+    [Fact]
+    public void OffAndWaitMultipleInputsTest()
+    {
+        var config = new ActorFactoryBaseConfig
+        {
+            SystemConfigurations = new SystemConfigurations { FakeMode = false },
+        };
+        Recreate(config);
+
+        var device = SetupMultipleInputDevice();
+        Mock.Get(device).Setup(m => m.GetDigitalInputBit(2)).Returns(false);
+        Mock.Get(device).Setup(m => m.GetDigitalInputBit(3)).Returns(false);
+        var actor = ActorFactory.Create<MultipleInputTestActor>("myActor");
+        ScenarioFlowTester.Setup([
+            [
+                // ReSharper disable once AccessToDisposedClosure
+                new ConditionStep(() => TimeManager.CurrentMilliseconds > 1000),
+                new BehaviorStep(() =>
+                    Mock.Get(device).Setup(m => m.GetDigitalInputBit(2)).Returns(true)
+                ),
+                new BehaviorStep(() => Assert.Null(actor.Cyl.IsOff())),
+                new ConditionStep(() => TimeManager.CurrentMilliseconds > 2000),
+                new BehaviorStep(() =>
+                    Mock.Get(device).Setup(m => m.GetDigitalInputBit(3)).Returns(true)
+                ),
+            ],
+        ]);
+
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "Off"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        Assert.True(actor.Cyl.IsOff());
+        Assert.True(ScenarioFlowTester.Complete);
+        Assert.True(TimeManager.CurrentMilliseconds is > 2000 and < 3000);
+    }
+
+    [Fact]
+    public void MultipleFakeDigitalInputsTest()
+    {
+        var config = new ActorFactoryBaseConfig
+        {
+            SystemConfigurations = new SystemConfigurations { FakeMode = true },
+        };
+        Recreate(config);
+
+        var actor = ActorFactory.Create<MultipleInputTestActor>("myActor");
+
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "On"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        var inputOn1 = Assert.IsType<FakeDigitalInput>(actor.CylFwdDet1);
+        var inputOn2 = Assert.IsType<FakeDigitalInput>(actor.CylFwdDet2);
+        var inputOff1 = Assert.IsType<FakeDigitalInput>(actor.CylBwdDet1);
+        var inputOff2 = Assert.IsType<FakeDigitalInput>(actor.CylBwdDet2);
+        Assert.True(inputOn1.IsOn());
+        Assert.True(inputOn2.IsOn());
+        Assert.True(inputOff1.IsOff());
+        Assert.True(inputOff2.IsOff());
+    }
+
+    private IDigitalIoDevice SetupMultipleInputDevice()
+    {
+        SystemPropertiesDataSource.ReadFromString(
+            """
+              myActor:
+                CylFwdDet1:
+                  DeviceName: MyDevice
+                  Channel: 0
+                CylFwdDet2:
+                  DeviceName: MyDevice
+                  Channel: 1
+                CylBwdDet1:
+                  DeviceName: MyDevice
+                  Channel: 2
+                CylBwdDet2:
+                  DeviceName: MyDevice
+                  Channel: 3
+            """
+        );
+
+        var device = Mock.Of<IDigitalIoDevice>();
+        DeviceManager.Add("MyDevice", device);
+        return device;
+    }
+
+    private class MultipleInputTestActor : Actor
+    {
+        public readonly IBinaryActuator Cyl;
+        public readonly IDigitalOutput CylBwd = new DigitalOutputPlaceholder();
+        public readonly IDigitalInput CylBwdDet1 = new DigitalInputPlaceholder();
+        public readonly IDigitalInput CylBwdDet2 = new DigitalInputPlaceholder();
+        public readonly IDigitalOutput CylFwd = new DigitalOutputPlaceholder();
+        public readonly IDigitalInput CylFwdDet1 = new DigitalInputPlaceholder();
+        public readonly IDigitalInput CylFwdDet2 = new DigitalInputPlaceholder();
+
+        public MultipleInputTestActor(ActorConfig config)
+            : base(config)
+        {
+            Cyl = config.BinaryActuatorFactory.Create(
+                CylFwd,
+                CylBwd,
+                [CylFwdDet1, CylFwdDet2],
+                [CylBwdDet1, CylBwdDet2]
+            );
+        }
+
+        protected override IState CreateErrorState(SequenceError error)
+        {
+            return new ErrorState<MultipleInputTestActor>(this, error);
+        }
+
+        protected override bool ProcessMessage(Message message)
+        {
+            switch (message.Name)
+            {
+                case "On":
+                    try
+                    {
+                        Cyl.OnAndWait();
+                    }
+                    catch (TimeoutError)
+                    {
+                        // Alert trigger will be checked.
+                    }
+                    return true;
+                case "Off":
+                    try
+                    {
+                        Cyl.OffAndWait();
+                    }
+                    catch (TimeoutError)
+                    {
+                        // Alert trigger will be checked.
+                    }
+                    return true;
+            }
+
+            return base.ProcessMessage(message);
+        }
+    }
 }

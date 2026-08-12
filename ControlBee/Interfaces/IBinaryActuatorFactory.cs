@@ -8,4 +8,11 @@ public interface IBinaryActuatorFactory
         IDigitalInput? inputOn,
         IDigitalInput? inputOff
     );
+
+    IBinaryActuator Create(
+        IDigitalOutput? outputOn,
+        IDigitalOutput? outputOff,
+        IDigitalInput[] inputsOn,
+        IDigitalInput[] inputsOff
+    );
 }
