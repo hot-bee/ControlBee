@@ -40,9 +40,54 @@ public class BinaryActuatorTest
         actor.Send(new Message(EmptyActor.Instance, "_terminate"));
         actor.Join();
 
-        var match = new Func<Message, bool>(message => message.Name == "_displayDialog");
+        var match = new Func<Message, bool>(message =>
+            message.Name == "_displayDialog"
+            && ((IDialogContext)message.Payload!).ItemPath == "/Cyl1/OnTimeoutError"
+        );
         Mock.Get(ui).Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);
         Assert.True(TimeManager.CurrentMilliseconds >= 5000);
+    }
+
+    [Fact]
+    public void OffTimeoutTest()
+    {
+        var config = new ActorFactoryBaseConfig
+        {
+            SystemConfigurations = new SystemConfigurations { FakeMode = false },
+        };
+        Recreate(config);
+
+        SystemPropertiesDataSource.ReadFromString(
+            """
+              myActor:
+                CylFwdDet1:
+                  DeviceName: MyDevice
+                  Channel: 0
+                CylBwdDet1:
+                  DeviceName: MyDevice
+                  Channel: 2
+            """
+        );
+        var device = Mock.Of<IDigitalIoDevice>();
+        DeviceManager.Add("MyDevice", device);
+        Mock.Get(device).Setup(m => m.GetDigitalInputBit(0)).Returns(true);
+        Mock.Get(device).Setup(m => m.GetDigitalInputBit(2)).Returns(false);
+
+        var ui = Mock.Of<IUiActor>();
+        Mock.Get(ui).Setup(m => m.Name).Returns("Ui");
+        ActorRegistry.Add(ui);
+        var actor = ActorFactory.Create<TestActor>("myActor");
+
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "OnOff1"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        var match = new Func<Message, bool>(message =>
+            message.Name == "_displayDialog"
+            && ((IDialogContext)message.Payload!).ItemPath == "/Cyl1/OffTimeoutError"
+        );
+        Mock.Get(ui).Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.Once);
     }
 
     [Fact]
@@ -380,6 +425,18 @@ public class BinaryActuatorTest
                 case "OnAndOff":
                     Cyl1.OnAndWait();
                     Cyl1.OffAndWait();
+                    return true;
+
+                case "OnOff1":
+                    try
+                    {
+                        Cyl1.OnAndWait();
+                        Cyl1.OffAndWait();
+                    }
+                    catch (TimeoutError)
+                    {
+                        // Alert trigger will be checked.
+                    }
                     return true;
 
                 case "OnBoth":

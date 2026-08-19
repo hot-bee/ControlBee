@@ -21,8 +21,16 @@ public class BinaryActuator : ActorItem, IBinaryActuator
     private IDigitalOutput? _outputOff;
     private IDigitalOutput? _outputOn;
 
-    private Task<bool>? _task;
-    public IDialog TimeoutError = new DialogPlaceholder();
+    private Task<ActuationResult>? _task;
+    public IDialog OnTimeoutError = new DialogPlaceholder();
+    public IDialog OffTimeoutError = new DialogPlaceholder();
+
+    private enum ActuationResult
+    {
+        Completed,
+        TimedOut,
+        Aborted,
+    }
 
     public BinaryActuator(
         ISystemConfigurations systemConfigurations,
@@ -90,11 +98,13 @@ public class BinaryActuator : ActorItem, IBinaryActuator
                 // ReSharper disable InvertIf
                 if (_task is { IsCompleted: true })
                 {
-                    var success = _task.Result;
+                    var result = _task.Result;
                     _task = null;
-                    if (!success)
+                    if (result == ActuationResult.Aborted)
+                        throw new DeviceAbortedError();
+                    if (result == ActuationResult.TimedOut)
                     {
-                        TimeoutError.Show();
+                        (CommandOn ? OnTimeoutError : OffTimeoutError).Show();
                         throw new TimeoutError();
                     }
                 }
@@ -218,7 +228,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
             while (true)
             {
                 if (IsAborted())
-                    return false;
+                    return ActuationResult.Aborted;
                 if (CommandOn && OnDetect())
                     break;
                 if (!CommandOn && OffDetect())
@@ -226,7 +236,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
                 if (_inputOn == null && _inputOff == null)
                     break;
                 if (watch.ElapsedMilliseconds >= timeout)
-                    return false;
+                    return ActuationResult.TimedOut;
 
                 _timeManager.Sleep(1);
                 _scenarioFlowTester.OnCheckpoint();
@@ -235,7 +245,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
             _timeManager.Sleep(delay);
 
             ActualOn = CommandOn;
-            return true;
+            return ActuationResult.Completed;
         });
     }
 
