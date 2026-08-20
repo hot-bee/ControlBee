@@ -13,8 +13,8 @@ public class BinaryActuator : ActorItem, IBinaryActuator
     private readonly IScenarioFlowTester _scenarioFlowTester;
     private readonly ISystemConfigurations _systemConfigurations;
     private readonly ITimeManager _timeManager;
-    private IDigitalInput? _inputOff;
-    private IDigitalInput? _inputOn;
+    private IDigitalInput[] _inputsOn;
+    private IDigitalInput[] _inputsOff;
 
     private bool? _actualOn;
     private bool _commandOn;
@@ -41,14 +41,33 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         IDigitalInput? inputOn,
         IDigitalInput? inputOff
     )
+        : this(
+            systemConfigurations,
+            timeManager,
+            scenarioFlowTester,
+            outputOn,
+            outputOff,
+            inputOn == null ? null : [inputOn],
+            inputOff == null ? null : [inputOff]
+        ) { }
+
+    public BinaryActuator(
+        ISystemConfigurations systemConfigurations,
+        ITimeManager timeManager,
+        IScenarioFlowTester scenarioFlowTester,
+        IDigitalOutput? outputOn,
+        IDigitalOutput? outputOff,
+        IDigitalInput[]? inputsOn,
+        IDigitalInput[]? inputsOff
+    )
     {
         _systemConfigurations = systemConfigurations;
         _timeManager = timeManager;
         _scenarioFlowTester = scenarioFlowTester;
         _outputOn = outputOn;
         _outputOff = outputOff;
-        _inputOn = inputOn;
-        _inputOff = inputOff;
+        _inputsOn = inputsOn ?? [];
+        _inputsOff = inputsOff ?? [];
         var timeoutScope = systemConfigurations.UseLocalTimeouts
             ? VariableScope.Local
             : VariableScope.Global;
@@ -123,12 +142,20 @@ public class BinaryActuator : ActorItem, IBinaryActuator
 
     public bool OnDetect()
     {
-        return _inputOn?.IsOnOrTrue() ?? _inputOff?.IsOffOrTrue() ?? false;
+        if (_inputsOn.Length > 0)
+            return _inputsOn.All(x => x.IsOnOrTrue());
+        if (_inputsOff.Length > 0)
+            return _inputsOff.All(x => x.IsOffOrTrue());
+        return false;
     }
 
     public bool OffDetect()
     {
-        return _inputOff?.IsOnOrTrue() ?? _inputOn?.IsOffOrTrue() ?? false;
+        if (_inputsOff.Length > 0)
+            return _inputsOff.All(x => x.IsOnOrTrue());
+        if (_inputsOn.Length > 0)
+            return _inputsOn.All(x => x.IsOffOrTrue());
+        return false;
     }
 
     public void OnAndWait()
@@ -167,8 +194,10 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         Unsubscribe();
         _outputOn = manager.TryGet(_outputOn);
         _outputOff = manager.TryGet(_outputOff);
-        _inputOn = manager.TryGet(_inputOn);
-        _inputOff = manager.TryGet(_inputOff);
+        for (var i = 0; i < _inputsOn.Length; i++)
+            _inputsOn[i] = manager.TryGet(_inputsOn[i]);
+        for (var i = 0; i < _inputsOff.Length; i++)
+            _inputsOff[i] = manager.TryGet(_inputsOff[i]);
         Subscribe();
     }
 
@@ -215,10 +244,12 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         CommandOn = on;
         _outputOn?.SetOn(CommandOn);
         _outputOff?.SetOn(!CommandOn);
-        if (_inputOn is FakeDigitalInput fakeInputOn)
-            fakeInputOn.On = on;
-        if (_inputOff is FakeDigitalInput fakeInputOff)
-            fakeInputOff.On = !on;
+        foreach (var inputOn in _inputsOn)
+            if (inputOn is FakeDigitalInput fakeInputOn)
+                fakeInputOn.On = on;
+        foreach (var inputOff in _inputsOff)
+            if (inputOff is FakeDigitalInput fakeInputOff)
+                fakeInputOff.On = !on;
 
         var delay = on ? OnDelay.Value : OffDelay.Value;
         var timeout = on ? OnTimeout.Value : OffTimeout.Value;
@@ -233,7 +264,7 @@ public class BinaryActuator : ActorItem, IBinaryActuator
                     break;
                 if (!CommandOn && OffDetect())
                     break;
-                if (_inputOn == null && _inputOff == null)
+                if (_inputsOn.Length == 0 && _inputsOff.Length == 0)
                     break;
                 if (watch.ElapsedMilliseconds >= timeout)
                     return ActuationResult.TimedOut;
@@ -251,18 +282,18 @@ public class BinaryActuator : ActorItem, IBinaryActuator
 
     private void Unsubscribe()
     {
-        if (_inputOff != null)
-            _inputOff.ActualOnChanged -= InputOffOnActualOnChanged;
-        if (_inputOn != null)
-            _inputOn.ActualOnChanged -= InputOffOnActualOnChanged;
+        foreach (var inputOff in _inputsOff)
+            inputOff.ActualOnChanged -= InputOffOnActualOnChanged;
+        foreach (var inputOn in _inputsOn)
+            inputOn.ActualOnChanged -= InputOffOnActualOnChanged;
     }
 
     private void Subscribe()
     {
-        if (_inputOff != null)
-            _inputOff.ActualOnChanged += InputOffOnActualOnChanged;
-        if (_inputOn != null)
-            _inputOn.ActualOnChanged += InputOffOnActualOnChanged;
+        foreach (var inputOff in _inputsOff)
+            inputOff.ActualOnChanged += InputOffOnActualOnChanged;
+        foreach (var inputOn in _inputsOn)
+            inputOn.ActualOnChanged += InputOffOnActualOnChanged;
     }
 
     private void InputOffOnActualOnChanged(object? sender, bool e)

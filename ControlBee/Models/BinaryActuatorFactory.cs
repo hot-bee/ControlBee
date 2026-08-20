@@ -25,4 +25,22 @@ public class BinaryActuatorFactory(
             inputOff
         );
     }
+
+    public IBinaryActuator Create(
+        IDigitalOutput? outputOn,
+        IDigitalOutput? outputOff,
+        IDigitalInput[]? inputsOn,
+        IDigitalInput[]? inputsOff
+    )
+    {
+        return new BinaryActuator(
+            systemConfigurations,
+            timeManager,
+            scenarioFlowTester,
+            outputOn,
+            outputOff,
+            inputsOn,
+            inputsOff
+        );
+    }
 }
