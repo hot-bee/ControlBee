@@ -5,6 +5,7 @@ using ControlBee.TestUtils;
 using JetBrains.Annotations;
 using Moq;
 using Xunit;
+using Dict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace ControlBee.Tests.Models;
 
@@ -54,6 +55,50 @@ public class FakeCounterTest : ActorFactoryBase
             return actorItemMessage
                     is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/MyCounter" }
                 && (double)message.DictPayload!["Count"]! == 77;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
+    }
+
+    [Fact]
+    public void DataWriteTest()
+    {
+        // "Count" arrives boxed as a double from WPF UI bindings (e.g. numpad-parsed values),
+        // not as an int, so ProcessMessage must convert rather than unbox-cast it.
+        var uiActor = Mock.Of<IUiActor>();
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("Ui");
+        ActorRegistry.Add(uiActor);
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        actor.Start();
+        actor.Send(new ActorItemMessage(uiActor, "/MyCounter", "_itemDataRead"));
+        actor.Send(
+            new ActorItemMessage(
+                uiActor,
+                "/MyCounter",
+                "_itemDataWrite",
+                new Dict { ["Count"] = 200.0 }
+            )
+        );
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        var match1 = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = message as ActorItemMessage;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/MyCounter" }
+                && (double)actorItemMessage.DictPayload!["Count"]! == 0;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match1(message))), Times.Once);
+
+        var match2 = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = message as ActorItemMessage;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/MyCounter" }
+                && (double)actorItemMessage.DictPayload!["Count"]! == 200;
         });
         Mock.Get(uiActor)
             .Verify(m => m.Send(It.Is<Message>(message => match2(message))), Times.Once);
