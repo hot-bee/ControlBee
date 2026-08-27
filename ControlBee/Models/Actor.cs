@@ -55,7 +55,7 @@ public class Actor : IActorInternal, IDisposable
     public Actor(ActorConfig config)
     {
         Logger.Info($"Creating an instance of Actor. ({config.ActorName})");
-        _thread = new Thread(RunThread) { IsBackground = true };
+        _thread = new Thread(RunThread);
 
         SkipWaitSensor = config.SystemConfigurations.SkipWaitSensor;
         _healthMonitorEnabled = !config.SystemConfigurations.FakeMode;

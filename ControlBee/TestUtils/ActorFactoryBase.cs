@@ -44,6 +44,8 @@ public abstract class ActorFactoryBase : IDisposable
     public virtual void Dispose()
     {
         // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
+        ActorRegistry?.Dispose();
+        // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
         TimeManager?.Dispose();
     }
 
