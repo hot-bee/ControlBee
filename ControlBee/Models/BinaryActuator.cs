@@ -320,16 +320,28 @@ public class BinaryActuator : ActorItem, IBinaryActuator
         base.PostInit();
         if (_outputOn != null)
         {
-            OutputOnOnCommandOnChanged(null, _outputOn.IsOn(CommandActualType.Command) is true);
+            if (_outputOn.IsOn(CommandActualType.Command) is true)
+                FollowCoil(true);
             _outputOn.CommandOnChanged += OutputOnOnCommandOnChanged;
+        }
+
+        if (_outputOff != null)
+        {
+            if (_outputOff.IsOn(CommandActualType.Command) is true)
+                FollowCoil(false);
+            _outputOff.CommandOnChanged += OutputOffOnCommandOnChanged;
         }
     }
 
-    private void OutputOnOnCommandOnChanged(object? sender, bool e)
+    private void OutputOnOnCommandOnChanged(object? sender, bool e) => FollowCoil(e);
+
+    private void OutputOffOnCommandOnChanged(object? sender, bool e) => FollowCoil(!e);
+
+    private void FollowCoil(bool on)
     {
-        if (e == CommandOn)
+        if (on == CommandOn)
             return;
-        CommandOn = e;
+        CommandOn = on;
         ActualOn = null;
     }
 
