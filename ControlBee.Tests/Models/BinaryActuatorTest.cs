@@ -382,6 +382,51 @@ public class BinaryActuatorTest
         Assert.False(actor.Cyl1.OnDetect());
     }
 
+    [Fact]
+    public void OffOutputDataWriteTest()
+    {
+        var config = new ActorFactoryBaseConfig
+        {
+            SystemConfigurations = new SystemConfigurations { FakeMode = true },
+        };
+        Recreate(config);
+
+        var uiActor = Mock.Of<IUiActor>();
+        Mock.Get(uiActor).Setup(m => m.Name).Returns("Ui");
+        ActorRegistry.Add(uiActor);
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "On1"));
+        actor.Send(
+            new ActorItemMessage(
+                uiActor,
+                "/CylBwd1",
+                "_itemDataWrite",
+                new Dictionary<string, object?> { ["On"] = true }
+            )
+        );
+        actor.Send(new Message(EmptyActor.Instance, "On1"));
+        actor.Send(new Message(EmptyActor.Instance, "_terminate"));
+        actor.Join();
+
+        var match = new Func<Message, bool>(message =>
+        {
+            var actorItemMessage = message as ActorItemMessage;
+            return actorItemMessage
+                    is { Name: "_itemDataChanged", ActorName: "MyActor", ItemPath: "/Cyl1" }
+                && !(bool)actorItemMessage.DictPayload!["CommandOn"]!
+                && actorItemMessage.DictPayload!["ActualOn"] == null
+                && (bool)actorItemMessage.DictPayload!["OnDetect"]!;
+        });
+        Mock.Get(uiActor)
+            .Verify(m => m.Send(It.Is<Message>(message => match(message))), Times.AtLeastOnce);
+
+        Assert.True(actor.Cyl1.IsOn());
+        Assert.True(actor.CylFwd1.IsOn(CommandActualType.Command));
+        Assert.False(actor.CylBwd1.IsOn(CommandActualType.Command));
+    }
+
     private class TestActor : Actor
     {
         public readonly IBinaryActuator Cyl1;
