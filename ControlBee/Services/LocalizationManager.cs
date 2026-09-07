@@ -11,6 +11,10 @@ public class LocalizationManager : ILocalizationManager
 {
     private static readonly ILog Logger = LogManager.GetLogger(nameof(LocalizationManager));
     private static LocalizationManager? _instance;
+    private static readonly JsonMergeSettings MergeSettings = new()
+    {
+        MergeArrayHandling = MergeArrayHandling.Replace,
+    };
     private JObject? _translations;
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -33,19 +37,47 @@ public class LocalizationManager : ILocalizationManager
             "LocalizationManager has not been initialized. Ensure it's registered in DI container."
         );
 
-    public void Load(string jsonPath)
+    // Loads the files in order into one set of translations, so a shared file can carry the keys
+    // every application has in common and the application's own file the rest. A key a later file
+    // repeats replaces the earlier value, and each such override is logged so an intended override
+    // and an accidental duplicate can be told apart. A file that cannot be read is skipped; when
+    // none could be read the current translations stay as they are.
+    public void Load(params string[] jsonPaths)
     {
-        try
+        var merged = new JObject();
+        var loaded = 0;
+        foreach (var jsonPath in jsonPaths)
         {
-            var json = File.ReadAllText(jsonPath);
-            _translations = JObject.Parse(json);
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Item[]"));
+            JObject next;
+            try
+            {
+                next = JObject.Parse(File.ReadAllText(jsonPath));
+            }
+            catch (IOException)
+            {
+                Logger.Warn($"File not found. ({jsonPath})");
+                continue;
+            }
+            foreach (var path in OverriddenPaths(merged, next))
+                Logger.Warn($"Locale key '{path}' in {jsonPath} overrides an earlier file.");
+            merged.Merge(next, MergeSettings);
+            loaded++;
         }
-        catch (IOException)
-        {
-            Logger.Warn($"File not found. (${jsonPath})");
-        }
+        if (loaded == 0)
+            return;
+        _translations = merged;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Item[]"));
     }
+
+    // Paths of the values in `incoming` that `existing` already holds with a different value.
+    private static IEnumerable<string> OverriddenPaths(JObject existing, JObject incoming) =>
+        incoming
+            .Descendants()
+            .OfType<JValue>()
+            .Where(leaf =>
+                existing.SelectToken(leaf.Path) is { } earlier && !JToken.DeepEquals(earlier, leaf)
+            )
+            .Select(leaf => leaf.Path);
 
     public string? GetValue(string key, Dictionary<string, string>? args = null)
     {
