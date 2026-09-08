@@ -77,7 +77,7 @@ public class Counter(IDeviceManager deviceManager) : DeviceChannel(deviceManager
                 return true;
             case "_itemDataWrite":
                 {
-                    var count = (int)message.DictPayload!["Count"]!;
+                    var count = Convert.ToInt32(message.DictPayload!["Count"]!);
                     SetCounterValue(count);
                     return true;
                 }
