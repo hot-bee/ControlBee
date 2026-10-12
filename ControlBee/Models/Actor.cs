@@ -713,7 +713,7 @@ public class Actor : IActorInternal, IDisposable
             }
             catch (Exception error)
             {
-                Logger.Warn(
+                Logger.Error(
                     $"Failed to dispose {state.GetType().Name} while handling an error.",
                     error
                 );
