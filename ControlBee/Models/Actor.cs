@@ -684,14 +684,14 @@ public class Actor : IActorInternal, IDisposable
             if (error is FatalSequenceError fatalError)
             {
                 Logger.Fatal("Fatal Sequence Error", fatalError);
-                oldStateHashes.ToList().ForEach(x => x.Dispose());
+                DisposeStatesOnError(oldStateHashes);
                 State = CreateFatalErrorState(fatalError);
                 FatalError.Show(fatalError.Message);
             }
             else
             {
                 Logger.Error("Sequence Error", error);
-                oldStateHashes.ToList().ForEach(x => x.Dispose());
+                DisposeStatesOnError(oldStateHashes);
                 State = CreateErrorState(error);
             }
 
@@ -700,6 +700,24 @@ public class Actor : IActorInternal, IDisposable
             ScenarioFlowTester.OnCheckpoint();
             PublishStateChanged();
             MessageHandler(new StateEntryMessage(this));
+        }
+    }
+
+    private static void DisposeStatesOnError(IEnumerable<IState> states)
+    {
+        foreach (var state in states)
+        {
+            try
+            {
+                state.Dispose();
+            }
+            catch (Exception error)
+            {
+                Logger.Warn(
+                    $"Failed to dispose {state.GetType().Name} while handling an error.",
+                    error
+                );
+            }
         }
     }
 
