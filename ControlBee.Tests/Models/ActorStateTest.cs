@@ -149,6 +149,24 @@ public class ActorStateTest : ActorFactoryBase
         Assert.True(actor.GetStatus("LongSignal") is false);
     }
 
+    [Fact]
+    public void ErrorWithThrowingDisposeTest()
+    {
+        var actor = ActorFactory.Create<TestActor>("MyActor");
+
+        ActorUtils.TerminateWhenStateChanged(actor, typeof(ErrorState<TestActor>));
+
+        actor.State = new StateC(actor);
+        actor.PushState(new StateF(actor));
+        actor.Start();
+        actor.Send(new Message(EmptyActor.Instance, "GoError"));
+        actor.Join();
+
+        Assert.Null(actor.ExitError);
+        Assert.IsType<ErrorState<TestActor>>(actor.State);
+        Assert.True(actor.GetStatus("LongSignal") is false);
+    }
+
     private class TestActor : Actor
     {
         public TestActor(ActorConfig config)
@@ -259,6 +277,25 @@ public class ActorStateTest : ActorFactoryBase
     {
         public override bool ProcessMessage(Message message)
         {
+            return false;
+        }
+    }
+
+    private class StateF(TestActor actor) : State<TestActor>(actor)
+    {
+        public override void Dispose()
+        {
+            throw new SequenceError();
+        }
+
+        public override bool ProcessMessage(Message message)
+        {
+            switch (message.Name)
+            {
+                case "GoError":
+                    throw new SequenceError();
+            }
+
             return false;
         }
     }
