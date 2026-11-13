@@ -1,5 +1,4 @@
 ﻿using ControlBee.Interfaces;
-using ControlBee.Models;
 using ControlBeeAbstract.Exceptions;
 
 namespace ControlBee.Services;
@@ -38,10 +37,8 @@ public class ActorRegistry : IActorRegistry
 
     public void Dispose()
     {
-        var ui = _map["Ui"];
-        foreach (var (_, actor) in _map)
-        {
-            actor.Send(new Message(ui, "_terminate"));
-        }
+        foreach (var actor in _map.Values)
+            if (actor is IDisposable disposable)
+                disposable.Dispose();
     }
 }
