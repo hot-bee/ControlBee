@@ -117,6 +117,17 @@ public class Vision(IDeviceManager deviceManager, ITimeManager timeManager)
         SaveImage(savePath, null);
     }
 
+    public void SaveJudgedImages(string[] triggerIds, bool ok)
+    {
+        if (VisionDevice == null)
+        {
+            Logger.Error($"VisionDevice is not set. ({ActorName}, {ItemPath})");
+            return;
+        }
+
+        VisionDevice.SaveJudgedImages(Channel, triggerIds, ok);
+    }
+
     public void SetLightValue(int inspectionIndex, int lightChannel, double value)
     {
         if (VisionDevice == null)

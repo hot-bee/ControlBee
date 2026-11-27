@@ -20,6 +20,7 @@ public interface IVision : IDeviceChannel
     JObject? GetResult(string triggerId);
     void SaveImage(string savePath, string? triggerId);
     void SaveImage(string savePath);
+    void SaveJudgedImages(string[] triggerIds, bool ok);
     void CancelTrigger();
     void SetLightValue(int inspectionIndex, int lightChannel, double value);
     void SetResolution(double resolution);
