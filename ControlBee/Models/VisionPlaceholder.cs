@@ -125,6 +125,11 @@ public class VisionPlaceholder : IPlaceholder, IVision
         throw new NotImplementedException();
     }
 
+    public void SaveJudgedImages(string[] triggerIds, bool ok)
+    {
+        throw new NotImplementedException();
+    }
+
     public void CancelTrigger()
     {
         throw new NotImplementedException();
